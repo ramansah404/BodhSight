@@ -13,7 +13,7 @@ export interface HealthResponse {
   status: string;
   service: string;
   environment: string;
-  agent: str;
+  agent: string;
 }
 
 export const checkHealth = async (): Promise<HealthResponse> => {

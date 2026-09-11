@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { checkHealth, HealthResponse } from '../services/api';
+import { checkHealth, type HealthResponse } from '../services/api';
 
 export default function Dashboard() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
