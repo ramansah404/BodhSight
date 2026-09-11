@@ -1,17 +1,17 @@
 ﻿export type InstitutionalRole = "Principal" | "Management" | "IQAC" | "Dean" | "HOD" | "Faculty";
 
 export interface PermissionMatrix {
-  canApproveMacroInterventions: boolean; // Principal, Management, Dean
-  canViewAllDepartments: boolean;        // Principal, Management, IQAC, Dean
-  canExportOfficialReports: boolean;     // Principal, Management, IQAC, Dean
-  canTriggerSystemAudit: boolean;        // Principal, IQAC, Dean
-  canCalibrateCourseDifficulty: boolean; // Dean, HOD
-  canExecuteRecommendation: boolean;     // Principal, Dean, HOD
-  canSubmitFacultyFeedback: boolean;     // Faculty, HOD
+  canApproveMacroInterventions: boolean;
+  canViewAllDepartments: boolean;
+  canExportOfficialReports: boolean;
+  canTriggerSystemAudit: boolean;
+  canCalibrateCourseDifficulty: boolean;
+  canExecuteRecommendation: boolean;
+  canSubmitFacultyFeedback: boolean;
 }
 
 export const getRolePermissions = (roleString: string): PermissionMatrix => {
-  const role = roleString.trim();
+  const role = roleString ? roleString.trim() : "Dean";
 
   switch (role) {
     case "Principal":
