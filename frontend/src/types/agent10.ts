@@ -216,7 +216,7 @@ export interface TrendData {
 export interface ReportItem {
   id: string;
   title: string;
-  type: "PDF" | "CSV" | "JSON";
+  type: "PDF" | "CSV" | "JSON" | "Excel" | "Word";
   generated_date: string;
   category: string;
   size: string;

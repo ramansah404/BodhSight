@@ -3,6 +3,8 @@ import { Layers, AlertTriangle, CheckCircle , AlertCircle, Info } from "lucide-r
 import { Agent10API } from "../services/api";
 import { useFilters } from "../contexts/FilterContext";
 import type { SectionComparison } from "../types/agent10";
+import ExportMenu from "../components/ui/ExportMenu";
+import { exportToExcel } from "../utils/exportUtils";
 
 type LoadState = "loading" | "success" | "error" | "empty";
 
@@ -41,6 +43,20 @@ export default function Sections() {
     : sections;
 
   const disparityCount = visible.filter((s) => s.disparity_flag).length;
+
+  const handleExportExcel = () => {
+    const exportData = visible.map(s => ({
+      "Course Code": s.course_code,
+      "Course Title": s.course_title,
+      "Section": s.section,
+      "Department": s.department,
+      "Students": s.students_appeared,
+      "Pass Rate (%)": s.pass_rate,
+      "Average Marks": s.avg_marks,
+      "Disparity Flag": s.disparity_flag ? "FLAGGED" : "Normal"
+    }));
+    exportToExcel(exportData, `Section_Performance_${filters.department || 'All'}`);
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -109,11 +125,17 @@ export default function Sections() {
                   <Layers className="text-blue-600" size={20} />
                   Section Performance Matrix ({visible.length} sections)
                 </h2>
-                {disparityCount > 0 && (
-                  <span className="text-xs font-bold bg-rose-500/10 text-rose-400 px-3 py-1 rounded-full border border-rose-500/20">
-                    {disparityCount} disparity flag{disparityCount !== 1 ? "s" : ""} active
-                  </span>
-                )}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  {disparityCount > 0 && (
+                    <span className="text-xs font-bold bg-rose-500/10 text-rose-400 px-3 py-1 rounded-full border border-rose-500/20">
+                      {disparityCount} disparity flag{disparityCount !== 1 ? "s" : ""} active
+                    </span>
+                  )}
+                  <ExportMenu 
+                    onExportExcel={handleExportExcel}
+                    disabled={state !== "success" || visible.length === 0}
+                  />
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">

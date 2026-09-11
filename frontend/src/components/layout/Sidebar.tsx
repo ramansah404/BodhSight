@@ -1,3 +1,4 @@
+import BrandLogo from "../ui/BrandLogo";
 import { NavLink } from "react-router-dom";
 import { 
   LayoutDashboard, 
@@ -11,9 +12,11 @@ import {
   FileText, 
   Settings,
   ShieldAlert,
-  X
+  X,
+  Menu
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -22,6 +25,7 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const currentRole = localStorage.getItem("bodhsight_role") || "Chairman";
+  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   
   const allNavItems = [
     { name: "Overview", path: "/dashboard", icon: LayoutDashboard, roles: ["Chairman", "Dean", "HOD", "Faculty"] },
@@ -39,13 +43,13 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
   const navItems = allNavItems.filter(item => item.roles.includes(currentRole));
 
-  const SidebarContent = (
-    <div className="w-64 bg-[#020817] border-r border-slate-800/60 flex flex-col h-full text-slate-300">
-      <div className="p-6 border-b border-slate-800/60 flex items-center justify-between h-16 md:h-20 shrink-0">
-        <div className={`flex items-center gap-2 ${!isOpen ? 'mx-auto' : ''}`}>
-          <img src="/logo-b.png" alt="BodhSight Logo" className="h-7 md:h-8 w-auto object-contain shrink-0" />
-          <span className={`text-xl font-bold tracking-tight text-foreground whitespace-nowrap ${!isOpen ? 'hidden' : 'block'}`}>BodhSight</span>
-        </div>
+  const SidebarContent = ({ isMobile = false }) => {
+    const collapsed = !isMobile && isDesktopCollapsed;
+    
+    return (
+      <div className={`${collapsed ? 'w-20' : 'w-64'} bg-[#020817] border-r border-slate-800/60 flex flex-col h-full text-slate-300 transition-all duration-300`}>
+        <div className={`p-6 border-b border-slate-800/60 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} h-16 md:h-20 shrink-0`}>
+          <BrandLogo isCollapsed={collapsed} />
         {/* Mobile close button inside sidebar */}
         <button 
           onClick={() => setIsOpen(false)} 
@@ -75,7 +79,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               {({ isActive }) => (
                 <>
                   <Icon size={18} className={isActive ? "text-indigo-400" : "text-secondary group-hover:text-secondary"} />
-                  <span>{item.name}</span>
+                  {!collapsed && <span className="whitespace-nowrap">{item.name}</span>}
                 </>
               )}
             </NavLink>
@@ -83,17 +87,30 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         })}
       </nav>
 
-      <div className="p-4 border-t border-slate-800/60 text-[10px] text-secondary text-center font-bold tracking-widest uppercase shrink-0">
-        Strict RBAC Active
+      <div className="p-4 border-t border-slate-800/60 flex flex-col items-center shrink-0">
+        {!isMobile && (
+          <button 
+            onClick={() => setIsDesktopCollapsed(!isDesktopCollapsed)}
+            className="w-full flex justify-center py-2 text-secondary hover:text-white transition-colors"
+          >
+            {collapsed ? <Menu size={20} /> : <X size={20} />}
+          </button>
+        )}
+        {!collapsed && (
+          <div className="text-[10px] text-secondary text-center font-bold tracking-widest uppercase mt-2">
+            Strict RBAC Active
+          </div>
+        )}
       </div>
     </div>
   );
+  };
 
   return (
     <>
       {/* Desktop Sidebar (Persistent) */}
       <aside className="hidden md:block h-screen z-10 shrink-0">
-        {SidebarContent}
+        <SidebarContent isMobile={false} />
       </aside>
 
       {/* Mobile Sidebar (Drawer) */}
@@ -116,7 +133,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               className="md:hidden fixed inset-y-0 left-0 z-50 h-screen shadow-2xl shadow-indigo-900/20"
             >
-              {SidebarContent}
+              <SidebarContent isMobile={true} />
             </motion.aside>
           </>
         )}

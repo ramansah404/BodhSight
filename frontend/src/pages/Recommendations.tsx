@@ -3,6 +3,8 @@ import { Lightbulb, CheckCircle2, Play, Sparkles, Lock , AlertCircle, Info } fro
 import { Agent10API } from "../services/api";
 import { getRolePermissions } from "../utils/rbac";
 import type { RecommendationItem } from "../types/agent10";
+import ExportMenu from "../components/ui/ExportMenu";
+import { exportToExcel } from "../utils/exportUtils";
 
 type LoadState = "loading" | "success" | "error" | "empty";
 
@@ -59,6 +61,19 @@ export default function Recommendations() {
     }, 1200);
   };
 
+  const handleExportExcel = () => {
+    const exportData = recommendations.map(r => ({
+      "Priority": r.priority,
+      "Problem": r.problem,
+      "Recommendation": r.recommendation,
+      "Expected Impact": r.expected_impact,
+      "Affected Population": r.affected_population,
+      "Course Code": r.course_code || "N/A",
+      "Status": r.status || "PENDING"
+    }));
+    exportToExcel(exportData, "Recommendations_Log");
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="bg-gradient-to-r from-purple-950 via-indigo-900 to-slate-900 rounded-3xl p-8 text-white shadow-xl">
@@ -71,6 +86,12 @@ export default function Recommendations() {
             ? "Execute and authorize prioritized institutional interventions based on Agent 10 anomaly detections."
             : "Review recommended pedagogical support and remediation workflows for your assigned courses."}
         </p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-4">
+          <ExportMenu 
+            onExportExcel={handleExportExcel}
+            disabled={state !== "success" || recommendations.length === 0}
+          />
+        </div>
       </div>
 
       {/* Loading */}

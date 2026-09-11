@@ -1,31 +1,35 @@
-import { useState } from "react";
+import BrandLogo from "../components/ui/BrandLogo";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShieldCheck, Lock, Mail, ArrowRight, Sparkles, KeyRound,
-  CheckCircle2, X, User, UserPlus, Fingerprint, MoveLeft
+  CheckCircle2, X, User, UserPlus, Fingerprint, MoveLeft,
+  ChevronDown
 } from "lucide-react";
 
 /**
  * Login page — institutional sign-in.
- * Redesigned with premium SaaS dark aesthetic.
+ * Features a custom dropdown, polished transitions, and strict 4-role RBAC.
  */
 
 const ROLE_OPTIONS = [
-  { code: "Dean",       label: "Dean of Academics",       display: "Dean" },
-  { code: "Principal",  label: "Principal & Management",  display: "Principal" },
-  { code: "IQAC",       label: "IQAC Quality Officer",    display: "IQAC Officer" },
-  { code: "HOD",        label: "Head of Department",      display: "HOD" },
-  { code: "Faculty",    label: "Course Instructor",       display: "Faculty" },
+  { code: "Chairman",   label: "Chairman / Board",        display: "Chairman", desc: "Institutional Overview", icon: ShieldCheck },
+  { code: "Dean",       label: "Dean of Academics",       display: "Dean",     desc: "Academic Management", icon: Lock },
+  { code: "HOD",        label: "Head of Department",      display: "HOD",      desc: "Departmental View", icon: User },
+  { code: "Faculty",    label: "Course Instructor",       display: "Faculty",  desc: "Course Management", icon: UserPlus },
 ];
 
 export default function Login() {
   const navigate = useNavigate();
   const [isSignUp, setIsSignUp] = useState(false);
 
-  const [roleCode, setRoleCode] = useState("Dean");
-  const [name, setName] = useState("Dr. Anil Kumar Mahato");
-  const [email, setEmail] = useState("anil.mahato@vignan.ac.in");
+  const [roleCode, setRoleCode] = useState("Chairman");
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [name, setName] = useState("Dr. K. Vignan");
+  const [email, setEmail] = useState("chairman@vignan.ac.in");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -40,11 +44,22 @@ export default function Login() {
 
   const selectedRole = ROLE_OPTIONS.find((r) => r.code === roleCode) ?? ROLE_OPTIONS[0];
 
-  const startSession = (code: string, displayLabel: string, displayName: string) => {
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsRoleDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const startSession = (code: string, displayLabel: string, displayName: string, userEmail: string) => {
     localStorage.setItem("bodhsight_role", code);
     localStorage.setItem("bodhsight_display_role", displayLabel);
     localStorage.setItem("bodhsight_name", displayName);
-    localStorage.setItem("bodhsight_email", email);
+    localStorage.setItem("bodhsight_email", userEmail);
     navigate("/dashboard");
   };
 
@@ -67,17 +82,14 @@ export default function Login() {
 
     setLoading(true);
     setTimeout(() => {
-      startSession(selectedRole.code, selectedRole.label, name.trim());
+      startSession(selectedRole.code, selectedRole.label, name.trim(), email.trim());
       setLoading(false);
     }, 800);
   };
 
   const handleQuickDemo = (code: string, label: string, demoName: string) => {
-    localStorage.setItem("bodhsight_role", code);
-    localStorage.setItem("bodhsight_display_role", label);
-    localStorage.setItem("bodhsight_name", demoName);
-    localStorage.setItem("bodhsight_email", `${code.toLowerCase()}@vignan.ac.in`);
-    navigate("/dashboard");
+    const demoEmail = `${code.toLowerCase()}@vignan.ac.in`;
+    startSession(code, label, demoName, demoEmail);
   };
 
   const handleSendResetLink = (e: React.FormEvent) => {
@@ -95,17 +107,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020817] text-white flex items-center justify-center p-4 sm:p-6 lg:p-8 overflow-hidden relative">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 sm:p-6 lg:p-8 overflow-hidden relative transition-colors duration-300">
       {/* Background Gradients */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-violet-600/20 blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/20 blur-[120px]" />
-        <div className="absolute top-[30%] left-[40%] w-[20%] h-[20%] rounded-full bg-indigo-500/10 blur-[80px]" />
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-violet-600/10 dark:bg-violet-600/20 blur-[120px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/10 dark:bg-blue-600/20 blur-[120px]" />
+        <div className="absolute top-[30%] left-[40%] w-[20%] h-[20%] rounded-full bg-indigo-500/5 dark:bg-indigo-500/10 blur-[80px]" />
       </div>
 
       <button
         onClick={() => navigate("/")}
-        className="absolute top-8 left-8 flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors cursor-pointer z-20 group"
+        className="absolute top-8 left-8 flex items-center gap-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors cursor-pointer z-20 group"
       >
         <MoveLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
         Back to BodhSight
@@ -115,31 +127,29 @@ export default function Login() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="max-w-5xl w-full bg-slate-900/50 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-800/60 overflow-hidden grid grid-cols-1 md:grid-cols-12 relative z-10 my-auto"
+        className="max-w-5xl w-full bg-surface backdrop-blur-2xl rounded-3xl shadow-2xl border border-border overflow-hidden grid grid-cols-1 md:grid-cols-12 relative z-10 my-auto"
       >
         {/* Left Branding Column */}
-        <div className="md:col-span-5 bg-gradient-to-b from-slate-900 to-slate-950 p-8 md:p-12 border-r border-slate-800/60 flex flex-col justify-between relative overflow-hidden">
+        <div className="md:col-span-5 bg-surface-secondary/50 p-8 md:p-12 border-r border-border flex flex-col justify-between relative overflow-hidden">
           
           <div className="space-y-6 relative z-10">
-            <div className="flex items-center gap-3 mb-8">
-              <img src="/logo-b.png" alt="BodhSight Logo" className="h-8 md:h-10 w-auto object-contain shrink-0" />
-              <span className="text-2xl md:text-3xl font-bold tracking-tight text-white whitespace-nowrap">BodhSight</span>
-            </div>
-            <div className="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-300 px-3 py-1 rounded-full text-xs font-bold border border-indigo-500/20">
-              <Sparkles size={14} className="text-indigo-400" /> Secure Gateway
+            <BrandLogo className="mb-8 scale-110 origin-left" />
+            <div className="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 px-3 py-1 rounded-full text-xs font-bold border border-indigo-500/20">
+              <Sparkles size={14} className="text-indigo-600 dark:text-indigo-400" /> Secure Gateway
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome to<br/>BodhSight.</h1>
-              <p className="text-slate-400 text-sm leading-relaxed font-medium">
+              <h1 className="text-3xl font-bold tracking-tight text-text-primary mb-2">Welcome to<br/>BodhSight.</h1>
+              <p className="text-text-secondary text-sm leading-relaxed font-medium">
                 Authenticate your institutional credentials to access secure academic telemetry and Agent 10 analytics.
               </p>
             </div>
           </div>
 
           <div className="space-y-3 pt-10 relative z-10">
-            <div className="text-xs font-bold uppercase tracking-widest text-slate-500">Quick Access (Demo)</div>
+            <div className="text-xs font-bold uppercase tracking-widest text-text-secondary">Quick Access (Demo)</div>
             <div className="space-y-2">
               {[
+                { code: "Chairman", label: "Chairman / Board",    name: "Dr. K. Vignan", desc: "Login as Chairman" },
                 { code: "Dean",    label: "Dean of Academics",    name: "Dr. Anil Kumar Mahato", desc: "Login as Dean" },
                 { code: "HOD",     label: "Head of Department",   name: "Prof. Sharma (CSE)", desc: "Login as HOD" },
                 { code: "Faculty", label: "Course Instructor",    name: "Dr. Rao", desc: "Login as Faculty" },
@@ -149,31 +159,31 @@ export default function Login() {
                   whileTap={{ scale: 0.98 }}
                   key={demo.code}
                   onClick={() => handleQuickDemo(demo.code, demo.label, demo.name)}
-                  className="w-full text-left px-4 py-3 bg-slate-800/40 hover:bg-indigo-500/10 border border-slate-700/50 hover:border-indigo-500/30 rounded-xl text-xs font-medium text-slate-300 transition-all flex items-center justify-between cursor-pointer group"
+                  className="w-full text-left px-4 py-3 bg-background hover:bg-indigo-500/5 dark:hover:bg-indigo-500/10 border border-border hover:border-indigo-500/30 rounded-xl text-xs font-medium text-text-primary transition-all flex items-center justify-between cursor-pointer group shadow-sm"
                 >
                   <span className="flex items-center gap-2">
-                    <Fingerprint size={14} className="text-slate-500 group-hover:text-indigo-400 transition-colors" />
+                    <Fingerprint size={14} className="text-text-secondary group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors" />
                     {demo.desc}
                   </span>
-                  <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:-translate-x-1 transition-all text-indigo-400" />
+                  <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:-translate-x-1 transition-all text-indigo-500 dark:text-indigo-400" />
                 </motion.button>
               ))}
             </div>
           </div>
 
-          <div className="text-[11px] text-slate-600 font-medium pt-8 mt-4 border-t border-slate-800">
+          <div className="text-[11px] text-text-secondary font-medium pt-8 mt-4 border-t border-border">
             Encrypted RBAC Session • Powered by PostgreSQL
           </div>
         </div>
 
         {/* Right Form Column */}
-        <div className="md:col-span-7 p-8 md:p-12 flex flex-col justify-center bg-slate-900/20">
+        <div className="md:col-span-7 p-8 md:p-12 flex flex-col justify-center bg-surface">
           <div className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-white tracking-tight">
+              <h2 className="text-2xl font-bold text-text-primary tracking-tight">
                 {isSignUp ? "Create Account" : "Sign In"}
               </h2>
-              <p className="text-sm text-slate-400 mt-1">
+              <p className="text-sm text-text-secondary mt-1">
                 {isSignUp
                   ? "Register your credentials."
                   : "Enter your details to proceed."}
@@ -182,7 +192,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => { setIsSignUp(!isSignUp); setError(""); }}
-              className="text-xs font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 px-4 py-2 rounded-lg border border-indigo-500/20 transition-all cursor-pointer flex items-center gap-1.5"
+              className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-500/10 px-4 py-2 rounded-lg border border-indigo-500/20 transition-all cursor-pointer flex items-center gap-1.5"
             >
               {isSignUp ? <User size={14} /> : <UserPlus size={14} />}
               {isSignUp ? "Sign In Instead" : "Create Account"}
@@ -195,7 +205,7 @@ export default function Login() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mb-6 px-4 py-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-sm font-medium text-rose-400"
+                className="mb-6 px-4 py-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-sm font-medium text-rose-600 dark:text-rose-400"
               >
                 {error}
               </motion.div>
@@ -204,37 +214,69 @@ export default function Login() {
 
           <form onSubmit={handleAuthSubmit} className="space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {/* Role selector */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              {/* Custom Role Dropdown */}
+              <div className="relative" ref={dropdownRef}>
+                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
                   Access Level
                 </label>
-                <div className="relative">
-                  <ShieldCheck className="absolute left-3.5 top-3 text-slate-500" size={16} />
-                  <select
-                    value={roleCode}
-                    onChange={(e) => setRoleCode(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-950/50 border border-slate-800 rounded-xl text-sm font-medium text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all appearance-none"
-                  >
-                    {ROLE_OPTIONS.map((r) => (
-                      <option key={r.code} value={r.code} className="bg-slate-900">{r.display}</option>
-                    ))}
-                  </select>
+                <div 
+                  onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-text-primary flex items-center justify-between cursor-pointer hover:border-indigo-500 transition-colors shadow-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    {selectedRole.icon && <selectedRole.icon size={16} className="text-indigo-500" />}
+                    {selectedRole.display}
+                  </div>
+                  <ChevronDown size={16} className={`text-text-secondary transition-transform duration-200 ${isRoleDropdownOpen ? 'rotate-180' : ''}`} />
                 </div>
+                
+                <AnimatePresence>
+                  {isRoleDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full left-0 w-full mt-2 bg-surface border border-border rounded-xl shadow-xl overflow-hidden z-20"
+                    >
+                      {ROLE_OPTIONS.map((r) => (
+                        <div
+                          key={r.code}
+                          onClick={() => {
+                            setRoleCode(r.code);
+                            setIsRoleDropdownOpen(false);
+                            // Pre-fill email/name logic for convenience in demo
+                            if(r.code === "Chairman") { setName("Dr. K. Vignan"); setEmail("chairman@vignan.ac.in"); }
+                            if(r.code === "Dean") { setName("Dr. Anil Kumar Mahato"); setEmail("dean@vignan.ac.in"); }
+                            if(r.code === "HOD") { setName("Prof. Sharma"); setEmail("hod@vignan.ac.in"); }
+                            if(r.code === "Faculty") { setName("Dr. Rao"); setEmail("faculty@vignan.ac.in"); }
+                          }}
+                          className={`px-4 py-3 cursor-pointer flex items-center gap-3 transition-colors ${roleCode === r.code ? 'bg-indigo-500/10' : 'hover:bg-surface-secondary'}`}
+                        >
+                          <r.icon size={16} className={roleCode === r.code ? 'text-indigo-500' : 'text-text-secondary'} />
+                          <div>
+                            <div className={`text-sm font-semibold ${roleCode === r.code ? 'text-indigo-600 dark:text-indigo-400' : 'text-text-primary'}`}>{r.display}</div>
+                            <div className="text-[10px] text-text-secondary">{r.desc}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Name */}
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-3 text-slate-500" size={16} />
+                  <User className="absolute left-3.5 top-3 text-text-secondary" size={16} />
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-950/50 border border-slate-800 rounded-xl text-sm font-medium text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                    className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm"
                     required
                   />
                 </div>
@@ -243,16 +285,16 @@ export default function Login() {
 
             {/* Email */}
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
                 Institutional Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-3 text-slate-500" size={16} />
+                <Mail className="absolute left-3.5 top-3 text-text-secondary" size={16} />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-950/50 border border-slate-800 rounded-xl text-sm font-medium text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm"
                   required
                 />
               </div>
@@ -260,17 +302,17 @@ export default function Login() {
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-3 text-slate-500" size={16} />
+                <Lock className="absolute left-3.5 top-3 text-text-secondary" size={16} />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-950/50 border border-slate-800 rounded-xl text-sm font-medium text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm"
                   required
                 />
               </div>
@@ -279,7 +321,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => { setForgotEmail(email); setForgotStep(1); setNewPassword(""); setShowForgotModal(true); }}
-                    className="text-xs font-medium text-slate-500 hover:text-indigo-400 transition-colors cursor-pointer"
+                    className="text-xs font-medium text-text-secondary hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
                   >
                     Forgot Password?
                   </button>
@@ -295,17 +337,17 @@ export default function Login() {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                 >
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-1">
+                  <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 mt-1">
                     Confirm Password
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 text-slate-500" size={16} />
+                    <Lock className="absolute left-3.5 top-3 text-text-secondary" size={16} />
                     <input
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-2.5 bg-slate-950/50 border border-slate-800 rounded-xl text-sm font-medium text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                      className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm"
                       required={isSignUp}
                     />
                   </div>
@@ -340,16 +382,16 @@ export default function Login() {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md border border-slate-800 overflow-hidden"
+              className="bg-surface rounded-3xl shadow-2xl w-full max-w-md border border-border overflow-hidden"
             >
-              <div className="px-6 py-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-                <div className="flex items-center gap-3 text-white font-semibold">
-                  <div className="p-2 bg-indigo-500/20 rounded-lg">
-                    <KeyRound size={16} className="text-indigo-400" />
+              <div className="px-6 py-5 border-b border-border flex justify-between items-center bg-surface-secondary">
+                <div className="flex items-center gap-3 text-text-primary font-semibold">
+                  <div className="p-2 bg-indigo-500/10 rounded-lg">
+                    <KeyRound size={16} className="text-indigo-600 dark:text-indigo-400" />
                   </div>
                   Account Recovery
                 </div>
-                <button onClick={() => setShowForgotModal(false)} className="text-slate-500 hover:text-white transition-colors">
+                <button onClick={() => setShowForgotModal(false)} className="text-text-secondary hover:text-text-primary transition-colors">
                   <X size={20} />
                 </button>
               </div>
@@ -358,19 +400,19 @@ export default function Login() {
                 <AnimatePresence mode="wait">
                   {forgotStep === 1 && (
                     <motion.form key="s1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleSendResetLink} className="space-y-5">
-                      <p className="text-sm text-slate-400">Enter your registered institutional email address to receive a secure reset code.</p>
+                      <p className="text-sm text-text-secondary">Enter your registered institutional email address to receive a secure reset code.</p>
                       <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">Registered Email</label>
+                        <label className="block text-xs font-semibold text-text-secondary uppercase mb-2">Registered Email</label>
                         <input
                           type="email"
                           value={forgotEmail}
                           onChange={(e) => setForgotEmail(e.target.value)}
                           placeholder="dean@vignan.ac.in"
-                          className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:border-indigo-500 focus:outline-none"
+                          className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-text-primary focus:border-indigo-500 focus:outline-none shadow-sm"
                           required
                         />
                       </div>
-                      <button type="submit" disabled={forgotLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all cursor-pointer">
+                      <button type="submit" disabled={forgotLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all cursor-pointer shadow-sm">
                         {forgotLoading ? "Sending Code…" : "Send Reset Code"}
                       </button>
                     </motion.form>
@@ -378,18 +420,18 @@ export default function Login() {
 
                   {forgotStep === 2 && (
                     <motion.form key="s2" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleUpdatePassword} className="space-y-5">
-                      <div className="bg-indigo-500/10 p-3.5 rounded-xl border border-indigo-500/20 text-sm text-indigo-300 font-medium">
+                      <div className="bg-indigo-500/10 p-3.5 rounded-xl border border-indigo-500/20 text-sm text-indigo-700 dark:text-indigo-300 font-medium">
                         Code sent to <strong>{forgotEmail}</strong>.<br/>(Demo code: <strong>4892</strong>)
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">Security Code</label>
-                        <input type="text" defaultValue="4892" className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-base font-bold tracking-[0.2em] text-center text-white focus:border-indigo-500 focus:outline-none" required />
+                        <label className="block text-xs font-semibold text-text-secondary uppercase mb-2">Security Code</label>
+                        <input type="text" defaultValue="4892" className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-base font-bold tracking-[0.2em] text-center text-text-primary focus:border-indigo-500 focus:outline-none shadow-sm" required />
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-slate-400 uppercase mb-2">New Password</label>
-                        <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:border-indigo-500 focus:outline-none" required />
+                        <label className="block text-xs font-semibold text-text-secondary uppercase mb-2">New Password</label>
+                        <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-text-primary focus:border-indigo-500 focus:outline-none shadow-sm" required />
                       </div>
-                      <button type="submit" disabled={forgotLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all cursor-pointer">
+                      <button type="submit" disabled={forgotLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all cursor-pointer shadow-sm">
                         {forgotLoading ? "Updating…" : "Reset Password"}
                       </button>
                     </motion.form>
@@ -397,14 +439,14 @@ export default function Login() {
 
                   {forgotStep === 3 && (
                     <motion.div key="s3" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-6 space-y-4">
-                      <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto shadow-inner ring-4 ring-emerald-500/10">
+                      <div className="w-16 h-16 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto shadow-inner ring-4 ring-emerald-500/10">
                         <CheckCircle2 size={32} />
                       </div>
                       <div>
-                        <h4 className="font-bold text-xl text-white mb-1">Password Updated</h4>
-                        <p className="text-sm text-slate-400">Your institutional credentials have been successfully securely updated.</p>
+                        <h4 className="font-bold text-xl text-text-primary mb-1">Password Updated</h4>
+                        <p className="text-sm text-text-secondary">Your institutional credentials have been successfully securely updated.</p>
                       </div>
-                      <button onClick={() => setShowForgotModal(false)} className="w-full py-2.5 bg-surface-secondary text-white rounded-xl text-sm font-bold transition-colors cursor-pointer mt-4">
+                      <button onClick={() => setShowForgotModal(false)} className="w-full py-2.5 bg-surface-secondary text-text-primary hover:bg-surface-hover rounded-xl text-sm font-bold transition-colors cursor-pointer mt-4">
                         Return to Sign In
                       </button>
                     </motion.div>

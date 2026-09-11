@@ -1,3 +1,4 @@
+import BrandLogo from "../components/ui/BrandLogo";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
@@ -54,9 +55,8 @@ export default function Landing() {
           : "bg-transparent border-transparent py-5"
       }`}>
         <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
-            <img src="/logo-b.png" alt="BodhSight Logo" className="h-8 w-auto object-contain shrink-0" />
-            <span className="text-2xl font-bold tracking-tight text-foreground whitespace-nowrap">BodhSight</span>
+          <div onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
+            <BrandLogo />
           </div>
 
           {/* Desktop Nav */}
@@ -94,10 +94,7 @@ export default function Landing() {
             className="fixed inset-0 z-[60] bg-[#020817] flex flex-col p-6"
           >
             <div className="flex justify-between items-center mb-8">
-              <div className="flex items-center gap-2">
-                <img src="/logo-b.png" alt="BodhSight Logo" className="h-8 w-auto object-contain shrink-0" />
-                <span className="text-xl font-bold tracking-tight text-foreground whitespace-nowrap">BodhSight</span>
-              </div>
+              <BrandLogo />
               <button onClick={() => setMobileMenuOpen(false)}><X size={24} /></button>
             </div>
             <div className="flex flex-col gap-6 text-lg">
@@ -354,9 +351,8 @@ export default function Landing() {
 
       {/* ---------------- FOOTER ---------------- */}
       <footer className="py-10 border-t border-slate-800/50 bg-[#020817] text-center">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <img src="/logo-b.png" alt="BodhSight Logo" className="h-8 w-auto object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all shrink-0" />
-          <span className="text-xl font-bold tracking-tight text-muted-foreground whitespace-nowrap">BodhSight</span>
+        <div className="flex justify-center mb-4 opacity-60 hover:opacity-100 transition-opacity grayscale hover:grayscale-0">
+          <BrandLogo />
         </div>
         <p className="text-xs text-secondary font-medium">
           © {new Date().getFullYear()} BodhSight Academic Intelligence Platform. All rights reserved.
