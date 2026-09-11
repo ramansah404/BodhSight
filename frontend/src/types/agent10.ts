@@ -23,6 +23,28 @@ export interface CoursePerformance {
   priority: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 }
 
+export interface DepartmentPerformance {
+  department_code: string;
+  department_name: string;
+  total_students: number;
+  faculty_count: number;
+  pass_rate: number;
+  avg_gpa: number;
+  active_exceptions: number;
+  status: "OPTIMAL" | "MONITORING" | "INTERVENTION_REQUIRED";
+}
+
+export interface SectionComparison {
+  course_code: string;
+  course_name: string;
+  section_name: string;
+  instructor_name: string;
+  students_count: number;
+  pass_rate: number;
+  avg_marks: number;
+  disparity_flag: boolean;
+}
+
 export interface AcademicException {
   id: string;
   severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
