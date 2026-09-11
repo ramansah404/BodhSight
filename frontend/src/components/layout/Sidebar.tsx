@@ -1,26 +1,49 @@
 ﻿import { NavLink } from "react-router-dom";
-import { LayoutDashboard, BarChart3, BookOpen, Building2, GraduationCap, Users, TrendingUp, AlertTriangle, Lightbulb, FileText, Settings } from "lucide-react";
-
-const navItems = [
-  { name: "Overview", path: "/", icon: LayoutDashboard, color: "text-indigo-600" },
-  { name: "Performance", path: "/performance", icon: BarChart3, color: "text-blue-600" },
-  { name: "Courses", path: "/courses", icon: BookOpen, color: "text-violet-600" },
-  { name: "Departments", path: "/departments", icon: Building2, color: "text-cyan-600" },
-  { name: "Batches", path: "/batches", icon: GraduationCap, color: "text-teal-600" },
-  { name: "Students", path: "/students", icon: Users, color: "text-emerald-600" },
-  { name: "Trends", path: "/trends", icon: TrendingUp, color: "text-amber-600" },
-  { name: "Anomalies", path: "/anomalies", icon: AlertTriangle, color: "text-rose-600" },
-  { name: "Recommendations", path: "/recommendations", icon: Lightbulb, color: "text-purple-600" },
-  { name: "Reports", path: "/reports", icon: FileText, color: "text-slate-600" },
-];
+import { 
+  LayoutDashboard, 
+  TrendingUp, 
+  BookOpen, 
+  Building2, 
+  Layers, 
+  Users, 
+  AlertTriangle, 
+  Lightbulb, 
+  FileText, 
+  Settings,
+  ShieldAlert
+} from "lucide-react";
 
 export default function Sidebar() {
+  const currentRole = localStorage.getItem("bodhsight_role") || "Dean";
+  
+  // Define menu items with required minimum privilege
+  const allNavItems = [
+    { name: "Overview", path: "/", icon: LayoutDashboard, roles: ["Dean", "HOD", "Faculty"] },
+    { name: "Trends", path: "/trends", icon: TrendingUp, roles: ["Dean", "HOD"] },
+    { name: "Courses", path: "/courses", icon: BookOpen, roles: ["Dean", "HOD", "Faculty"] },
+    { name: "Departments", path: "/departments", icon: Building2, roles: ["Dean"] },
+    { name: "Sections", path: "/sections", icon: Layers, roles: ["Dean", "HOD", "Faculty"] },
+    { name: "Batches", path: "/batches", icon: Users, roles: ["Dean", "HOD"] },
+    { name: "Students (At-Risk)", path: "/students", icon: ShieldAlert, roles: ["Dean", "HOD", "Faculty"] },
+    { name: "Anomalies", path: "/anomalies", icon: AlertTriangle, roles: ["Dean", "HOD", "Faculty"] },
+    { name: "Recommendations", path: "/recommendations", icon: Lightbulb, roles: ["Dean", "HOD", "Faculty"] },
+    { name: "Executive Reports", path: "/reports", icon: FileText, roles: ["Dean"] },
+    { name: "Settings", path: "/settings", icon: Settings, roles: ["Dean", "HOD", "Faculty"] },
+  ];
+
+  // Filter navigation items strictly based on current role
+  const navItems = allNavItems.filter(item => item.roles.includes(currentRole));
+
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col justify-between hidden md:flex shrink-0 shadow-sm">
-      <div className="p-4 space-y-1">
-        <div className="px-3 py-2 text-xs font-bold text-indigo-900 uppercase tracking-wider bg-indigo-50/60 rounded-xl mb-2">
-          Agent 10 Command Center
+    <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col h-screen text-slate-300">
+      <div className="p-6 border-b border-slate-800">
+        <h2 className="text-xs font-black uppercase tracking-widest text-indigo-400">Agent 10 Security</h2>
+        <div className="text-sm font-bold text-white mt-1 capitalize">
+          Scope: {currentRole === "Dean" ? "Institutional (Dean/Principal)" : currentRole === "HOD" ? "Departmental (HOD)" : "Course Instructor (Faculty)"}
         </div>
+      </div>
+
+      <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -28,34 +51,22 @@ export default function Sidebar() {
               key={item.path}
               to={item.path}
               end={item.path === "/"}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                  isActive
-                    ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-100"
-                    : "text-gray-600 hover:bg-slate-50 hover:text-gray-900"
-                }`
-              }
+              className={({ isActive }) => `
+                flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all
+                ${isActive 
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' 
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white'}
+              `}
             >
-              {({ isActive }) => (
-                <>
-                  <Icon size={18} className={isActive ? "text-white" : item.color} />
-                  <span>{item.name}</span>
-                </>
-              )}
+              <Icon size={18} />
+              <span>{item.name}</span>
             </NavLink>
           );
         })}
-      </div>
+      </nav>
 
-      <div className="p-4 border-t border-gray-100">
-        <div className="bg-gradient-to-br from-slate-900 to-indigo-950 p-3.5 rounded-2xl text-xs space-y-1.5 text-white shadow-md">
-          <div className="font-bold text-indigo-200">BodhSight v1.0</div>
-          <div className="text-slate-300 text-[11px]">PostgreSQL & FastAPI Linked</div>
-          <div className="flex items-center gap-1.5 pt-1 text-emerald-400 font-bold">
-            <span className="h-2 w-2 bg-emerald-400 rounded-full inline-block animate-ping"></span>
-            Agent Active
-          </div>
-        </div>
+      <div className="p-4 border-t border-slate-800 text-[11px] text-slate-500 text-center font-medium">
+        Strict RBAC Guardrails Active
       </div>
     </aside>
   );
