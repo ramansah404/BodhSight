@@ -42,12 +42,40 @@ apiClient.interceptors.request.use((config) => {
 });
 
 // ---------------------------------------------------------------------------
-// Generic fetch helper — throws on error (so UI can show error state)
+// Generic fetch helper with caching and request deduplication
 // ---------------------------------------------------------------------------
 
-async function get<T>(path: string): Promise<T> {
-  const res = await apiClient.get<T>(path);
-  return res.data;
+interface CacheEntry {
+  data: any;
+  timestamp: number;
+}
+
+const cache = new Map<string, CacheEntry>();
+const inFlight = new Map<string, Promise<any>>();
+const CACHE_TTL = 30000; // 30 seconds
+
+async function get<T>(path: string, forceFresh = false): Promise<T> {
+  if (!forceFresh) {
+    const cached = cache.get(path);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return cached.data as T;
+    }
+    if (inFlight.has(path)) {
+      return inFlight.get(path) as Promise<T>;
+    }
+  }
+
+  const req = apiClient.get<T>(path).then((res) => {
+    cache.set(path, { data: res.data, timestamp: Date.now() });
+    inFlight.delete(path);
+    return res.data;
+  }).catch((err) => {
+    inFlight.delete(path);
+    throw err;
+  });
+
+  inFlight.set(path, req);
+  return req;
 }
 
 // ---------------------------------------------------------------------------
