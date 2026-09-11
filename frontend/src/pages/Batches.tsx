@@ -7,7 +7,7 @@
       </div>
       <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 p-6 shadow-sm">
         <h3 className="font-bold text-white text-lg mb-4">Cohort Batch 2024-2028</h3>
-        <p className="text-sm text-slate-400">Average CGPA: 7.9 • Backlog Percentage: 12.5% • Risk Level: Moderate</p>
+        <p className="text-sm text-secondary">Average CGPA: 7.9 • Backlog Percentage: 12.5% • Risk Level: Moderate</p>
       </div>
     </div>
   );

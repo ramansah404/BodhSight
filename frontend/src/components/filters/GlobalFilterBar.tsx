@@ -12,7 +12,7 @@ export default function GlobalFilterBar() {
 
       {/* Academic Year — derived from active term */}
       <div className="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-800/60">
-        <Calendar size={14} className="text-slate-500" />
+        <Calendar size={14} className="text-secondary" />
         <span className="text-sm font-semibold text-slate-300">
           {isLoading ? "Loading…" : activeTerm ? `AY ${activeTerm}` : "Academic Year"}
         </span>
@@ -20,7 +20,7 @@ export default function GlobalFilterBar() {
 
       {/* Semester — hardcoded to Term 1 since backend only has one active term */}
       <div className="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-800/60">
-        <Calendar size={14} className="text-slate-500" />
+        <Calendar size={14} className="text-secondary" />
         <select
           value={filters.semester}
           onChange={(e) => setFilters({ semester: e.target.value })}
@@ -33,7 +33,7 @@ export default function GlobalFilterBar() {
 
       {/* Department — populated from real backend data */}
       <div className="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-800/60">
-        <Building size={14} className="text-slate-500" />
+        <Building size={14} className="text-secondary" />
         <select
           value={filters.department}
           onChange={(e) => setFilters({ department: e.target.value })}
@@ -58,7 +58,7 @@ export default function GlobalFilterBar() {
 
       {/* Programme — no backend endpoint yet; kept as UI control */}
       <div className="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-800/60">
-        <Book size={14} className="text-slate-500" />
+        <Book size={14} className="text-secondary" />
         <select
           value={filters.programme}
           onChange={(e) => setFilters({ programme: e.target.value })}

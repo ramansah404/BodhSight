@@ -1,3 +1,46 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+  --background: 210 40% 98%; /* slate-50 */
+  --surface: 0 0% 100%; /* white */
+  --surface-secondary: 210 40% 96.1%; /* slate-100 */
+  --surface-hover: 214.3 31.8% 91.4%; /* slate-200 */
+  --border: 214.3 31.8% 91.4%; /* slate-200 */
+  --border-muted: 214.3 31.8% 91.4%;
+  --text-primary: 222.2 84% 4.9%; /* slate-900 */
+  --text-secondary: 215.3 19.3% 34.5%; /* slate-600 */
+  --accent: 239 84% 67%; /* indigo-600 (approx) */
+  
+  /* Legacy aliases to prevent immediate breaks */
+  --foreground: 222.2 84% 4.9%;
+  --surface-foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.3 19.3% 34.5%;
+}
+
+.dark {
+  --background: 222.2 84% 4.9%; /* #020817 */
+  --surface: 222.2 47.4% 8.4%; /* #0B1120 */
+  --surface-secondary: 217.2 32.6% 17.5%; /* slate-800 */
+  --surface-hover: 215 27.9% 16.9%; /* slate-800 slightly lighter */
+  --border: 217.2 32.6% 17.5%; /* slate-800 */
+  --border-muted: 217.2 32.6% 17.5%;
+  --text-primary: 210 40% 98%; /* white-ish */
+  --text-secondary: 215 20.2% 65.1%; /* slate-400 */
+  --accent: 239 84% 67%; /* indigo-600 (approx) */
+  
+  /* Legacy aliases */
+  --foreground: 210 40% 98%;
+  --surface-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+}
+
+
+  body {
+    @apply bg-background text-foreground transition-colors duration-200;
+  }
+}

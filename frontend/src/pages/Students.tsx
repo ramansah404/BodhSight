@@ -67,16 +67,16 @@ export default function Students() {
           <AlertCircle size={40} className="text-rose-400" />
           <div className="text-center">
             <p className="font-bold text-lg text-white">Failed to load student data</p>
-            <p className="text-sm text-slate-400 mt-1">{errorMsg}</p>
+            <p className="text-sm text-secondary mt-1">{errorMsg}</p>
           </div>
         </div>
       )}
 
       {/* Empty */}
       {state === "empty" && (
-        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm flex flex-col items-center justify-center py-16 gap-3 text-slate-500 px-6">
+        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm flex flex-col items-center justify-center py-16 gap-3 text-secondary px-6">
           <Info size={36} />
-          <p className="font-semibold text-slate-400">No student backlog data found.</p>
+          <p className="font-semibold text-secondary">No student backlog data found.</p>
         </div>
       )}
 
@@ -87,13 +87,13 @@ export default function Students() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-[#0B1120] p-6 rounded-3xl border border-slate-800/60 shadow-sm">
               <div className="flex justify-between items-start">
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Students</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-secondary">Total Students</div>
                 <Users size={16} className="text-indigo-500" />
               </div>
               <div className="text-3xl font-black text-white mt-2">
                 {backlog.total_students.toLocaleString()}
               </div>
-              <div className="text-xs text-slate-400 font-medium mt-1">Active in institution</div>
+              <div className="text-xs text-secondary font-medium mt-1">Active in institution</div>
             </div>
 
             <div className="bg-[#0B1120] p-6 rounded-3xl border border-amber-200 shadow-sm">
@@ -139,10 +139,10 @@ export default function Students() {
                       <span className="px-3 py-1 bg-rose-500/20 text-rose-400 text-xs font-extrabold rounded-full border border-rose-500/20">
                         CRITICAL RISK
                       </span>
-                      <span className="text-xs font-bold text-slate-400">≥3 active backlogs</span>
+                      <span className="text-xs font-bold text-secondary">≥3 active backlogs</span>
                     </div>
                     <h3 className="text-base font-bold text-white">Persistent High-Backlog Students</h3>
-                    <p className="text-sm text-slate-400 mt-1">
+                    <p className="text-sm text-secondary mt-1">
                       {backlog.students_high_backlogs} student{backlog.students_high_backlogs !== 1 ? "s" : ""} flagged
                       for persistent underperformance with 3 or more active backlogs.
                     </p>
@@ -168,10 +168,10 @@ export default function Students() {
                         <span className="px-3 py-1 bg-amber-500/20 text-amber-400 text-xs font-extrabold rounded-full border border-amber-200">
                           MODERATE RISK
                         </span>
-                        <span className="text-xs font-bold text-slate-400">1–2 active backlogs</span>
+                        <span className="text-xs font-bold text-secondary">1–2 active backlogs</span>
                       </div>
                       <h3 className="text-base font-bold text-white">Students with Backlogs (1–2)</h3>
-                      <p className="text-sm text-slate-400 mt-1">
+                      <p className="text-sm text-secondary mt-1">
                         {backlog.students_with_backlogs - backlog.students_high_backlogs} student
                         {backlog.students_with_backlogs - backlog.students_high_backlogs !== 1 ? "s" : ""} with 1–2 backlogs.
                         Early intervention recommended.
@@ -198,10 +198,10 @@ export default function Students() {
                       <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-extrabold rounded-full border border-emerald-200">
                         ON TRACK
                       </span>
-                      <span className="text-xs font-bold text-slate-400">0 backlogs</span>
+                      <span className="text-xs font-bold text-secondary">0 backlogs</span>
                     </div>
                     <h3 className="text-base font-bold text-white">Students on Track</h3>
-                    <p className="text-sm text-slate-400 mt-1">
+                    <p className="text-sm text-secondary mt-1">
                       {(backlog.total_students - backlog.students_with_backlogs).toLocaleString()} student
                       {(backlog.total_students - backlog.students_with_backlogs) !== 1 ? "s" : ""} with no active backlogs.
                     </p>
@@ -215,7 +215,7 @@ export default function Students() {
           </div>
 
           {/* Data source note */}
-          <div className="flex items-center gap-2 text-xs text-slate-400 font-medium px-2">
+          <div className="flex items-center gap-2 text-xs text-secondary font-medium px-2">
             <BookOpen size={14} />
             Data sourced from <code className="bg-slate-800/50 px-1 rounded">people.v_student_profile</code> via Agent 10 analytics engine.
           </div>

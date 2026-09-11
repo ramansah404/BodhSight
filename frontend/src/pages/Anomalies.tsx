@@ -101,7 +101,7 @@ export default function Anomalies() {
           <AlertCircle size={40} className="text-rose-400" />
           <div className="text-center">
             <p className="font-bold text-lg text-white">Failed to load anomalies</p>
-            <p className="text-sm text-slate-400 mt-1">{errorMsg}</p>
+            <p className="text-sm text-secondary mt-1">{errorMsg}</p>
           </div>
         </div>
       )}
@@ -111,7 +111,7 @@ export default function Anomalies() {
         <div className="bg-[#0B1120] rounded-3xl border border-emerald-200 shadow-sm flex flex-col items-center justify-center py-16 gap-3 text-emerald-500 px-6">
           <ShieldCheck size={40} className="text-emerald-400" />
           <p className="font-bold text-lg text-white">No anomalies detected</p>
-          <p className="text-sm text-center text-slate-400">
+          <p className="text-sm text-center text-secondary">
             All courses are performing within expected parameters. No statistical deviations flagged.
           </p>
         </div>
@@ -144,7 +144,7 @@ export default function Anomalies() {
                   <h3 className="text-lg font-bold text-white">{item.title}</h3>
                   <div className="mt-4 space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Course:</span>
+                      <span className="text-secondary">Course:</span>
                       <span className="font-bold text-white">
                         {item.course_code !== "—" ? item.course_code : "—"}
                         {item.department !== "—" ? ` (${item.department})` : ""}
@@ -152,17 +152,17 @@ export default function Anomalies() {
                     </div>
                     {item.deviation !== 0 && (
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Deviation:</span>
+                        <span className="text-secondary">Deviation:</span>
                         <span className="font-extrabold text-rose-600">{item.deviation.toFixed(1)} pp</span>
                       </div>
                     )}
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Affected:</span>
+                      <span className="text-secondary">Affected:</span>
                       <span className="font-bold text-white">{item.affected_students} students</span>
                     </div>
                     {item.detected_date && (
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Detected:</span>
+                        <span className="text-secondary">Detected:</span>
                         <span className="font-bold text-white">{item.detected_date}</span>
                       </div>
                     )}
@@ -177,7 +177,7 @@ export default function Anomalies() {
 
               <div className="p-6 md:w-2/3 flex flex-col justify-between">
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-secondary">
                     Agent 10 Explanation & Attribution
                   </h4>
                   <p className="text-sm text-slate-300 leading-relaxed bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60/60 font-medium">
@@ -199,7 +199,7 @@ export default function Anomalies() {
                     <FileSearch size={16} /> View Evidence Explorer →
                   </button>
                   {item.priority_score != null && (
-                    <span className="text-xs text-slate-500 font-semibold">
+                    <span className="text-xs text-secondary font-semibold">
                       Priority Score: {(item.priority_score * 100).toFixed(0)}/100
                     </span>
                   )}
@@ -241,13 +241,13 @@ export default function Anomalies() {
               {(selectedAnomaly.current_value !== 0 || selectedAnomaly.baseline_value !== 0) && (
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60">
-                    <div className="text-xs font-bold text-slate-400 uppercase">Current Value</div>
+                    <div className="text-xs font-bold text-secondary uppercase">Current Value</div>
                     <div className="text-2xl font-black text-rose-600 mt-1">
                       {selectedAnomaly.current_value.toFixed(1)}
                     </div>
                   </div>
                   <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60">
-                    <div className="text-xs font-bold text-slate-400 uppercase">Baseline / Reference</div>
+                    <div className="text-xs font-bold text-secondary uppercase">Baseline / Reference</div>
                     <div className="text-2xl font-black text-white mt-1">
                       {selectedAnomaly.baseline_value.toFixed(1)}
                     </div>
@@ -256,7 +256,7 @@ export default function Anomalies() {
               )}
 
               <div className="space-y-3">
-                <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <h5 className="text-xs font-bold uppercase tracking-wider text-secondary flex items-center gap-1.5">
                   <Database size={14} className="text-indigo-400" /> Evidence Sources (PostgreSQL Views)
                 </h5>
                 <div className="bg-slate-900 text-slate-200 p-4 rounded-2xl font-mono text-xs space-y-1 shadow-inner">
@@ -265,7 +265,7 @@ export default function Anomalies() {
                     <div key={idx} className="text-slate-300">SELECT * FROM {ev};</div>
                   ))}
                   {selectedAnomaly.course_code && selectedAnomaly.course_code !== "—" && (
-                    <div className="text-slate-400 mt-1">
+                    <div className="text-secondary mt-1">
                       WHERE course_code = '{selectedAnomaly.course_code}';
                     </div>
                   )}
@@ -274,7 +274,7 @@ export default function Anomalies() {
 
               {selectedAnomaly.evidence.length > 0 && (
                 <div className="space-y-2">
-                  <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400">Verified Evidence</h5>
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-secondary">Verified Evidence</h5>
                   <ul className="space-y-2">
                     {selectedAnomaly.evidence.map((ev, idx) => (
                       <li key={idx} className="flex items-center gap-2.5 text-sm bg-slate-900/40 p-3 rounded-xl border border-slate-800/60 text-slate-300 font-medium">

@@ -25,21 +25,21 @@ export default function App() {
         
         <Route element={<Layout />}>
           <Route path="dashboard" element={<Dashboard />} />
-          <Route element={<ProtectedRoute allowedRoles={["Dean", "HOD", "Principal", "Management", "IQAC"]} />}>
+          <Route element={<ProtectedRoute allowedRoles={["Chairman", "Dean", "HOD"]} />}>
             <Route path="trends" element={<Trends />} />
           </Route>
           <Route path="courses" element={<Courses />} />
-          <Route element={<ProtectedRoute allowedRoles={["Dean", "Principal", "Management", "IQAC"]} />}>
+          <Route element={<ProtectedRoute allowedRoles={["Chairman", "Dean"]} />}>
             <Route path="departments" element={<Departments />} />
           </Route>
           <Route path="sections" element={<Sections />} />
-          <Route element={<ProtectedRoute allowedRoles={["Dean", "HOD", "Principal", "Management"]} />}>
+          <Route element={<ProtectedRoute allowedRoles={["Chairman", "Dean", "HOD"]} />}>
             <Route path="batches" element={<Batches />} />
           </Route>
           <Route path="students" element={<Students />} />
           <Route path="anomalies" element={<Anomalies />} />
           <Route path="recommendations" element={<Recommendations />} />
-          <Route element={<ProtectedRoute allowedRoles={["Dean", "Principal", "Management", "IQAC"]} />}>
+          <Route element={<ProtectedRoute allowedRoles={["Chairman", "Dean"]} />}>
             <Route path="reports" element={<Reports />} />
           </Route>
           <Route path="settings" element={<Settings />} />

@@ -70,10 +70,10 @@ export default function Reports() {
                   <span className="px-2.5 py-0.5 bg-indigo-500/20 text-indigo-800 text-xs font-extrabold rounded-md uppercase">
                     {rep.type}
                   </span>
-                  <span className="text-xs font-bold text-slate-500">{rep.category} • {rep.size}</span>
+                  <span className="text-xs font-bold text-secondary">{rep.category} • {rep.size}</span>
                 </div>
                 <h3 className="font-bold text-white text-base">{rep.title}</h3>
-                <p className="text-xs text-slate-400">Generated with complete Agent 10 telemetry lineage.</p>
+                <p className="text-xs text-secondary">Generated with complete Agent 10 telemetry lineage.</p>
               </div>
 
               <div className="flex items-center gap-3">
@@ -90,7 +90,7 @@ export default function Reports() {
                     <Download size={16} /> {downloadingId === rep.id ? "Rendering PDF..." : `Export ${rep.type}`}
                   </button>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-800/50 px-4 py-2.5 rounded-xl border border-slate-800/60">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-secondary bg-slate-800/50 px-4 py-2.5 rounded-xl border border-slate-800/60">
                     <Lock size={14} /> Restricted Role
                   </span>
                 )}

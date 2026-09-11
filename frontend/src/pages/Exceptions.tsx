@@ -15,7 +15,7 @@ export default function Exceptions() {
     }).catch(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="p-6 text-slate-400">Loading exceptions...</div>;
+  if (loading) return <div className="p-6 text-secondary">Loading exceptions...</div>;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -24,7 +24,7 @@ export default function Exceptions() {
           <AlertTriangle className="text-red-600" size={28} />
           Exception Center
         </h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <p className="text-sm text-secondary mt-1">
           Active academic anomalies requiring immediate administrative intervention with verified data lineage.
         </p>
       </div>
@@ -43,20 +43,20 @@ export default function Exceptions() {
                 <h3 className="text-lg font-bold text-white">{exc.title}</h3>
                 <div className="mt-4 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Course:</span>
+                    <span className="text-secondary">Course:</span>
                     <span className="font-semibold text-white">{exc.course_code} ({exc.department})</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Deviation:</span>
+                    <span className="text-secondary">Deviation:</span>
                     <span className="font-bold text-red-600">{exc.deviation}% drop</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Impact:</span>
+                    <span className="text-secondary">Impact:</span>
                     <span className="font-medium text-white">{exc.affected_students} students</span>
                   </div>
                 </div>
               </div>
-              <div className="mt-6 flex items-center gap-2 text-xs text-slate-400 font-medium">
+              <div className="mt-6 flex items-center gap-2 text-xs text-secondary font-medium">
                 <Clock size={14} /> Detected on {exc.detected_date}
               </div>
             </div>
@@ -96,7 +96,7 @@ export default function Exceptions() {
                 <Sparkles size={20} />
                 <h3 className="font-bold text-lg">Agent 10 Evidence Trace & Audit</h3>
               </div>
-              <button onClick={() => setSelectedException(null)} className="text-slate-500 hover:text-slate-400">
+              <button onClick={() => setSelectedException(null)} className="text-secondary hover:text-secondary">
                 <X size={20} />
               </button>
             </div>
@@ -110,7 +110,7 @@ export default function Exceptions() {
               </div>
 
               <div className="space-y-3">
-                <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <h5 className="text-xs font-bold uppercase tracking-wider text-secondary flex items-center gap-1.5">
                   <Database size={14} className="text-indigo-400" /> PostgreSQL & Vector Source Lineage
                 </h5>
                 <div className="bg-slate-900 text-slate-200 p-4 rounded-xl font-mono text-xs overflow-x-auto space-y-2">
@@ -122,7 +122,7 @@ export default function Exceptions() {
               </div>
 
               <div className="space-y-2">
-                <h5 className="text-xs font-bold uppercase tracking-wider text-slate-400">Verified Evidence Sources</h5>
+                <h5 className="text-xs font-bold uppercase tracking-wider text-secondary">Verified Evidence Sources</h5>
                 <ul className="space-y-2">
                   {selectedException.evidence.map((ev, idx) => (
                     <li key={idx} className="flex items-center gap-2 text-sm bg-slate-900/40 p-2.5 rounded-lg border border-slate-800/60 text-slate-300">

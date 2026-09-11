@@ -75,7 +75,7 @@ export default function Dashboard() {
               ? "Departmental Command Center"
               : "Course Instructor Telemetry"}
           </h1>
-          <p className="text-slate-400 font-medium mt-1">
+          <p className="text-secondary font-medium mt-1">
             {currentRole === "Dean"
               ? "University-wide academic health, trust audits, and strategic exceptions."
               : currentRole === "HOD"
@@ -117,13 +117,13 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-[#0B1120] hover:bg-slate-900/80 transition-colors p-6 rounded-3xl border border-slate-800/60 shadow-sm">
             <div className="flex justify-between items-start">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Students Evaluated</div>
+              <div className="text-xs font-bold uppercase tracking-wider text-secondary">Students Evaluated</div>
               <Users size={16} className="text-indigo-400" />
             </div>
             <div className="text-3xl font-bold text-white mt-3">
               {metrics.students_evaluated.toLocaleString()}
             </div>
-            <div className="text-xs text-slate-400 font-medium mt-1">
+            <div className="text-xs text-secondary font-medium mt-1">
               {metrics.total_students
                 ? `of ${metrics.total_students.toLocaleString()} registered`
                 : "Institutional active scope"}
@@ -132,24 +132,24 @@ export default function Dashboard() {
 
           <div className="bg-[#0B1120] hover:bg-slate-900/80 transition-colors p-6 rounded-3xl border border-slate-800/60 shadow-sm">
             <div className="flex justify-between items-start">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Pass Rate</div>
+              <div className="text-xs font-bold uppercase tracking-wider text-secondary">Pass Rate</div>
               <Activity size={16} className="text-emerald-400" />
             </div>
             <div className="text-3xl font-bold text-white mt-3">{metrics.pass_rate.toFixed(1)}%</div>
-            <div className="text-xs text-slate-400 font-medium mt-1">
+            <div className="text-xs text-secondary font-medium mt-1">
               Failure rate: {metrics.failure_rate.toFixed(1)}%
             </div>
           </div>
 
           <div className="bg-[#0B1120] hover:bg-slate-900/80 transition-colors p-6 rounded-3xl border border-slate-800/60 shadow-sm">
             <div className="flex justify-between items-start">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Average Marks</div>
+              <div className="text-xs font-bold uppercase tracking-wider text-secondary">Average Marks</div>
               <BookOpen size={16} className="text-blue-400" />
             </div>
             <div className="text-3xl font-bold text-white mt-3">
               {metrics.average_marks.toFixed(1)}
             </div>
-            <div className="text-xs text-slate-400 font-medium mt-1">
+            <div className="text-xs text-secondary font-medium mt-1">
               {metrics.average_gpa != null
                 ? `CGPA: ${metrics.average_gpa.toFixed(2)}`
                 : "CGPA: not available in views"}
@@ -207,11 +207,11 @@ export default function Dashboard() {
               </ResponsiveContainer>
             </div>
           ) : metricsLoading ? (
-            <div className="h-72 flex items-center justify-center gap-2 text-slate-500">
+            <div className="h-72 flex items-center justify-center gap-2 text-secondary">
               <Loader2 size={18} className="animate-spin" /> Loading department data…
             </div>
           ) : (
-            <div className="h-72 flex items-center justify-center text-sm text-slate-500 font-medium">
+            <div className="h-72 flex items-center justify-center text-sm text-secondary font-medium">
               No department data available.
             </div>
           )}
@@ -225,11 +225,11 @@ export default function Dashboard() {
           {metrics ? (
             <div className="space-y-4">
               <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                <div className="text-xs font-bold text-slate-500 uppercase mb-1">Courses Analyzed</div>
+                <div className="text-xs font-bold text-secondary uppercase mb-1">Courses Analyzed</div>
                 <div className="text-2xl font-bold text-indigo-400">{metrics.courses_analyzed ?? "—"}</div>
               </div>
               <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                <div className="text-xs font-bold text-slate-500 uppercase mb-1">Data Source</div>
+                <div className="text-xs font-bold text-secondary uppercase mb-1">Data Source</div>
                 <div className="text-sm font-bold text-slate-300 capitalize">
                   {metrics.data_source === "database" ? "✅ Live Database" : metrics.data_source}
                 </div>
@@ -241,7 +241,7 @@ export default function Dashboard() {
               </div>
               {departments.length > 0 && (
                 <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
-                  <div className="text-xs font-bold text-slate-500 uppercase mb-3">Departments Active</div>
+                  <div className="text-xs font-bold text-secondary uppercase mb-3">Departments Active</div>
                   <div className="flex flex-wrap gap-2">
                     {departments.map((d) => (
                       <span
@@ -289,7 +289,7 @@ export default function Dashboard() {
                 <p className="text-sm font-semibold text-white group-hover:text-rose-300 transition-colors">
                   View Anomaly Center
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-secondary mt-1">
                   {metrics?.active_anomalies
                     ? `${metrics.active_anomalies} active anomalie${metrics.active_anomalies !== 1 ? "s" : ""} detected`
                     : "Statistical deviations from database"}
@@ -307,7 +307,7 @@ export default function Dashboard() {
                 <p className="text-sm font-semibold text-white group-hover:text-emerald-300 transition-colors">
                   Intervention Recommendations
                 </p>
-                <p className="text-xs text-slate-400 mt-1">Deploy prioritized remediation actions</p>
+                <p className="text-xs text-secondary mt-1">Deploy prioritized remediation actions</p>
               </div>
             </div>
           </div>
@@ -321,7 +321,7 @@ export default function Dashboard() {
                 <p className="text-sm font-semibold text-white group-hover:text-amber-300 transition-colors">
                   Course Performance Audit
                 </p>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs text-secondary mt-1">
                   {metrics?.courses_analyzed
                     ? `${metrics.courses_analyzed} sections analyzed`
                     : "Real-time course telemetry"}
