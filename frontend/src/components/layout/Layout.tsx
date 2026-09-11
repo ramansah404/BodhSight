@@ -1,22 +1,12 @@
-﻿import { useState, useEffect } from "react";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+﻿import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import GlobalFilterBar from "../filters/GlobalFilterBar";
 
 export default function Layout() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [currentRole, setCurrentRole] = useState<string>("Dean");
-
-  useEffect(() => {
-    const savedRole = localStorage.getItem("bodhsight_role");
-    if (!savedRole && location.pathname !== "/login") {
-      navigate("/login");
-    } else if (savedRole) {
-      setCurrentRole(savedRole);
-    }
-  }, [navigate, location.pathname]);
+  // Always fallback safely to prevent blank screens
+  const currentRole = localStorage.getItem("bodhsight_role") || "Dean";
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden font-sans text-gray-900">

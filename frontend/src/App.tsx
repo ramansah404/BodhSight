@@ -42,7 +42,6 @@ export default function App() {
           <Route path="settings" element={<Settings />} />
         </Route>
 
-        {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </HashRouter>
