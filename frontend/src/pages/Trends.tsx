@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { TrendingUp, CalendarDays, TrendingDown, Info, Loader2, AlertCircle, BarChart2 } from "lucide-react";
+import { TrendingUp, CalendarDays, TrendingDown, Info , AlertCircle, BarChart2 } from "lucide-react";
 import { Agent10API } from "../services/api";
 import type { TrendsResponse } from "../types/agent10";
 
@@ -42,12 +42,17 @@ export default function Trends() {
       </div>
 
       {/* Loading */}
-      {state === "loading" && (
-        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm flex items-center justify-center py-20 gap-3 text-indigo-400 font-medium">
-          <Loader2 size={22} className="animate-spin" />
-          Loading trend data from database…
+        {state === "loading" && (
+          <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm p-6 space-y-4">
+          <div className="flex gap-4 mb-6">
+            <div className="h-10 w-1/4 bg-slate-800/50 rounded-xl animate-pulse" />
+            <div className="h-10 w-1/4 bg-slate-800/50 rounded-xl animate-pulse" />
+          </div>
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-16 w-full bg-slate-800/30 rounded-xl animate-pulse" />
+          ))}
         </div>
-      )}
+        )}
 
       {/* Error */}
       {state === "error" && (
