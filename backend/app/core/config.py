@@ -12,6 +12,11 @@ class Settings(BaseSettings):
     
     DATABASE_URL: str | None = None
     
+    # AI/LLM Configuration Placeholders
+    LLM_PROVIDER: str = "openai"
+    LLM_MODEL: str = "gpt-4-turbo"
+    LLM_API_KEY: str | None = None
+    
     CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")

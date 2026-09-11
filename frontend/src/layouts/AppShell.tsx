@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 import { Activity } from 'lucide-react';
 
 export default function AppShell() {
@@ -12,10 +12,14 @@ export default function AppShell() {
         </div>
         <nav className="p-4">
           <ul className="space-y-2 text-sm text-gray-600">
-            <li>Dashboard</li>
-            <li>Performance</li>
-            <li>Trends</li>
-            <li>Anomalies</li>
+            <li><Link to="/dashboard" className="hover:text-blue-600">Dashboard</Link></li>
+            <li><Link to="/departments" className="hover:text-blue-600">Departments</Link></li>
+            <li><Link to="/courses" className="hover:text-blue-600">Courses</Link></li>
+            <li><Link to="/performance" className="hover:text-blue-600">Performance</Link></li>
+            <li><Link to="/trends" className="hover:text-blue-600">Trends</Link></li>
+            <li><Link to="/anomalies" className="hover:text-blue-600">Anomalies</Link></li>
+            <li><Link to="/alerts" className="hover:text-blue-600">Alerts</Link></li>
+            <li><Link to="/interventions" className="hover:text-blue-600">Interventions</Link></li>
           </ul>
         </nav>
       </aside>
