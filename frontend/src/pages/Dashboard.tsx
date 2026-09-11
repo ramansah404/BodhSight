@@ -3,13 +3,15 @@ import { useOutletContext, useNavigate } from "react-router-dom";
 import { Users, TrendingDown, AlertTriangle, ShieldCheck, Sparkles, BookOpen, ChevronRight, Activity, Building2, Award } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { Agent10API } from "../services/api";
+import { mockDashboard } from "../services/mockData";
 import type { AcademicDashboardMetrics } from "../types/agent10";
 
 export default function Dashboard() {
   const { currentRole } = useOutletContext<{ currentRole: string }>();
   const navigate = useNavigate();
-  const [metrics, setMetrics] = useState<AcademicDashboardMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Initialize with mock data immediately so there is zero blank loading state
+  const [metrics, setMetrics] = useState<AcademicDashboardMetrics>(mockDashboard);
+  const [loading, setLoading] = useState(false);
 
   const displayRole = localStorage.getItem("bodhsight_display_role") || currentRole;
   const displayName = localStorage.getItem("bodhsight_name") || `${currentRole} User`;
@@ -31,18 +33,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     Agent10API.getPerformance().then(data => {
-      setMetrics(data);
-      setLoading(false);
+      if (data) setMetrics(data);
     });
   }, [currentRole]);
-
-  if (loading) return <div className="p-12 text-center text-indigo-600 font-bold animate-pulse">Loading BodhSight Intelligence...</div>;
-  if (!metrics) return <div className="text-rose-600 p-6">Failed to load telemetry.</div>;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       
-      {/* Role-Tailored Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
         <div>
           <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-bold border border-indigo-100 mb-2">
@@ -73,7 +70,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Role-Specific KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
           <div className="flex justify-between items-start">
@@ -129,14 +125,12 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Role-Based Visual Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
         <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-200 shadow-sm p-6">
           <h2 className="text-lg font-bold text-gray-900 mb-6">
             {currentRole === 'Faculty' ? "Course Marks Progression Trend" : "Institutional Performance & Pass Rate Trend"}
           </h2>
-          <div className="h-72">
+          <div className="h-72" style={{ width: '100%', height: 288 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trendData}>
                 <defs>
@@ -156,7 +150,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Conditional Sidebar Widget based on Role */}
         <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6">
           <h2 className="text-lg font-bold text-gray-900 mb-6">
             {currentRole === 'Dean' ? "Department Pass Rates" : currentRole === 'HOD' ? "CSE Section Disparities" : "My Assigned Courses"}
@@ -173,7 +166,7 @@ export default function Dashboard() {
               </div>
             </div>
           ) : (
-            <div className="h-72">
+            <div className="h-72" style={{ width: '100%', height: 288 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={deptData} layout="vertical" margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
@@ -188,7 +181,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Role-Specific AI Insights */}
       <div className="bg-gradient-to-r from-indigo-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white shadow-xl">
         <h2 className="text-lg font-bold flex items-center gap-2 mb-4 text-indigo-100">
           <Sparkles className="text-indigo-400" size={20} />
