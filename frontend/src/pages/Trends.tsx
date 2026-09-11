@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { TrendingUp, CalendarDays, LineChart as LineChartIcon } from "lucide-react";
+import { TrendingUp, CalendarDays, LineChart as LineChartIcon, AlertTriangle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Agent10API } from "../services/api";
 import type { TrendData } from "../types/agent10";
@@ -10,7 +10,9 @@ export default function Trends() {
 
   useEffect(() => {
     Agent10API.getTrends().then(data => {
-      setTrends(data);
+      setTrends(data || []);
+      setLoading(false);
+    }).catch(() => {
       setLoading(false);
     });
   }, []);
@@ -41,7 +43,8 @@ export default function Trends() {
           </div>
         </div>
 
-        <div className="h-[400px] w-full">
+        {/* Explicit inline pixel height guarantees Recharts ResponsiveContainer never crashes */}
+        <div style={{ width: '100%', height: 400 }}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trends} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
@@ -65,7 +68,7 @@ export default function Trends() {
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
             <div className="text-xs font-bold text-gray-500 uppercase">Long-term Trajectory</div>
             <div className="text-lg font-bold text-gray-900 mt-1 flex items-center gap-2">
-              Volatile <TrendingDown size={16} className="text-rose-500"/>
+              Volatile <TrendingUp size={16} className="text-rose-500"/>
             </div>
           </div>
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
