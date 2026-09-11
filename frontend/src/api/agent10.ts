@@ -1,4 +1,4 @@
-﻿import type { AcademicDashboardMetrics, CoursePerformance, DepartmentPerformance, SectionComparison, AcademicException, InterventionPriorityItem } from "../types/agent10";
+﻿import type { AcademicDashboardMetrics, CoursePerformance, DepartmentPerformance, SectionComparison, TrendData, AcademicException, InterventionPriorityItem } from "../types/agent10";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 
@@ -24,11 +24,15 @@ const mockDepartments: DepartmentPerformance[] = [
 ];
 
 const mockSections: SectionComparison[] = [
-  { course_code: "EC202", course_name: "Digital Signal Processing", section_name: "Section A", instructor_name: "Dr. Ramesh Kumar", students_count: 70, pass_rate: 84.0, avg_marks: 71.5, disparity_flag: false },
-  { course_code: "EC202", course_name: "Digital Signal Processing", section_name: "Section B", instructor_name: "Prof. Anil Verma", students_count: 70, pass_rate: 62.0, avg_marks: 54.5, disparity_flag: true },
-  { course_code: "CS301", course_name: "Data Structures & Algorithms", section_name: "Section A", instructor_name: "Dr. Sunita Rao", students_count: 60, pass_rate: 62.0, avg_marks: 55.0, disparity_flag: false },
-  { course_code: "CS301", course_name: "Data Structures & Algorithms", section_name: "Section B", instructor_name: "Dr. Vikram Patel", students_count: 60, pass_rate: 59.0, avg_marks: 52.0, disparity_flag: false },
-  { course_code: "CS301", course_name: "Data Structures & Algorithms", section_name: "Section C", instructor_name: "Dr. Sunita Rao", students_count: 60, pass_rate: 63.0, avg_marks: 55.3, disparity_flag: false }
+  { course_code: "EC202", course_name: "Digital Signal Processing", section_name: "Section A", instructor_name: "Dr. Ramesh Kumar", students_count: 70, pass_rate: 84.0, avg_marks: 71.5, disparity_flag: false }
+];
+
+const mockTrends: TrendData[] = [
+  { semester: "2024-T1", pass_rate: 84.5, avg_gpa: 8.0, average_marks: 70.1, evaluation_count: 2300 },
+  { semester: "2024-T2", pass_rate: 83.2, avg_gpa: 7.9, average_marks: 69.4, evaluation_count: 2350 },
+  { semester: "2025-T1", pass_rate: 85.0, avg_gpa: 8.1, average_marks: 71.2, evaluation_count: 2400 },
+  { semester: "2025-T2", pass_rate: 84.1, avg_gpa: 8.0, average_marks: 70.0, evaluation_count: 2420 },
+  { semester: "2026-T1", pass_rate: 82.4, avg_gpa: 7.8, average_marks: 68.2, evaluation_count: 2450 },
 ];
 
 const mockExceptions: AcademicException[] = [
@@ -57,5 +61,6 @@ export async function fetchDashboardMetrics(): Promise<AcademicDashboardMetrics>
 export async function fetchCourses(): Promise<CoursePerformance[]> { return mockCourses; }
 export async function fetchDepartments(): Promise<DepartmentPerformance[]> { return mockDepartments; }
 export async function fetchSections(): Promise<SectionComparison[]> { return mockSections; }
+export async function fetchTrends(): Promise<TrendData[]> { return mockTrends; }
 export async function fetchExceptions(): Promise<AcademicException[]> { return mockExceptions; }
 export async function fetchInterventionPriorities(): Promise<InterventionPriorityItem[]> { return mockPriorities; }
