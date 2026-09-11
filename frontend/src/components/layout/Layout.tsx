@@ -9,7 +9,7 @@ export default function Layout() {
 
   return (
     <FilterProvider>
-      <div className="flex h-screen bg-slate-50 overflow-hidden font-sans text-gray-900">
+      <div className="flex h-screen bg-[#020817] overflow-hidden font-sans text-slate-300 selection:bg-indigo-500/30 selection:text-indigo-200">
         <Sidebar />
         <div className="flex-1 flex flex-col h-screen overflow-hidden">
           <Topbar currentRole={currentRole} />

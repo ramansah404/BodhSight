@@ -1,4 +1,4 @@
-﻿import { Bell, BrainCircuit, LogOut } from 'lucide-react';
+import { Bell, BrainCircuit, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface TopbarProps {
@@ -23,7 +23,7 @@ export default function Topbar({ currentRole }: TopbarProps) {
   };
 
   return (
-    <header className="h-16 bg-gradient-to-r from-indigo-900 via-indigo-800 to-violet-900 border-b border-indigo-800 flex items-center justify-between px-6 sticky top-0 z-20 shadow-md text-white">
+    <header className="h-16 bg-[#020817]/80 backdrop-blur-md border-b border-slate-800/60 flex items-center justify-between px-6 sticky top-0 z-20 shadow-md text-slate-300">
       <div className="flex items-center gap-3">
         <div className="p-2 bg-white/10 rounded-xl backdrop-blur-md border border-white/20">
           <BrainCircuit size={22} className="text-indigo-200" />

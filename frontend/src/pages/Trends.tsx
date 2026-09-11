@@ -43,7 +43,7 @@ export default function Trends() {
 
       {/* Loading */}
       {state === "loading" && (
-        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm flex items-center justify-center py-20 gap-3 text-indigo-600 font-medium">
+        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm flex items-center justify-center py-20 gap-3 text-indigo-400 font-medium">
           <Loader2 size={22} className="animate-spin" />
           Loading trend data from database…
         </div>
@@ -51,10 +51,10 @@ export default function Trends() {
 
       {/* Error */}
       {state === "error" && (
-        <div className="bg-white rounded-3xl border border-rose-200 shadow-sm flex flex-col items-center justify-center py-16 gap-4 px-6">
+        <div className="bg-[#0B1120] rounded-3xl border border-rose-500/20 shadow-sm flex flex-col items-center justify-center py-16 gap-4 px-6">
           <AlertCircle size={40} className="text-rose-400" />
-          <p className="font-bold text-lg text-gray-900">Failed to load trends</p>
-          <p className="text-sm text-gray-500">{errorMsg}</p>
+          <p className="font-bold text-lg text-white">Failed to load trends</p>
+          <p className="text-sm text-slate-400">{errorMsg}</p>
         </div>
       )}
 
@@ -62,10 +62,10 @@ export default function Trends() {
         <>
           {/* Historical data notice */}
           {!data.historical_data_available && (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-3 text-amber-900">
+            <div className="bg-amber-500/10 border border-amber-200 rounded-2xl p-5 flex items-start gap-3 text-amber-900">
               <Info size={20} className="text-amber-600 shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold text-amber-800">Multi-term trend analysis unavailable</p>
+                <p className="font-bold text-amber-400">Multi-term trend analysis unavailable</p>
                 <p className="text-sm mt-1">
                   {data.insufficient_history_note ??
                     "Only one academic term is present in the database. Showing relative performance vs institutional mean instead."}
@@ -76,42 +76,42 @@ export default function Trends() {
 
           {/* Current term summary */}
           {data.current_term_summary && (
-            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-4">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm p-6 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800/60 pb-4">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
                   <CalendarDays className="text-amber-600" size={20} />
                   Current Term Summary
                 </h2>
-                <span className="text-xs font-bold bg-amber-50 text-amber-700 px-3 py-1 rounded-full border border-amber-100">
+                <span className="text-xs font-bold bg-amber-500/10 text-amber-400 px-3 py-1 rounded-full border border-amber-500/20">
                   Live Database
                 </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center">
-                  <div className="text-xs font-bold text-gray-500 uppercase">Avg Pass Rate</div>
-                  <div className="text-2xl font-black text-emerald-600 mt-1">
+                <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 text-center">
+                  <div className="text-xs font-bold text-slate-400 uppercase">Avg Pass Rate</div>
+                  <div className="text-2xl font-black text-emerald-500 mt-1">
                     {data.current_term_summary.avg_pass_rate != null
                       ? `${data.current_term_summary.avg_pass_rate.toFixed(1)}%`
                       : "—"}
                   </div>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center">
-                  <div className="text-xs font-bold text-gray-500 uppercase">Avg Marks</div>
-                  <div className="text-2xl font-black text-gray-900 mt-1">
+                <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 text-center">
+                  <div className="text-xs font-bold text-slate-400 uppercase">Avg Marks</div>
+                  <div className="text-2xl font-black text-white mt-1">
                     {data.current_term_summary.avg_marks != null
                       ? data.current_term_summary.avg_marks.toFixed(1)
                       : "—"}
                   </div>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center">
-                  <div className="text-xs font-bold text-gray-500 uppercase">Course Sections</div>
-                  <div className="text-2xl font-black text-indigo-700 mt-1">
+                <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 text-center">
+                  <div className="text-xs font-bold text-slate-400 uppercase">Course Sections</div>
+                  <div className="text-2xl font-black text-indigo-400 mt-1">
                     {data.current_term_summary.total_sections}
                   </div>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center">
-                  <div className="text-xs font-bold text-gray-500 uppercase">Students Evaluated</div>
-                  <div className="text-2xl font-black text-indigo-700 mt-1">
+                <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 text-center">
+                  <div className="text-xs font-bold text-slate-400 uppercase">Students Evaluated</div>
+                  <div className="text-2xl font-black text-indigo-400 mt-1">
                     {data.current_term_summary.students_evaluated.toLocaleString()}
                   </div>
                 </div>
@@ -122,27 +122,27 @@ export default function Trends() {
           {/* Above mean / Below mean */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Above mean */}
-            <div className="bg-white rounded-3xl border border-emerald-200 shadow-sm overflow-hidden">
-              <div className="p-5 border-b border-emerald-100 flex items-center gap-2 bg-emerald-50">
-                <TrendingUp size={18} className="text-emerald-600" />
-                <h3 className="font-bold text-emerald-800">
+            <div className="bg-[#0B1120] rounded-3xl border border-emerald-200 shadow-sm overflow-hidden">
+              <div className="p-5 border-b border-emerald-500/20 flex items-center gap-2 bg-emerald-500/10">
+                <TrendingUp size={18} className="text-emerald-500" />
+                <h3 className="font-bold text-emerald-400">
                   Above Institutional Mean ({data.courses_above_mean.length})
                 </h3>
               </div>
               {data.courses_above_mean.length === 0 ? (
-                <div className="py-10 text-center text-sm text-gray-400 font-medium">
+                <div className="py-10 text-center text-sm text-slate-500 font-medium">
                   No courses above the institutional mean.
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-slate-800/60">
                   {data.courses_above_mean.map((c, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
+                    <div key={idx} className="flex items-center justify-between p-4 hover:bg-slate-900/40 transition-colors">
                       <div>
-                        <div className="font-bold text-gray-900 text-sm">{c.course_title || c.course_code}</div>
-                        <div className="text-xs text-gray-500 font-semibold">{c.course_code}</div>
+                        <div className="font-bold text-white text-sm">{c.course_title || c.course_code}</div>
+                        <div className="text-xs text-slate-400 font-semibold">{c.course_code}</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-extrabold text-emerald-600">{c.pass_pct.toFixed(1)}%</div>
+                        <div className="text-sm font-extrabold text-emerald-500">{c.pass_pct.toFixed(1)}%</div>
                         <div className="text-xs text-emerald-500 font-bold">
                           +{c.delta_vs_mean.toFixed(1)} pp
                         </div>
@@ -154,24 +154,24 @@ export default function Trends() {
             </div>
 
             {/* Below mean */}
-            <div className="bg-white rounded-3xl border border-rose-200 shadow-sm overflow-hidden">
-              <div className="p-5 border-b border-rose-100 flex items-center gap-2 bg-rose-50">
+            <div className="bg-[#0B1120] rounded-3xl border border-rose-500/20 shadow-sm overflow-hidden">
+              <div className="p-5 border-b border-rose-500/20 flex items-center gap-2 bg-rose-500/10">
                 <TrendingDown size={18} className="text-rose-600" />
-                <h3 className="font-bold text-rose-800">
+                <h3 className="font-bold text-rose-400">
                   Below Institutional Mean ({data.courses_below_mean.length})
                 </h3>
               </div>
               {data.courses_below_mean.length === 0 ? (
-                <div className="py-10 text-center text-sm text-gray-400 font-medium">
+                <div className="py-10 text-center text-sm text-slate-500 font-medium">
                   No courses below the institutional mean.
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-slate-800/60">
                   {data.courses_below_mean.map((c, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
+                    <div key={idx} className="flex items-center justify-between p-4 hover:bg-slate-900/40 transition-colors">
                       <div>
-                        <div className="font-bold text-gray-900 text-sm">{c.course_title || c.course_code}</div>
-                        <div className="text-xs text-gray-500 font-semibold">{c.course_code}</div>
+                        <div className="font-bold text-white text-sm">{c.course_title || c.course_code}</div>
+                        <div className="text-xs text-slate-400 font-semibold">{c.course_code}</div>
                       </div>
                       <div className="text-right">
                         <div className="text-sm font-extrabold text-rose-600">{c.pass_pct.toFixed(1)}%</div>
@@ -188,27 +188,27 @@ export default function Trends() {
 
           {/* Backlog trend */}
           {data.student_backlog_trend && (
-            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-4">
-              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm p-6 space-y-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <BarChart2 className="text-amber-600" size={20} />
                 Student Backlog Trend
               </h2>
               <div className="grid grid-cols-3 gap-4">
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center">
-                  <div className="text-xs font-bold text-gray-500 uppercase">Total Students</div>
-                  <div className="text-2xl font-black text-gray-900 mt-1">
+                <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 text-center">
+                  <div className="text-xs font-bold text-slate-400 uppercase">Total Students</div>
+                  <div className="text-2xl font-black text-white mt-1">
                     {data.student_backlog_trend.total_students.toLocaleString()}
                   </div>
                 </div>
-                <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-center">
+                <div className="bg-amber-500/10 p-4 rounded-2xl border border-amber-200 text-center">
                   <div className="text-xs font-bold text-amber-600 uppercase">With Backlogs</div>
-                  <div className="text-2xl font-black text-amber-700 mt-1">
+                  <div className="text-2xl font-black text-amber-400 mt-1">
                     {data.student_backlog_trend.students_with_backlogs.toLocaleString()}
                   </div>
                 </div>
-                <div className="bg-rose-50 p-4 rounded-2xl border border-rose-200 text-center">
+                <div className="bg-rose-500/10 p-4 rounded-2xl border border-rose-500/20 text-center">
                   <div className="text-xs font-bold text-rose-600 uppercase">High Backlogs (≥3)</div>
-                  <div className="text-2xl font-black text-rose-700 mt-1">
+                  <div className="text-2xl font-black text-rose-400 mt-1">
                     {data.student_backlog_trend.students_high_backlogs.toLocaleString()}
                   </div>
                 </div>

@@ -1,6 +1,7 @@
-﻿import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
+import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Trends from "./pages/Trends";
@@ -20,8 +21,10 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Dashboard />} />
+        <Route path="/" element={<Landing />} />
+        
+        <Route element={<Layout />}>
+          <Route path="dashboard" element={<Dashboard />} />
           <Route element={<ProtectedRoute allowedRoles={["Dean", "HOD", "Principal", "Management", "IQAC"]} />}>
             <Route path="trends" element={<Trends />} />
           </Route>

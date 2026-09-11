@@ -75,7 +75,7 @@ export default function Recommendations() {
 
       {/* Loading */}
       {state === "loading" && (
-        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm flex items-center justify-center py-20 gap-3 text-indigo-600 font-medium">
+        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm flex items-center justify-center py-20 gap-3 text-indigo-400 font-medium">
           <Loader2 size={22} className="animate-spin" />
           Generating recommendations from database…
         </div>
@@ -83,21 +83,21 @@ export default function Recommendations() {
 
       {/* Error */}
       {state === "error" && (
-        <div className="bg-white rounded-3xl border border-rose-200 shadow-sm flex flex-col items-center justify-center py-16 gap-4 px-6">
+        <div className="bg-[#0B1120] rounded-3xl border border-rose-500/20 shadow-sm flex flex-col items-center justify-center py-16 gap-4 px-6">
           <AlertCircle size={40} className="text-rose-400" />
           <div className="text-center">
-            <p className="font-bold text-lg text-gray-900">Failed to load recommendations</p>
-            <p className="text-sm text-gray-500 mt-1">{errorMsg}</p>
+            <p className="font-bold text-lg text-white">Failed to load recommendations</p>
+            <p className="text-sm text-slate-400 mt-1">{errorMsg}</p>
           </div>
         </div>
       )}
 
       {/* Empty */}
       {state === "empty" && (
-        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm flex flex-col items-center justify-center py-16 gap-3 text-gray-400 px-6">
+        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm flex flex-col items-center justify-center py-16 gap-3 text-slate-500 px-6">
           <Info size={36} />
-          <p className="font-semibold text-gray-600">No recommendations at this time.</p>
-          <p className="text-sm text-center text-gray-500">
+          <p className="font-semibold text-slate-400">No recommendations at this time.</p>
+          <p className="text-sm text-center text-slate-400">
             No actionable anomalies were detected that require intervention. All courses are performing within expected ranges.
           </p>
         </div>
@@ -109,33 +109,33 @@ export default function Recommendations() {
           {recommendations.map((item) => (
             <div
               key={item.id}
-              className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-4 hover:border-purple-300 transition-all"
+              className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm p-6 space-y-4 hover:border-purple-300 transition-all"
             >
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={`px-3 py-1 rounded-full text-xs font-extrabold ${
                     item.priority === "CRITICAL"
-                      ? "bg-rose-100 text-rose-700 border border-rose-200"
+                      ? "bg-rose-500/20 text-rose-400 border border-rose-500/20"
                       : item.priority === "HIGH"
-                      ? "bg-amber-100 text-amber-800 border border-amber-200"
+                      ? "bg-amber-500/20 text-amber-400 border border-amber-200"
                       : item.priority === "MEDIUM"
                       ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
-                      : "bg-gray-100 text-gray-700 border border-gray-200"
+                      : "bg-slate-800/50 text-slate-300 border border-slate-800/60"
                   }`}>
                     {item.priority} PRIORITY
                   </span>
-                  <span className="text-xs font-bold text-gray-400">
+                  <span className="text-xs font-bold text-slate-500">
                     Affected: {item.affected_population} student{item.affected_population !== 1 ? "s" : ""}
                   </span>
                   {item.course_code && (
-                    <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
+                    <span className="text-xs font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-lg border border-indigo-500/20">
                       {item.course_code}
                     </span>
                   )}
                 </div>
 
                 {successId === item.id ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-200">
                     <CheckCircle2 size={14} /> Action Authorized & Deployed
                   </span>
                 ) : permissions.canExecuteRecommendation ? (
@@ -148,22 +148,22 @@ export default function Recommendations() {
                     {executingId === item.id ? "Deploying…" : "Execute Intervention"}
                   </button>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-800/50 px-3 py-1.5 rounded-xl border border-slate-800/60">
                     <Lock size={12} /> View Only
                   </span>
                 )}
               </div>
 
               <div className="space-y-2">
-                <h3 className="text-base font-bold text-gray-900">{item.problem}</h3>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm text-gray-700 space-y-1 font-medium">
-                  <strong className="text-indigo-900 block">Agent 10 Recommendation:</strong>
+                <h3 className="text-base font-bold text-white">{item.problem}</h3>
+                <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 text-sm text-slate-300 space-y-1 font-medium">
+                  <strong className="text-indigo-400 block">Agent 10 Recommendation:</strong>
                   <p className="text-indigo-950 font-semibold">{item.recommendation}</p>
                 </div>
                 {item.evidence.length > 0 && (
                   <div className="flex flex-wrap gap-2 pt-1">
                     {item.evidence.map((ev, idx) => (
-                      <span key={idx} className="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+                      <span key={idx} className="text-xs font-mono bg-slate-800/50 text-slate-400 px-2 py-0.5 rounded border border-slate-800/60">
                         {ev}
                       </span>
                     ))}
@@ -171,12 +171,12 @@ export default function Recommendations() {
                 )}
               </div>
 
-              <div className="flex items-center justify-between text-xs pt-3 border-t border-gray-100 text-gray-600 font-semibold">
+              <div className="flex items-center justify-between text-xs pt-3 border-t border-slate-800/60 text-slate-400 font-semibold">
                 <span>
                   Expected Impact:{" "}
-                  <strong className="text-emerald-600">{item.expected_impact}</strong>
+                  <strong className="text-emerald-500">{item.expected_impact}</strong>
                 </span>
-                <span className="flex items-center gap-1 text-indigo-700">
+                <span className="flex items-center gap-1 text-indigo-400">
                   <Sparkles size={14} /> Backed by real DB evidence
                 </span>
               </div>

@@ -34,7 +34,7 @@ export default function Reports() {
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-violet-950 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 bg-white/10 text-indigo-200 px-3 py-1 rounded-full text-xs font-bold border border-white/15">
+          <div className="inline-flex items-center gap-2 bg-[#0B1120]/10 text-indigo-200 px-3 py-1 rounded-full text-xs font-bold border border-white/15">
             <FileText size={14} /> Executive Reporting Suite ({rawRole} View)
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">Academic Performance Reports</h1>
@@ -44,7 +44,7 @@ export default function Reports() {
               : "Your current role is restricted from exporting institutional master reports."}
           </p>
         </div>
-        <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-right">
+        <div className="bg-[#0B1120]/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-right">
           <div className="text-xs text-indigo-200 font-semibold uppercase">Compliance Status</div>
           <div className="text-xl font-black text-emerald-400 mt-0.5 flex items-center gap-1.5 justify-end">
             <ShieldCheck size={18} /> 100% Verified
@@ -52,33 +52,33 @@ export default function Reports() {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-6">
-        <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <Printer className="text-indigo-600" size={20} /> Available Institutional Exports
+      <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm p-6 space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-800/60 pb-4">
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <Printer className="text-indigo-400" size={20} /> Available Institutional Exports
           </h2>
-          <span className="text-xs font-bold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full">
+          <span className="text-xs font-bold bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full">
             {permissions.canExportOfficialReports ? "Export Authorized" : "Restricted Access"}
           </span>
         </div>
 
         <div className="space-y-4">
           {reports.map((rep) => (
-            <div key={rep.id} className="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-indigo-300 transition-all">
+            <div key={rep.id} className="bg-slate-900/40 rounded-2xl p-5 border border-slate-800/60/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-indigo-300 transition-all">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 bg-indigo-100 text-indigo-800 text-xs font-extrabold rounded-md uppercase">
+                  <span className="px-2.5 py-0.5 bg-indigo-500/20 text-indigo-800 text-xs font-extrabold rounded-md uppercase">
                     {rep.type}
                   </span>
-                  <span className="text-xs font-bold text-gray-400">{rep.category} • {rep.size}</span>
+                  <span className="text-xs font-bold text-slate-500">{rep.category} • {rep.size}</span>
                 </div>
-                <h3 className="font-bold text-gray-900 text-base">{rep.title}</h3>
-                <p className="text-xs text-gray-500">Generated with complete Agent 10 telemetry lineage.</p>
+                <h3 className="font-bold text-white text-base">{rep.title}</h3>
+                <p className="text-xs text-slate-400">Generated with complete Agent 10 telemetry lineage.</p>
               </div>
 
               <div className="flex items-center gap-3">
                 {successId === rep.id ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-4 py-2.5 rounded-xl border border-emerald-200">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-500 bg-emerald-500/10 px-4 py-2.5 rounded-xl border border-emerald-200">
                     <CheckCircle2 size={16} /> Downloaded Successfully
                   </span>
                 ) : permissions.canExportOfficialReports ? (
@@ -90,7 +90,7 @@ export default function Reports() {
                     <Download size={16} /> {downloadingId === rep.id ? "Rendering PDF..." : `Export ${rep.type}`}
                   </button>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-100 px-4 py-2.5 rounded-xl border border-slate-200">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-800/50 px-4 py-2.5 rounded-xl border border-slate-800/60">
                     <Lock size={14} /> Restricted Role
                   </span>
                 )}
