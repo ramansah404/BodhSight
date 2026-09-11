@@ -1,20 +1,21 @@
-﻿import { Bell, BrainCircuit, Shield, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+﻿import { Bell, BrainCircuit, Shield } from 'lucide-react';
 
 interface TopbarProps {
-  currentRole: string;
+  currentRole: string; // The dashboard routing role (e.g. 'Dean')
   setRole: (role: string) => void;
 }
 
 export default function Topbar({ currentRole, setRole }: TopbarProps) {
-  const navigate = useNavigate();
-  // Retrieve the name we typed in during login
-  const userName = localStorage.getItem('bodhsight_name') || 'Administrator';
-
-  const handleLogout = () => {
-    localStorage.removeItem('bodhsight_role');
-    localStorage.removeItem('bodhsight_name');
-    navigate('/login');
+  // Read exact formatting from the login portal
+  const displayRole = localStorage.getItem("bodhsight_display_role") || currentRole;
+  const displayName = localStorage.getItem("bodhsight_name") || `${currentRole} User`;
+  
+  // Get initials for avatar (e.g. "Dean Dr. Sharma" -> "DS")
+  const getInitials = (name: string) => {
+    const parts = name.split(" ").filter(n => n.length > 0);
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    if (parts.length === 1) return `${parts[0][0]}${parts[0][1] || ''}`.toUpperCase();
+    return "US";
   };
 
   return (
@@ -31,47 +32,36 @@ export default function Topbar({ currentRole, setRole }: TopbarProps) {
       
       <div className="flex items-center gap-5">
         
-        {/* Fast Demo Role Selector */}
-        <div className="hidden sm:flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 text-xs">
+        {/* Fast Switcher for Demo Purposes */}
+        <div className="hidden md:flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 text-xs">
           <Shield size={14} className="text-indigo-300" />
-          <span className="text-indigo-200 font-medium">Role:</span>
+          <span className="text-indigo-200 font-medium">Internal RBAC:</span>
           <select 
             value={currentRole} 
             onChange={(e) => setRole(e.target.value)}
             className="bg-transparent font-bold text-white focus:outline-none cursor-pointer"
           >
-            <option value="Principal" className="text-gray-900">Principal</option>
-            <option value="Management" className="text-gray-900">Management</option>
-            <option value="IQAC" className="text-gray-900">IQAC</option>
-            <option value="Dean" className="text-gray-900">Dean of Academics</option>
-            <option value="HOD" className="text-gray-900">Department HOD</option>
-            <option value="Faculty" className="text-gray-900">Faculty Member</option>
+            <option value="Dean" className="text-gray-900">Institutional (Principal/Dean/IQAC)</option>
+            <option value="HOD" className="text-gray-900">Departmental (HOD)</option>
+            <option value="Faculty" className="text-gray-900">Protected (Faculty)</option>
           </select>
         </div>
 
         <button className="relative p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-indigo-100">
           <Bell size={18} />
-          <span className="absolute -top-1 -right-1 h-4 w-4 bg-rose-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold ring-2 ring-indigo-900">2</span>
+          <span className="absolute -top-1 -right-1 h-4 w-4 bg-rose-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold ring-2 ring-indigo-900">3</span>
         </button>
 
         <div className="flex items-center gap-3 pl-4 border-l border-white/20">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center font-bold text-white shadow-sm uppercase">
-            {userName.substring(0, 2)}
+          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center font-bold text-white shadow-sm tracking-widest">
+            {getInitials(displayName)}
           </div>
           <div className="hidden md:flex flex-col text-xs">
-            <span className="font-bold text-white truncate max-w-[120px]">
-              {userName}
+            <span className="font-bold text-white tracking-wide">
+              {displayName}
             </span>
-            <span className="text-indigo-200">{currentRole} View</span>
+            <span className="text-indigo-200">{displayRole} Scope Active</span>
           </div>
-          
-          <button 
-            onClick={handleLogout}
-            className="ml-2 p-1.5 text-indigo-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-            title="Sign Out"
-          >
-            <LogOut size={16} />
-          </button>
         </div>
       </div>
     </header>

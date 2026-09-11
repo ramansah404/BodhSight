@@ -1,229 +1,182 @@
-import { useEffect, useState } from 'react';
-import { Sparkles, TrendingDown, AlertCircle, ShieldCheck, ArrowRight, CheckCircle2, Play } from 'lucide-react';
-import { checkHealth, type HealthResponse } from '../services/api';
-import { fetchDashboardMetrics, fetchExceptions, fetchInterventionPriorities } from '../api/agent10';
-import type { AcademicDashboardMetrics, AcademicException, InterventionPriorityItem } from '../types/agent10';
+﻿import { useEffect, useState } from "react";
+import { useOutletContext, useNavigate } from "react-router-dom";
+import { Users, TrendingDown, AlertTriangle, ShieldCheck, Sparkles, BookOpen, ChevronRight, Activity } from "lucide-react";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from "recharts";
+import { Agent10API } from "../services/api";
+import type { AcademicDashboardMetrics } from "../types/agent10";
 
 export default function Dashboard() {
+  const { currentRole } = useOutletContext<{ currentRole: string }>();
+  const navigate = useNavigate();
   const [metrics, setMetrics] = useState<AcademicDashboardMetrics | null>(null);
-  const [exceptions, setExceptions] = useState<AcademicException[]>([]);
-  const [priorities, setPriorities] = useState<InterventionPriorityItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deployingItem, setDeployingItem] = useState<InterventionPriorityItem | null>(null);
-  const [deploySuccess, setDeploySuccess] = useState(false);
 
-  // Health check state
-  const [health, setHealth] = useState<HealthResponse | null>(null);
-  const [healthError, setHealthError] = useState<string | null>(null);
+  // Mock data for charts to make the demo look incredible
+  const trendData = [
+    { name: "2024-T1", performance: 78, passRate: 84 },
+    { name: "2024-T2", performance: 80, passRate: 85 },
+    { name: "2025-T1", performance: 79, passRate: 84 },
+    { name: "2025-T2", performance: 82, passRate: 87 },
+    { name: "2026-T1", performance: 68, passRate: 82.4 }, // The Agent 10 Drop
+  ];
+
+  const deptData = [
+    { name: "CSE", passRate: 81 },
+    { name: "ECE", passRate: 79 },
+    { name: "MECH", passRate: 88 },
+    { name: "CIVIL", passRate: 84 },
+  ];
 
   useEffect(() => {
-    // Backend health check
-    checkHealth()
-      .then(setHealth)
-      .catch((err) => setHealthError(err.message));
+    Agent10API.getPerformance().then(data => {
+      setMetrics(data);
+      setLoading(false);
+    });
+  }, [currentRole]);
 
-    async function loadData() {
-      try {
-        const [dashData, excData, priData] = await Promise.all([
-          fetchDashboardMetrics(),
-          fetchExceptions(),
-          fetchInterventionPriorities()
-        ]);
-        setMetrics(dashData);
-        setExceptions(excData);
-        setPriorities(priData);
-      } catch (e) {
-        console.error("Failed to load dashboard data");
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
-
-  const handleExecuteWorkflow = () => {
-    setDeploySuccess(true);
-    setTimeout(() => {
-      setDeploySuccess(false);
-      setDeployingItem(null);
-    }, 1500);
-  };
-
-  if (loading) return <div className="flex items-center justify-center h-full text-gray-500">Loading Agent 10 Analytics...</div>;
-  if (!metrics) return <div className="text-red-500">Failed to load data.</div>;
+  if (loading) return <div className="p-12 text-center text-indigo-600 font-bold animate-pulse">Loading BodhSight Command Center...</div>;
+  if (!metrics) return <div className="text-rose-600 p-6">Failed to load telemetry.</div>;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       
-      {/* Header */}
-      <div className="flex justify-between items-end">
+      {/* 10-Second Executive Summary Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Academic Performance Overview</h1>
-          <p className="text-sm text-gray-500 mt-1">Institution-wide analytics • As of {metrics.as_of_date}</p>
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Academic Health Overview</h1>
+          <p className="text-gray-500 font-medium mt-1">Real-time consolidated telemetry for {currentRole} view.</p>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          {/* Health Status badge preserved from HEAD */}
-          <div className={`text-xs px-2 py-1 rounded border ${healthError ? 'bg-red-50 text-red-700 border-red-200' : health ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
-            {healthError ? `Backend Error: ${healthError}` : health ? `Backend: ${health.service}` : 'Checking backend...'}
-          </div>
-          
-          <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1.5 rounded-full text-sm font-medium border border-green-200">
-            <ShieldCheck size={16} />
-            Data Trust Score: {metrics.data_trust_score}/100
+        <div className="flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100">
+          <ShieldCheck className="text-emerald-600" size={20} />
+          <div className="text-sm font-bold text-emerald-800">
+            Ingestion Verified <span className="text-emerald-600 font-normal ml-1">• Trust Score: {metrics.data_trust_score}/100</span>
           </div>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-          <div className="text-sm font-medium text-gray-500 mb-1">Overall Pass Rate</div>
-          <div className="flex items-end gap-3">
-            <span className="text-3xl font-bold text-gray-900">{metrics.pass_rate}%</span>
-            <span className="flex items-center text-sm font-medium text-red-600 mb-1">
-              <TrendingDown size={16} className="mr-1" /> 2.1%
-            </span>
+      {/* KPI Top Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-start">
+            <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Total Students</div>
+            <Users size={16} className="text-indigo-500" />
           </div>
+          <div className="text-3xl font-black text-gray-900 mt-2">{metrics.students_evaluated.toLocaleString()}</div>
+          <div className="text-xs text-gray-500 font-medium mt-1">Evaluated this semester</div>
         </div>
         
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-          <div className="text-sm font-medium text-gray-500 mb-1">Average Marks</div>
-          <div className="flex items-end gap-3">
-            <span className="text-3xl font-bold text-gray-900">{metrics.average_marks}</span>
-            <span className="text-sm text-gray-500 mb-1">/ 100</span>
+        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-start">
+            <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Overall Pass Rate</div>
+            <Activity size={16} className="text-emerald-500" />
           </div>
+          <div className="text-3xl font-black text-gray-900 mt-2">{metrics.pass_rate}%</div>
+          <div className="text-xs text-rose-600 font-bold mt-1 flex items-center gap-1"><TrendingDown size={12}/> 2.1% from last term</div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-          <div className="text-sm font-medium text-gray-500 mb-1">Students Evaluated</div>
-          <div className="text-3xl font-bold text-gray-900">{metrics.students_evaluated.toLocaleString()}</div>
+        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-start">
+            <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Avg Performance</div>
+            <BookOpen size={16} className="text-blue-500" />
+          </div>
+          <div className="text-3xl font-black text-gray-900 mt-2">{metrics.average_gpa} <span className="text-lg text-gray-400">CGPA</span></div>
+          <div className="text-xs text-gray-500 font-medium mt-1">Institutional baseline</div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-red-100 shadow-sm bg-red-50/30">
-          <div className="text-sm font-medium text-red-600 mb-1 flex items-center gap-1">
-            <AlertCircle size={16} /> Significant Deviations
+        <div className="bg-gradient-to-br from-rose-50 to-white p-6 rounded-3xl border border-rose-200 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-full blur-xl"></div>
+          <div className="flex justify-between items-start relative z-10">
+            <div className="text-xs font-bold uppercase tracking-wider text-rose-700">Active Anomalies</div>
+            <AlertTriangle size={16} className="text-rose-600" />
           </div>
-          <div className="text-3xl font-bold text-red-700">{metrics.significant_deviations}</div>
+          <div className="text-3xl font-black text-rose-700 mt-2 relative z-10">{metrics.significant_deviations}</div>
+          <div className="text-xs text-rose-600 font-bold mt-1 relative z-10">Requires immediate attention</div>
         </div>
       </div>
 
-      {/* Main Content Grid */}
+      {/* Main Visual Area - Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Left Column: AI Exceptions */}
-        <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-lg font-bold text-gray-900">AI-Detected Exceptions</h2>
-          {exceptions.map(exc => (
-            <div key={exc.id} className="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden">
-              <div className="bg-indigo-50/50 px-5 py-3 border-b border-indigo-100 flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Sparkles size={18} className="text-indigo-600" />
-                  <span className="font-semibold text-indigo-900">{exc.title}</span>
-                </div>
-                <span className="px-2.5 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">
-                  {exc.severity}
-                </span>
-              </div>
-              <div className="p-5">
-                <p className="text-gray-700 text-sm leading-relaxed mb-4">{exc.explanation}</p>
-                <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-600 border border-gray-100">
-                  <span className="font-semibold text-gray-900">Recommended Action:</span> {exc.recommended_action}
-                </div>
-                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-4 text-xs text-gray-500">
-                  <span>Deviation: <strong className="text-red-600">{exc.deviation}%</strong></span>
-                  <span>Affected: {exc.affected_students} students</span>
-                </div>
-              </div>
-            </div>
-          ))}
+        {/* Performance Trend Chart */}
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-200 shadow-sm p-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-6">Overall Academic Performance Trend</h2>
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={trendData}>
+                <defs>
+                  <linearGradient id="colorPerf" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} dy={10} />
+                <YAxis domain={[60, 100]} axisLine={false} tickLine={false} tick={{fill: '#6b7280', fontSize: 12}} dx={-10} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  itemStyle={{ fontWeight: 'bold' }}
+                />
+                <Area type="monotone" dataKey="performance" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorPerf)" name="Avg Marks" />
+                <Line type="monotone" dataKey="passRate" stroke="#10b981" strokeWidth={3} dot={{r: 4, strokeWidth: 2}} name="Pass Rate %" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        {/* Right Column: Intervention Priorities */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold text-gray-900">Intervention Priorities</h2>
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-            <ul className="space-y-4">
-              {priorities.map((item, idx) => (
-                <li key={item.course_code} className="flex flex-col pb-4 border-b border-gray-100 last:border-0 last:pb-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${idx === 0 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
-                        {item.rank}
-                      </div>
-                      <span className="font-bold text-gray-900 text-sm">{item.course_code}</span>
-                    </div>
-                    <button 
-                      onClick={() => setDeployingItem(item)}
-                      className="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-xs font-bold transition-colors flex items-center gap-1"
-                    >
-                      <Play size={10} /> Deploy Action
-                    </button>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">{item.course_name}</div>
-                  <div className="mt-2 text-xs font-medium text-red-600 bg-red-50 p-2 rounded border border-red-100">
-                    {item.recommended_intervention}
-                  </div>
-                </li>
-              ))}
-            </ul>
+        {/* Department Comparison Chart */}
+        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-6">Department Pass Rates</h2>
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={deptData} layout="vertical" margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
+                <XAxis type="number" domain={[0, 100]} hide />
+                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: '#4b5563', fontWeight: 'bold', fontSize: 12}} />
+                <Tooltip cursor={{fill: '#f3f4f6'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                <Bar dataKey="passRate" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={24} name="Pass Rate %" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      {/* Action Workflow Modal */}
-      {deployingItem && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-indigo-50/60">
-              <div className="flex items-center gap-2 text-indigo-700">
-                <Sparkles size={20} />
-                <h3 className="font-bold text-lg">Agent 10 Automated Workflow</h3>
+      {/* AI / Agent 10 Insights Bottom Panel */}
+      <div className="bg-gradient-to-r from-indigo-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white shadow-xl">
+        <h2 className="text-lg font-bold flex items-center gap-2 mb-4 text-indigo-100">
+          <Sparkles className="text-indigo-400" size={20} />
+          Agent 10 Synthesized Insights
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div onClick={() => navigate('/anomalies')} className="bg-white/10 hover:bg-white/15 border border-white/10 rounded-2xl p-4 cursor-pointer transition-all group">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="text-rose-400 shrink-0 mt-0.5" size={18} />
+              <div>
+                <p className="text-sm font-semibold text-white group-hover:text-rose-200 transition-colors">Course performance declined significantly</p>
+                <p className="text-xs text-indigo-200/70 mt-1">CS301 dropped 20% below historical baseline.</p>
               </div>
             </div>
-            
-            <div className="p-6 space-y-4">
-              {deploySuccess ? (
-                <div className="py-8 text-center space-y-3">
-                  <CheckCircle2 size={48} className="text-green-600 mx-auto animate-bounce" />
-                  <h4 className="text-lg font-bold text-gray-900">Intervention Workflow Deployed!</h4>
-                  <p className="text-sm text-gray-500">Remedial assignments and notifications dispatched to department faculty.</p>
-                </div>
-              ) : (
-                <>
-                  <div>
-                    <h4 className="text-lg font-bold text-gray-900">{deployingItem.course_code}: {deployingItem.course_name}</h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      You are about to trigger Agent 10 to automatically schedule remedial labs and notify {deployingItem.affected_students} affected students.
-                    </p>
-                  </div>
-
-                  <div className="bg-slate-900 text-slate-200 p-4 rounded-xl font-mono text-xs space-y-1">
-                    <div className="text-emerald-400"># Action Payload</div>
-                    <div>Target Course: {deployingItem.course_code}</div>
-                    <div>Action: {deployingItem.recommended_intervention}</div>
-                    <div>Dispatcher: Agent 10 Orchestrator</div>
-                  </div>
-
-                  <div className="flex gap-3 pt-4 border-t border-gray-100">
-                    <button 
-                      onClick={handleExecuteWorkflow}
-                      className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                    >
-                      Confirm & Dispatch <ArrowRight size={16} />
-                    </button>
-                    <button 
-                      onClick={() => setDeployingItem(null)}
-                      className="px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg text-sm font-medium transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </>
-              )}
+          </div>
+          <div onClick={() => navigate('/recommendations')} className="bg-white/10 hover:bg-white/15 border border-white/10 rounded-2xl p-4 cursor-pointer transition-all group">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="text-emerald-400 shrink-0 mt-0.5" size={18} />
+              <div>
+                <p className="text-sm font-semibold text-white group-hover:text-emerald-200 transition-colors">Department MECH improved consistently</p>
+                <p className="text-xs text-indigo-200/70 mt-1">Pass rates stabilized at 88.5% across batches.</p>
+              </div>
             </div>
           </div>
+          <div onClick={() => navigate('/courses')} className="bg-white/10 hover:bg-white/15 border border-white/10 rounded-2xl p-4 cursor-pointer transition-all group flex items-center justify-between">
+            <div className="flex items-start gap-3">
+              <Activity className="text-amber-400 shrink-0 mt-0.5" size={18} />
+              <div>
+                <p className="text-sm font-semibold text-white group-hover:text-amber-200 transition-colors">Section disparities detected</p>
+                <p className="text-xs text-indigo-200/70 mt-1">EC202 Sec-B lagging by 22%.</p>
+              </div>
+            </div>
+            <ChevronRight className="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" size={20}/>
+          </div>
         </div>
-      )}
+      </div>
 
     </div>
   );
