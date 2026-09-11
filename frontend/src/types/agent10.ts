@@ -7,6 +7,12 @@
   failure_rate: number;
   significant_deviations: number;
   data_trust_score: number;
+  ingestion_status: {
+    total_records_ingested: number;
+    flagged_anomalies: number;
+    missing_students_detected: number;
+    impossible_marks_flagged: number;
+  };
 }
 
 export interface CoursePerformance {
@@ -14,6 +20,8 @@ export interface CoursePerformance {
   course_name: string;
   department: string;
   semester: string;
+  regulation: string;
+  batch: string;
   pass_rate: number;
   failure_rate: number;
   avg_marks: number;
@@ -21,6 +29,12 @@ export interface CoursePerformance {
   students_appeared: number;
   trend: "UP" | "DOWN" | "STABLE";
   priority: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+  attribution: string;
+  contextual_factors: {
+    entry_ability_score: number;
+    course_difficulty_rating: "High" | "Moderate" | "Low";
+    historical_pass_rate: number;
+  };
 }
 
 export interface DepartmentPerformance {
@@ -32,6 +46,55 @@ export interface DepartmentPerformance {
   avg_gpa: number;
   active_exceptions: number;
   status: "OPTIMAL" | "MONITORING" | "INTERVENTION_REQUIRED";
+}
+
+export interface BatchPerformance {
+  batch_year: string;
+  programme: string;
+  student_count: number;
+  avg_gpa: number;
+  pass_rate: number;
+  backlog_percentage: number;
+  trend: "IMPROVING" | "DECLINING" | "STABLE";
+  risk_level: "LOW" | "MODERATE" | "HIGH";
+}
+
+export interface StudentRiskGroup {
+  group_id: string;
+  category: string;
+  affected_count: number;
+  avg_cgpa: number;
+  primary_issue: string;
+  trend: string;
+  recommended_support: string;
+}
+
+export interface AcademicException {
+  id: string;
+  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+  title: string;
+  course_code: string;
+  department: string;
+  current_value: number;
+  baseline_value: number;
+  deviation: number;
+  affected_students: number;
+  explanation: string;
+  evidence: string[];
+  recommended_action: string;
+  detected_date: string;
+  attribution_root: string;
+}
+
+export interface RecommendationItem {
+  id: string;
+  problem: string;
+  evidence: string[];
+  recommendation: string;
+  priority: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+  expected_impact: string;
+  affected_population: number;
+  status: "PENDING" | "IN_PROGRESS" | "RESOLVED";
 }
 
 export interface SectionComparison {
@@ -62,22 +125,6 @@ export interface ReportItem {
   size: string;
 }
 
-export interface AcademicException {
-  id: string;
-  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
-  title: string;
-  course_code: string;
-  department: string;
-  current_value: number;
-  baseline_value: number;
-  deviation: number;
-  affected_students: number;
-  explanation: string;
-  evidence: string[];
-  recommended_action: string;
-  detected_date: string;
-}
-
 export interface InterventionPriorityItem {
   rank: number;
   course_code: string;
@@ -89,4 +136,12 @@ export interface InterventionPriorityItem {
   failure_rate: number;
   affected_students: number;
   recommended_intervention: string;
+}
+
+export interface SlicedDemographics {
+  dimension_type: "gender" | "admission_category" | "entry_qualification";
+  category_name: string;
+  students_count: number;
+  pass_rate: number;
+  avg_gpa: number;
 }
