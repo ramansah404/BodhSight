@@ -53,6 +53,15 @@ export interface TrendData {
   evaluation_count: number;
 }
 
+export interface ReportItem {
+  id: string;
+  title: string;
+  type: "PDF" | "CSV" | "JSON";
+  generated_date: string;
+  category: string;
+  size: string;
+}
+
 export interface AcademicException {
   id: string;
   severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
