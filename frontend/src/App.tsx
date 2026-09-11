@@ -7,6 +7,7 @@ import Departments from "./pages/Departments";
 import Sections from "./pages/Sections";
 import Trends from "./pages/Trends";
 import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="trends" element={<Trends />} />
           <Route path="exceptions" element={<Exceptions />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>
