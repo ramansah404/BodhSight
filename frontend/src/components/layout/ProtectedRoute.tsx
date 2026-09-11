@@ -1,6 +1,6 @@
-﻿import { Navigate, Outlet } from "react-router-dom";
+﻿import { Outlet } from "react-router-dom";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
-import { getRolePermissions, InstitutionalRole } from "../../utils/rbac";
+import { getRolePermissions } from "../../utils/rbac";
 
 interface ProtectedRouteProps {
   allowedRoles: string[];
@@ -10,7 +10,6 @@ export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   const currentRole = localStorage.getItem("bodhsight_role") || "Dean";
   const displayRole = localStorage.getItem("bodhsight_display_role") || currentRole;
 
-  // Check if current role is authorized for this route
   const isAuthorized = allowedRoles.includes(currentRole) || allowedRoles.includes(displayRole);
 
   if (!isAuthorized) {
