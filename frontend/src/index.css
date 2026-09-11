@@ -1,3 +1,13 @@
+<<<<<<< HEAD
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+=======
+﻿@import "tailwindcss";
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background-color: #f8fafc;
+}
+>>>>>>> fdaa9ac071934d47fc97884694f45bdb8beab2b8
