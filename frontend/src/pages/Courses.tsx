@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BookOpen, ShieldCheck, BarChart2, AlertCircle, Loader2, X, Info } from "lucide-react";
+import { BookOpen, ShieldCheck, BarChart2, AlertCircle , X, Info } from "lucide-react";
 import { Agent10API } from "../services/api";
 import { useFilters } from "../contexts/FilterContext";
 import type { CoursePerformance } from "../types/agent10";
@@ -69,9 +69,14 @@ export default function Courses() {
 
         {/* Loading */}
         {state === "loading" && (
-          <div className="flex items-center justify-center py-20 gap-3 text-indigo-400 font-medium">
-            <Loader2 size={22} className="animate-spin" />
-            Loading course performance from database…
+          <div className="p-6 space-y-4">
+            <div className="flex gap-4 mb-6">
+              <div className="h-10 w-1/4 bg-slate-800/50 rounded-xl animate-pulse" />
+              <div className="h-10 w-1/4 bg-slate-800/50 rounded-xl animate-pulse" />
+            </div>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-16 w-full bg-slate-800/30 rounded-xl animate-pulse" />
+            ))}
           </div>
         )}
 

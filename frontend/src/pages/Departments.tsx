@@ -14,7 +14,17 @@ export default function Departments() {
     }).catch(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="p-12 text-center text-indigo-400 font-medium">Loading departmental health...</div>;
+  if (loading) return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="bg-[#0B1120] rounded-2xl border border-slate-800/60 p-6 flex flex-col justify-between h-48 animate-pulse">
+          <div className="h-6 w-1/3 bg-slate-800 rounded mb-4"></div>
+          <div className="h-4 w-1/2 bg-slate-800/50 rounded mb-2"></div>
+          <div className="h-20 w-full bg-slate-800/30 rounded-2xl"></div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">

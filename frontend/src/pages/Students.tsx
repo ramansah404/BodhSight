@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ShieldAlert, Users, AlertTriangle, Loader2, AlertCircle, Info, BookOpen } from "lucide-react";
+import { ShieldAlert, Users, AlertTriangle , AlertCircle, Info, BookOpen } from "lucide-react";
 import { Agent10API } from "../services/api";
 import type { TrendsResponse } from "../types/agent10";
 
@@ -50,9 +50,14 @@ export default function Students() {
 
       {/* Loading */}
       {state === "loading" && (
-        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm flex items-center justify-center py-20 gap-3 text-indigo-400 font-medium">
-          <Loader2 size={22} className="animate-spin" />
-          Loading student backlog data from database…
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-[#0B1120] p-6 rounded-3xl border border-slate-800/60 animate-pulse">
+              <div className="h-4 bg-slate-800 rounded w-1/2 mb-4" />
+              <div className="h-8 bg-slate-800 rounded w-1/3 mb-2" />
+              <div className="h-3 bg-slate-800/50 rounded w-2/3" />
+            </div>
+          ))}
         </div>
       )}
 
