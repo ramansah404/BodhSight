@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { TrendingUp, CalendarDays, TrendingDown, Info , AlertCircle, BarChart2 } from "lucide-react";
 import { Agent10API } from "../services/api";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { TrendsResponse } from "../types/agent10";
+import ExportMenu from "../components/ui/ExportMenu";
+import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 
 type LoadState = "loading" | "success" | "error";
 
@@ -29,16 +32,70 @@ export default function Trends() {
     return () => { cancelled = true; };
   }, []);
 
+  const handleExportExcel = () => {
+    if (!data) return;
+    
+    const aboveData = data.courses_above_mean.map(c => ({
+      "Course Code": c.course_code,
+      "Title": c.course_title,
+      "Pass Rate (%)": c.pass_pct,
+      "Delta vs Mean": c.delta_vs_mean
+    }));
+    
+    const belowData = data.courses_below_mean.map(c => ({
+      "Course Code": c.course_code,
+      "Title": c.course_title,
+      "Pass Rate (%)": c.pass_pct,
+      "Delta vs Mean": c.delta_vs_mean
+    }));
+
+    exportToExcel([...aboveData, {}, ...belowData], "Institutional_Trends");
+  };
+
+  const handleExportPDF = () => {
+    exportToPDF("trends-content", "Institutional_Trends_Report", "Institutional Trend Analysis");
+  };
+
+  const handleExportWord = () => {
+    if (!data) return;
+    
+    const paragraphs = [
+      `Institutional Trend Analysis`,
+      `Average Pass Rate: ${data.current_term_summary?.avg_pass_rate?.toFixed(1) || 0}%`,
+      `Average Marks: ${data.current_term_summary?.avg_marks?.toFixed(1) || 0}`,
+      `Students Evaluated: ${data.current_term_summary?.students_evaluated || 0}`
+    ];
+    
+    const tableData = [
+      ["Course Code", "Title", "Pass Rate (%)", "Delta vs Mean (pp)"],
+      ...data.courses_above_mean.map(c => [c.course_code, c.course_title, String(c.pass_pct), `+${c.delta_vs_mean.toFixed(1)}`]),
+      ...data.courses_below_mean.map(c => [c.course_code, c.course_title, String(c.pass_pct), String(c.delta_vs_mean.toFixed(1))])
+    ];
+
+    exportToWord(`Institutional Trend Analysis`, paragraphs, tableData, "Institutional_Trends_Report");
+  };
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6" id="trends-content">
       <div className="bg-gradient-to-r from-amber-950 via-slate-900 to-indigo-950 rounded-3xl p-8 text-white shadow-xl">
-        <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-200 px-3 py-1 rounded-full text-xs font-bold border border-amber-400/30 mb-2">
-          <TrendingUp size={14} /> Historical Timeline
+        <div className="flex justify-between items-start md:items-end">
+          <div>
+            <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-200 px-3 py-1 rounded-full text-xs font-bold border border-amber-400/30 mb-3">
+              <TrendingUp size={14} /> Historical Timeline
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight">Institutional Trend Analysis</h1>
+            <p className="text-amber-100/80 text-sm mt-1 max-w-2xl">
+              Relative performance analysis across courses compared to the institutional mean for the current academic term.
+            </p>
+          </div>
+          
+          <ExportMenu 
+            onExportExcel={handleExportExcel}
+            onExportPDF={handleExportPDF}
+            onExportWord={handleExportWord}
+            disabled={state !== "success"}
+          />
         </div>
-        <h1 className="text-3xl font-extrabold tracking-tight">Institutional Trend Analysis</h1>
-        <p className="text-amber-100/80 text-sm mt-1 max-w-2xl">
-          Relative performance analysis across courses compared to the institutional mean for the current academic term.
-        </p>
       </div>
 
       {/* Loading */}
@@ -135,12 +192,24 @@ export default function Trends() {
                 </h3>
               </div>
               {data.courses_above_mean.length === 0 ? (
-                <div className="py-10 text-center text-sm text-secondary font-medium">
+                <div className="py-10 text-center text-sm text-text-secondary font-medium">
                   No courses above the institutional mean.
                 </div>
               ) : (
-                <div className="divide-y divide-slate-800/60">
-                  {data.courses_above_mean.map((c, idx) => (
+                <>
+                  <div style={{ width: "100%", height: 180 }} className="p-4 border-b border-border">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={data.courses_above_mean.slice(0, 5)} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#334155" />
+                        <XAxis type="number" hide />
+                        <YAxis dataKey="course_code" type="category" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10 }} width={60} />
+                        <Tooltip cursor={{ fill: "#1e293b" }} contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#0f172a", color: "#f8fafc" }} />
+                        <Bar dataKey="delta_vs_mean" fill="#10b981" radius={[0, 4, 4, 0]} barSize={16} name="Delta (pp)" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="divide-y divide-border h-64 overflow-y-auto custom-scrollbar">
+                    {data.courses_above_mean.map((c, idx) => (
                     <div key={idx} className="flex items-center justify-between p-4 hover:bg-slate-900/40 transition-colors">
                       <div>
                         <div className="font-bold text-white text-sm">{c.course_title || c.course_code}</div>
@@ -154,7 +223,8 @@ export default function Trends() {
                       </div>
                     </div>
                   ))}
-                </div>
+                  </div>
+                </>
               )}
             </div>
 
@@ -167,12 +237,24 @@ export default function Trends() {
                 </h3>
               </div>
               {data.courses_below_mean.length === 0 ? (
-                <div className="py-10 text-center text-sm text-secondary font-medium">
+                <div className="py-10 text-center text-sm text-text-secondary font-medium">
                   No courses below the institutional mean.
                 </div>
               ) : (
-                <div className="divide-y divide-slate-800/60">
-                  {data.courses_below_mean.map((c, idx) => (
+                <>
+                  <div style={{ width: "100%", height: 180 }} className="p-4 border-b border-border">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={data.courses_below_mean.slice(0, 5)} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#334155" />
+                        <XAxis type="number" hide />
+                        <YAxis dataKey="course_code" type="category" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10 }} width={60} />
+                        <Tooltip cursor={{ fill: "#1e293b" }} contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#0f172a", color: "#f8fafc" }} />
+                        <Bar dataKey="delta_vs_mean" fill="#e11d48" radius={[0, 4, 4, 0]} barSize={16} name="Delta (pp)" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="divide-y divide-border h-64 overflow-y-auto custom-scrollbar">
+                    {data.courses_below_mean.map((c, idx) => (
                     <div key={idx} className="flex items-center justify-between p-4 hover:bg-slate-900/40 transition-colors">
                       <div>
                         <div className="font-bold text-white text-sm">{c.course_title || c.course_code}</div>
@@ -187,6 +269,7 @@ export default function Trends() {
                     </div>
                   ))}
                 </div>
+                </>
               )}
             </div>
           </div>

@@ -4,9 +4,11 @@ import {
   Users, AlertTriangle, ShieldCheck, Sparkles,
   BookOpen, ChevronRight, Activity, Building2, Award, Loader2
 } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Agent10API } from "../services/api";
 import type { AcademicDashboardMetrics, DepartmentPerformance } from "../types/agent10";
+import ExportMenu from "../components/ui/ExportMenu";
+import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 
 export default function Dashboard() {
   const { currentRole } = useOutletContext<{ currentRole: string }>();
@@ -50,10 +52,61 @@ export default function Dashboard() {
   const deptChartData = departments.map((d) => ({
     name: d.department_code,
     passRate: d.pass_rate ?? 0,
+    status: d.status
   }));
 
+  const handleExportExcel = () => {
+    // Generate institutional summary data
+    const summaryData = [{
+      "Metric": "Students Evaluated",
+      "Value": metrics?.students_evaluated || 0
+    }, {
+      "Metric": "Total Students",
+      "Value": metrics?.total_students || 0
+    }, {
+      "Metric": "Pass Rate (%)",
+      "Value": metrics?.pass_rate || 0
+    }, {
+      "Metric": "Average Marks",
+      "Value": metrics?.average_marks || 0
+    }, {
+      "Metric": "Active Anomalies",
+      "Value": metrics?.active_anomalies || metrics?.significant_deviations || 0
+    }];
+    
+    // Generate department data
+    const deptData = departments.map(d => ({
+      "Department": d.department_code,
+      "Pass Rate (%)": d.pass_rate || 0,
+      "Status": d.status
+    }));
+
+    exportToExcel([...summaryData, {}, ...deptData], "Institutional_Overview_Dashboard");
+  };
+
+  const handleExportPDF = () => {
+    exportToPDF("dashboard-content", "Institutional_Overview_Report", `BodhSight Executive Overview - ${currentRole}`);
+  };
+
+  const handleExportWord = () => {
+    const paragraphs = [
+      `Institutional Macro Governance Report`,
+      `Students Evaluated: ${metrics?.students_evaluated || 0} (out of ${metrics?.total_students || 0})`,
+      `Institutional Pass Rate: ${metrics?.pass_rate?.toFixed(1) || 0}%`,
+      `Average Marks: ${metrics?.average_marks?.toFixed(1) || 0}`,
+      `Active Anomalies Requiring Attention: ${metrics?.active_anomalies || metrics?.significant_deviations || 0}`
+    ];
+    
+    const tableData = [
+      ["Department", "Pass Rate (%)", "Status"],
+      ...departments.map(d => [d.department_code, String(d.pass_rate), d.status])
+    ];
+
+    exportToWord(`BodhSight Executive Overview - ${currentRole}`, paragraphs, tableData, "Institutional_Overview_Report");
+  };
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6" id="dashboard-content">
 
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-[#0B1120] p-6 rounded-3xl border border-slate-800/60 shadow-lg">
@@ -84,16 +137,25 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20">
-          <ShieldCheck className="text-emerald-400" size={20} />
-          <div className="text-sm font-bold text-emerald-400">
-            RBAC Secure
-            {metrics && (
-              <span className="text-emerald-500 font-normal ml-1">
-                • Trust Score: {metrics.data_trust_score}/100
-              </span>
-            )}
+        <div className="flex flex-col items-end gap-3">
+          <div className="flex items-center gap-2 bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20">
+            <ShieldCheck className="text-emerald-500 dark:text-emerald-400" size={20} />
+            <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+              RBAC Secure
+              {metrics && (
+                <span className="text-emerald-700 dark:text-emerald-500 font-normal ml-1">
+                  • Trust Score: {metrics.data_trust_score}/100
+                </span>
+              )}
+            </div>
           </div>
+          
+          <ExportMenu 
+            onExportExcel={handleExportExcel}
+            onExportPDF={handleExportPDF}
+            onExportWord={handleExportWord}
+            disabled={metricsLoading || !!metricsError}
+          />
         </div>
       </div>
 
@@ -120,7 +182,7 @@ export default function Dashboard() {
               <div className="text-xs font-bold uppercase tracking-wider text-secondary">Students Evaluated</div>
               <Users size={16} className="text-indigo-400" />
             </div>
-            <div className="text-3xl font-bold text-white mt-3">
+            <div className="text-3xl font-bold text-text-primary mt-3">
               {metrics.students_evaluated.toLocaleString()}
             </div>
             <div className="text-xs text-secondary font-medium mt-1">
@@ -135,7 +197,7 @@ export default function Dashboard() {
               <div className="text-xs font-bold uppercase tracking-wider text-secondary">Pass Rate</div>
               <Activity size={16} className="text-emerald-400" />
             </div>
-            <div className="text-3xl font-bold text-white mt-3">{metrics.pass_rate.toFixed(1)}%</div>
+            <div className="text-3xl font-bold text-text-primary mt-3">{metrics.pass_rate.toFixed(1)}%</div>
             <div className="text-xs text-secondary font-medium mt-1">
               Failure rate: {metrics.failure_rate.toFixed(1)}%
             </div>
@@ -146,7 +208,7 @@ export default function Dashboard() {
               <div className="text-xs font-bold uppercase tracking-wider text-secondary">Average Marks</div>
               <BookOpen size={16} className="text-blue-400" />
             </div>
-            <div className="text-3xl font-bold text-white mt-3">
+            <div className="text-3xl font-bold text-text-primary mt-3">
               {metrics.average_marks.toFixed(1)}
             </div>
             <div className="text-xs text-secondary font-medium mt-1">
@@ -162,7 +224,7 @@ export default function Dashboard() {
               <div className="text-xs font-bold uppercase tracking-wider text-rose-400">Active Anomalies</div>
               <AlertTriangle size={16} className="text-rose-500" />
             </div>
-            <div className="text-3xl font-bold text-white mt-3 relative z-10">
+            <div className="text-3xl font-bold text-text-primary mt-3 relative z-10">
               {metrics.active_anomalies ?? metrics.significant_deviations}
             </div>
             <div className="text-xs text-rose-400 font-medium mt-1 relative z-10">
@@ -182,7 +244,7 @@ export default function Dashboard() {
             <div style={{ width: "100%", height: 288 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={deptChartData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#1e293b" />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#334155" />
                   <XAxis type="number" domain={[0, 100]} hide />
                   <YAxis
                     dataKey="name"
@@ -198,11 +260,17 @@ export default function Dashboard() {
                   />
                   <Bar
                     dataKey="passRate"
-                    fill="#6366f1"
                     radius={[0, 4, 4, 0]}
                     barSize={24}
                     name="Pass Rate %"
-                  />
+                  >
+                    {deptChartData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.status === 'INTERVENTION_REQUIRED' ? '#ef4444' : entry.status === 'MONITORING' ? '#f59e0b' : '#6366f1'} 
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>

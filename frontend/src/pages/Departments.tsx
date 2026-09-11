@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Agent10API } from "../services/api";
 import type { DepartmentPerformance } from "../types/agent10";
-import { Building2, Users, Award, AlertCircle, CheckCircle2, ArrowRight } from "lucide-react";
+import { Building2, AlertCircle, CheckCircle2, Lightbulb } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
+import ExportMenu from "../components/ui/ExportMenu";
+import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 
 export default function Departments() {
   const [departments, setDepartments] = useState<DepartmentPerformance[]>([]);
@@ -14,79 +17,186 @@ export default function Departments() {
     }).catch(() => setLoading(false));
   }, []);
 
+  const insight = useMemo(() => {
+    if (departments.length === 0) return null;
+    const sorted = [...departments].sort((a, b) => (b.pass_rate || 0) - (a.pass_rate || 0));
+    const highest = sorted[0];
+    const lowest = sorted[sorted.length - 1];
+    
+    return {
+      highest,
+      lowest,
+      text: `${highest.department_name} (${highest.department_code}) currently leads with a ${highest.pass_rate}% pass rate. ${lowest.department_name} (${lowest.department_code}) requires administrative attention due to its lower ${lowest.pass_rate}% pass rate and ${lowest.active_exceptions} active exceptions.`
+    };
+  }, [departments]);
+
+  const handleExportExcel = () => {
+    const data = departments.map(d => ({
+      "Department Code": d.department_code,
+      "Department Name": d.department_name,
+      "Total Students": d.total_students,
+      "Pass Rate (%)": d.pass_rate,
+      "Average GPA": d.avg_gpa,
+      "Active Exceptions": d.active_exceptions,
+      "Status": d.status
+    }));
+    exportToExcel(data, "Department_Academic_Health");
+  };
+
+  const handleExportPDF = () => {
+    exportToPDF("departments-content", "Department_Academic_Health_Report", "Department Academic Health");
+  };
+
+  const handleExportWord = () => {
+    const paragraphs = [
+      `Department Academic Health Report`,
+      insight ? `Key Insight: ${insight.text}` : `No insights available.`
+    ];
+    
+    const tableData = [
+      ["Dept Code", "Department Name", "Students", "Pass Rate (%)", "Avg GPA", "Exceptions", "Status"],
+      ...departments.map(d => [
+        d.department_code, d.department_name, String(d.total_students), String(d.pass_rate), String(d.avg_gpa), String(d.active_exceptions), d.status
+      ])
+    ];
+
+    exportToWord(`Department Academic Health`, paragraphs, tableData, "Department_Academic_Health_Report");
+  };
+
   if (loading) return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
       {[...Array(4)].map((_, i) => (
-        <div key={i} className="bg-[#0B1120] rounded-2xl border border-slate-800/60 p-6 flex flex-col justify-between h-48 animate-pulse">
-          <div className="h-6 w-1/3 bg-slate-800 rounded mb-4"></div>
-          <div className="h-4 w-1/2 bg-slate-800/50 rounded mb-2"></div>
-          <div className="h-20 w-full bg-slate-800/30 rounded-2xl"></div>
+        <div key={i} className="bg-[#0B1120] rounded-2xl border border-border p-6 flex flex-col justify-between h-48 animate-pulse">
+          <div className="h-6 w-1/3 bg-surface-secondary rounded mb-4"></div>
+          <div className="h-4 w-1/2 bg-surface-secondary rounded mb-2"></div>
+          <div className="h-20 w-full bg-surface-secondary rounded-2xl"></div>
         </div>
       ))}
     </div>
   );
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6" id="departments-content">
       
       {/* Header */}
-      <div className="bg-gradient-to-r from-violet-900 via-indigo-900 to-blue-900 rounded-2xl p-6 text-white shadow-xl">
-        <div className="flex items-center gap-2 text-violet-300 text-xs font-bold uppercase tracking-wider mb-1">
-          <Building2 size={14} /> Institutional Structure
+      <div className="bg-gradient-to-r from-violet-900 via-indigo-900 to-blue-900 rounded-3xl p-8 text-white shadow-xl flex justify-between items-start md:items-end flex-col md:flex-row gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-violet-300 text-xs font-bold uppercase tracking-wider mb-2">
+            <Building2 size={14} /> Institutional Structure
+          </div>
+          <h1 className="text-3xl font-bold">Department Academic Health</h1>
+          <p className="text-violet-100 text-sm mt-1 max-w-2xl">Aggregated performance indicators and anomaly tracking per academic department.</p>
         </div>
-        <h1 className="text-2xl font-bold">Department Academic Health</h1>
-        <p className="text-violet-100 text-sm mt-0.5">Aggregated performance indicators and anomaly tracking per academic department.</p>
+        
+        <ExportMenu 
+          onExportExcel={handleExportExcel}
+          onExportPDF={handleExportPDF}
+          onExportWord={handleExportWord}
+          disabled={departments.length === 0}
+        />
       </div>
 
-      {/* Grid of Departments */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {departments.map((dept) => (
-          <div key={dept.department_code} className="bg-[#0B1120] rounded-2xl border border-slate-800/60 shadow-sm p-6 flex flex-col justify-between hover:border-indigo-300 transition-all">
-            <div>
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <span className="text-xs font-extrabold text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/20">
-                    {dept.department_code}
-                  </span>
-                  <h3 className="text-lg font-bold text-white mt-2.5">{dept.department_name}</h3>
-                </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-extrabold flex items-center gap-1.5 ${
-                  dept.status === 'OPTIMAL' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-200' : 'bg-amber-500/20 text-amber-400 border border-amber-200'
-                }`}>
-                  {dept.status === 'OPTIMAL' ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
-                  {dept.status}
-                </span>
-              </div>
-
-              {/* Metrics Grid */}
-              <div className="grid grid-cols-3 gap-3 my-6 bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60/60">
-                <div>
-                  <div className="text-xs font-bold text-secondary uppercase flex items-center gap-1"><Users size={12} className="text-indigo-400" /> Students</div>
-                  <div className="text-xl font-extrabold text-white mt-1">{dept.total_students}</div>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-secondary uppercase">Pass Rate</div>
-                  <div className="text-xl font-extrabold text-emerald-500 mt-1">{dept.pass_rate}%</div>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-secondary uppercase flex items-center gap-1"><Award size={12} className="text-amber-500" /> Avg GPA</div>
-                  <div className="text-xl font-extrabold text-indigo-400 mt-1">{dept.avg_gpa}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-slate-800/60 flex items-center justify-between text-sm">
-              <span className="text-secondary font-medium">
-                Active Exceptions: <strong className={dept.active_exceptions > 0 ? "text-rose-600 font-bold" : "text-emerald-500 font-bold"}>{dept.active_exceptions}</strong>
-              </span>
-              <button className="text-indigo-400 font-bold flex items-center gap-1 hover:text-indigo-800 transition-colors">
-                View Report <ArrowRight size={16} />
-              </button>
+      {departments.length > 0 && (
+        <div className="space-y-6">
+          {/* Chart Section */}
+          <div className="bg-surface rounded-3xl border border-border shadow-sm p-6">
+            <h2 className="text-lg font-bold text-text-primary mb-6">Department Comparison (Pass Rate vs GPA)</h2>
+            <div style={{ width: "100%", height: 350 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={departments} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
+                  <XAxis dataKey="department_code" axisLine={false} tickLine={false} tick={{ fill: "var(--color-text-secondary)", fontSize: 12, fontWeight: 600 }} />
+                  <YAxis yAxisId="left" orientation="left" axisLine={false} tickLine={false} tick={{ fill: "var(--color-text-secondary)", fontSize: 12 }} />
+                  <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fill: "var(--color-text-secondary)", fontSize: 12 }} />
+                  <Tooltip 
+                    cursor={{ fill: "var(--color-surface-hover)" }}
+                    contentStyle={{ borderRadius: "12px", border: "1px solid var(--color-border)", backgroundColor: "var(--color-surface)", color: "var(--color-text-primary)" }}
+                  />
+                  <Legend iconType="circle" />
+                  <Bar yAxisId="left" dataKey="pass_rate" name="Pass Rate (%)" radius={[4, 4, 0, 0]} maxBarSize={50}>
+                    {departments.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.status === 'INTERVENTION_REQUIRED' ? '#ef4444' : entry.status === 'MONITORING' ? '#f59e0b' : '#6366f1'} />
+                    ))}
+                  </Bar>
+                  <Bar yAxisId="right" dataKey="avg_gpa" name="Avg GPA" fill="#8b5cf6" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
-        ))}
-      </div>
 
+          {/* Key Insight */}
+          {insight && (
+            <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-5 flex items-start gap-4">
+              <div className="bg-indigo-500/20 p-2 rounded-xl shrink-0 mt-1">
+                <Lightbulb size={24} className="text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-indigo-700 dark:text-indigo-400 mb-1">Key Insight</h3>
+                <p className="text-text-secondary text-sm leading-relaxed">{insight.text}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Data Table */}
+          <div className="bg-surface rounded-3xl border border-border shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-border bg-surface-secondary">
+              <h2 className="text-lg font-bold text-text-primary">Department Details</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-surface text-text-secondary text-xs uppercase tracking-wider">
+                    <th className="px-6 py-4 font-bold">Department</th>
+                    <th className="px-6 py-4 font-bold">Students</th>
+                    <th className="px-6 py-4 font-bold">Pass Rate</th>
+                    <th className="px-6 py-4 font-bold">Avg GPA</th>
+                    <th className="px-6 py-4 font-bold">Exceptions</th>
+                    <th className="px-6 py-4 font-bold">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {departments.map((dept) => (
+                    <tr key={dept.department_code} className="hover:bg-surface-hover transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-text-primary">{dept.department_code}</span>
+                          <span className="text-xs text-text-secondary">{dept.department_name}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 font-medium text-text-primary">{dept.total_students.toLocaleString()}</td>
+                      <td className="px-6 py-4">
+                        <span className={`font-extrabold ${dept.pass_rate && dept.pass_rate < 50 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                          {dept.pass_rate}%
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 font-medium text-text-primary">{dept.avg_gpa}</td>
+                      <td className="px-6 py-4">
+                        {dept.active_exceptions > 0 ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                            <AlertCircle size={12} /> {dept.active_exceptions}
+                          </span>
+                        ) : (
+                          <span className="text-text-secondary text-sm">None</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold border ${
+                          dept.status === 'OPTIMAL' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
+                          dept.status === 'MONITORING' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
+                          'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                        }`}>
+                          {dept.status === 'OPTIMAL' ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+                          {dept.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -3,6 +3,8 @@ import { BookOpen, ShieldCheck, BarChart2, AlertCircle , X, Info } from "lucide-
 import { Agent10API } from "../services/api";
 import { useFilters } from "../contexts/FilterContext";
 import type { CoursePerformance } from "../types/agent10";
+import ExportMenu from "../components/ui/ExportMenu";
+import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 
 type LoadState = "loading" | "success" | "error" | "empty";
 
@@ -42,8 +44,43 @@ export default function Courses() {
     ? courses.filter((c) => c.department === filters.department)
     : courses;
 
+  const handleExportExcel = () => {
+    const exportData = visible.map(c => ({
+      "Course Code": c.course_code,
+      "Course Title": c.course_name,
+      "Department": c.department,
+      "Semester": c.semester,
+      "Students": c.students_appeared,
+      "Pass Rate (%)": c.pass_rate,
+      "Average Marks": c.avg_marks,
+      "Risk Status": c.priority
+    }));
+    exportToExcel(exportData, `Course_Performance_${filters.department || 'All'}`);
+  };
+
+  const handleExportPDF = () => {
+    exportToPDF("courses-content", `Course_Performance_${filters.department || 'All'}`, "Course Performance Audit");
+  };
+
+  const handleExportWord = () => {
+    const paragraphs = [
+      `Course Performance Audit`,
+      `Department Filter: ${filters.department || 'All Departments'}`,
+      `Total Courses Analysed: ${visible.length}`
+    ];
+    
+    const tableData = [
+      ["Course Code", "Department", "Students", "Pass Rate (%)", "Risk Status"],
+      ...visible.map(c => [
+        c.course_code, c.department, String(c.students_appeared), String(c.pass_rate), c.priority
+      ])
+    ];
+
+    exportToWord(`Course Performance Audit`, paragraphs, tableData, `Course_Performance_${filters.department || 'All'}`);
+  };
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6" id="courses-content">
       <div className="bg-gradient-to-r from-violet-950 via-indigo-900 to-slate-900 rounded-3xl p-8 text-white shadow-xl">
         <div className="inline-flex items-center gap-2 bg-violet-500/20 text-violet-200 px-3 py-1 rounded-full text-xs font-bold border border-violet-400/30 mb-2">
           <BookOpen size={14} /> Course Intelligence
@@ -55,16 +92,25 @@ export default function Courses() {
       </div>
 
       <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-800/60 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <BarChart2 className="text-violet-600" size={20} />
+        <div className="p-6 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
+            <BarChart2 className="text-violet-500" size={20} />
             {state === "success"
               ? `Active Semester Courses (${visible.length}${filters.department ? ` in ${filters.department}` : ""})`
               : "Active Semester Courses"}
           </h2>
-          <span className="text-xs font-bold bg-violet-500/10 text-violet-400 px-3 py-1 rounded-full border border-violet-500/20">
-            Live Database
-          </span>
+          
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold bg-violet-500/10 text-violet-600 dark:text-violet-400 px-3 py-1 rounded-full border border-violet-500/20">
+              Live Database
+            </span>
+            <ExportMenu 
+              onExportExcel={handleExportExcel}
+              onExportPDF={handleExportPDF}
+              onExportWord={handleExportWord}
+              disabled={state !== "success" || visible.length === 0}
+            />
+          </div>
         </div>
 
         {/* Loading */}

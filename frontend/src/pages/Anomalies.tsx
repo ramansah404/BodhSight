@@ -3,6 +3,8 @@ import { AlertTriangle, FileSearch, Sparkles, Database, CheckCircle, X, ShieldAl
 import { Agent10API } from "../services/api";
 import { getRolePermissions } from "../utils/rbac";
 import type { AcademicException } from "../types/agent10";
+import ExportMenu from "../components/ui/ExportMenu";
+import { exportToExcel } from "../utils/exportUtils";
 
 type LoadState = "loading" | "success" | "error" | "empty";
 
@@ -52,6 +54,19 @@ export default function Anomalies() {
     setTimeout(() => setAuditTriggered(false), 3000);
   };
 
+  const handleExportExcel = () => {
+    const exportData = anomalies.map(a => ({
+      "Anomaly Title": a.title,
+      "Severity": a.severity,
+      "Course Code": a.course_code !== "—" ? a.course_code : "N/A",
+      "Department": a.department !== "—" ? a.department : "N/A",
+      "Deviation (pp)": a.deviation,
+      "Affected Students": a.affected_students,
+      "Status": a.is_overdue ? "OVERDUE" : "Active"
+    }));
+    exportToExcel(exportData, "Statistical_Anomalies_Log");
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="bg-gradient-to-r from-rose-950 via-indigo-900 to-violet-950 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -65,14 +80,21 @@ export default function Anomalies() {
           </p>
         </div>
 
-        {permissions.canTriggerSystemAudit && (
-          <button
-            onClick={handleTriggerAudit}
-            className="px-5 py-2.5 bg-[#0B1120] text-white hover:bg-slate-800/50 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer whitespace-nowrap"
-          >
-            {auditTriggered ? "Audit Running…" : "Trigger Ingestion Audit Check"}
-          </button>
-        )}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          {permissions.canTriggerSystemAudit && (
+            <button
+              onClick={handleTriggerAudit}
+              className="px-5 py-2.5 bg-surface-secondary text-text-primary hover:bg-surface-hover rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer border border-border"
+            >
+              {auditTriggered ? "Audit Running…" : "Trigger Ingestion Audit Check"}
+            </button>
+          )}
+          
+          <ExportMenu 
+            onExportExcel={handleExportExcel}
+            disabled={state !== "success" || anomalies.length === 0}
+          />
+        </div>
       </div>
 
       {auditTriggered && (
