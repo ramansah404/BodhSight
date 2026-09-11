@@ -1,5 +1,5 @@
-﻿import { useEffect, useState } from "react";
-import { fetchExceptions } from "../api/agent10";
+import { useEffect, useState } from "react";
+import { Agent10API } from "../services/api";
 import type { AcademicException } from "../types/agent10";
 import { AlertTriangle, ShieldAlert, FileSearch, ArrowRight, Clock, Database, CheckCircle, X, Sparkles } from "lucide-react";
 
@@ -9,10 +9,10 @@ export default function Exceptions() {
   const [selectedException, setSelectedException] = useState<AcademicException | null>(null);
 
   useEffect(() => {
-    fetchExceptions().then(data => {
-      setExceptions(data);
+    Agent10API.getAnomalies().then(data => {
+      setExceptions(data || []);
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="p-6 text-gray-500">Loading exceptions...</div>;

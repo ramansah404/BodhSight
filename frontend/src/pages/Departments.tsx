@@ -1,5 +1,5 @@
-﻿import { useEffect, useState } from "react";
-import { fetchDepartments } from "../api/agent10";
+import { useEffect, useState } from "react";
+import { Agent10API } from "../services/api";
 import type { DepartmentPerformance } from "../types/agent10";
 import { Building2, Users, Award, AlertCircle, CheckCircle2, ArrowRight } from "lucide-react";
 
@@ -8,10 +8,10 @@ export default function Departments() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDepartments().then(data => {
-      setDepartments(data);
+    Agent10API.getDepartments().then(data => {
+      setDepartments(data || []);
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="p-12 text-center text-indigo-600 font-medium">Loading departmental health...</div>;

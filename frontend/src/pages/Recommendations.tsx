@@ -1,37 +1,46 @@
-﻿import { useState } from "react";
-import { Lightbulb, CheckCircle2, Play, Sparkles, Lock } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Lightbulb, CheckCircle2, Play, Sparkles, Lock, Loader2, AlertCircle, Info } from "lucide-react";
+import { Agent10API } from "../services/api";
 import { getRolePermissions } from "../utils/rbac";
 import type { RecommendationItem } from "../types/agent10";
 
+type LoadState = "loading" | "success" | "error" | "empty";
+
 export default function Recommendations() {
-  const rawRole = localStorage.getItem("bodhsight_display_role") || localStorage.getItem("bodhsight_role") || "Dean";
+  const rawRole =
+    localStorage.getItem("bodhsight_display_role") ||
+    localStorage.getItem("bodhsight_role") ||
+    "Dean";
   const permissions = getRolePermissions(rawRole);
 
-  const [recommendations] = useState<RecommendationItem[]>([
-    {
-      id: "rec-01",
-      problem: "CS301 (Data Structures) pass rate declined significantly (61.2% vs 82% baseline).",
-      evidence: ["Uniform pass rate drop across all 3 sections", "Attributed to university question paper rigor"],
-      recommendation: "Review assessment difficulty, organize mandatory remedial labs, and calibrate internal grading.",
-      priority: "CRITICAL",
-      expected_impact: "Recover cohort pass rate by ~15% before final term exams.",
-      affected_population: 84,
-      status: "PENDING"
-    },
-    {
-      id: "rec-02",
-      problem: "EC202 Section B is lagging behind Section A by 22% in Digital Signal Processing.",
-      evidence: ["Section A pass rate: 84%, Section B pass rate: 62%", "Faculty delivery variance"],
-      recommendation: "Provide peer faculty mentoring and unified tutorial problem sets for Section B.",
-      priority: "HIGH",
-      expected_impact: "Bridge section disparity and normalize cohort outcomes.",
-      affected_population: 70,
-      status: "PENDING"
-    }
-  ]);
-
+  const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
+  const [state, setState] = useState<LoadState>("loading");
+  const [errorMsg, setErrorMsg] = useState("");
   const [executingId, setExecutingId] = useState<string | null>(null);
   const [successId, setSuccessId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setState("loading");
+
+    Agent10API.getRecommendations()
+      .then((data) => {
+        if (cancelled) return;
+        if (!data || data.length === 0) {
+          setState("empty");
+        } else {
+          setRecommendations(data);
+          setState("success");
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setErrorMsg(err?.message ?? "Failed to load recommendations from backend.");
+        setState("error");
+      });
+
+    return () => { cancelled = true; };
+  }, []);
 
   const handleExecute = (id: string) => {
     if (!permissions.canExecuteRecommendation) {
@@ -42,7 +51,11 @@ export default function Recommendations() {
     setTimeout(() => {
       setExecutingId(null);
       setSuccessId(id);
-      setTimeout(() => setSuccessId(null), 2500);
+      // Update the local status to IN_PROGRESS
+      setRecommendations((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: "IN_PROGRESS" } : r))
+      );
+      setTimeout(() => setSuccessId(null), 3000);
     }, 1200);
   };
 
@@ -54,59 +67,123 @@ export default function Recommendations() {
         </div>
         <h1 className="text-3xl font-extrabold tracking-tight">Recommendation & Priority Center</h1>
         <p className="text-purple-100 text-sm mt-1">
-          {permissions.canExecuteRecommendation 
+          {permissions.canExecuteRecommendation
             ? "Execute and authorize prioritized institutional interventions based on Agent 10 anomaly detections."
             : "Review recommended pedagogical support and remediation workflows for your assigned courses."}
         </p>
       </div>
 
-      <div className="space-y-6">
-        {recommendations.map((item) => (
-          <div key={item.id} className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-4 hover:border-purple-300 transition-all">
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-2">
-                <span className={`px-3 py-1 rounded-full text-xs font-extrabold ${
-                  item.priority === 'CRITICAL' ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-amber-100 text-amber-800 border border-amber-200'
-                }`}>
-                  {item.priority} PRIORITY
-                </span>
-                <span className="text-xs font-bold text-gray-400">Affected Population: {item.affected_population} students</span>
-              </div>
-              
-              {successId === item.id ? (
-                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
-                  <CheckCircle2 size={14} /> Action Authorized & Deployed
-                </span>
-              ) : permissions.canExecuteRecommendation ? (
-                <button 
-                  onClick={() => handleExecute(item.id)}
-                  disabled={executingId === item.id}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
-                >
-                  <Play size={12} fill="currentColor" /> {executingId === item.id ? "Deploying..." : "Execute Intervention"}
-                </button>
-              ) : (
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
-                  <Lock size={12} /> View Only (Requires HOD/Dean Authorization)
-                </span>
-              )}
-            </div>
+      {/* Loading */}
+      {state === "loading" && (
+        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm flex items-center justify-center py-20 gap-3 text-indigo-600 font-medium">
+          <Loader2 size={22} className="animate-spin" />
+          Generating recommendations from database…
+        </div>
+      )}
 
-            <div className="space-y-2">
-              <h3 className="text-base font-bold text-gray-900">{item.problem}</h3>
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm text-gray-700 space-y-1 font-medium">
-                <strong className="text-indigo-900 block">Agent 10 Recommendation:</strong>
-                <p className="text-indigo-950 font-semibold">{item.recommendation}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-xs pt-3 border-t border-gray-100 text-gray-600 font-semibold">
-              <span>Expected Impact: <strong className="text-emerald-600">{item.expected_impact}</strong></span>
-              <span className="flex items-center gap-1 text-indigo-700"><Sparkles size={14} /> Verified by FastAPI Backend</span>
-            </div>
+      {/* Error */}
+      {state === "error" && (
+        <div className="bg-white rounded-3xl border border-rose-200 shadow-sm flex flex-col items-center justify-center py-16 gap-4 px-6">
+          <AlertCircle size={40} className="text-rose-400" />
+          <div className="text-center">
+            <p className="font-bold text-lg text-gray-900">Failed to load recommendations</p>
+            <p className="text-sm text-gray-500 mt-1">{errorMsg}</p>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+
+      {/* Empty */}
+      {state === "empty" && (
+        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm flex flex-col items-center justify-center py-16 gap-3 text-gray-400 px-6">
+          <Info size={36} />
+          <p className="font-semibold text-gray-600">No recommendations at this time.</p>
+          <p className="text-sm text-center text-gray-500">
+            No actionable anomalies were detected that require intervention. All courses are performing within expected ranges.
+          </p>
+        </div>
+      )}
+
+      {/* Recommendations list */}
+      {state === "success" && (
+        <div className="space-y-6">
+          {recommendations.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 space-y-4 hover:border-purple-300 transition-all"
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`px-3 py-1 rounded-full text-xs font-extrabold ${
+                    item.priority === "CRITICAL"
+                      ? "bg-rose-100 text-rose-700 border border-rose-200"
+                      : item.priority === "HIGH"
+                      ? "bg-amber-100 text-amber-800 border border-amber-200"
+                      : item.priority === "MEDIUM"
+                      ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
+                      : "bg-gray-100 text-gray-700 border border-gray-200"
+                  }`}>
+                    {item.priority} PRIORITY
+                  </span>
+                  <span className="text-xs font-bold text-gray-400">
+                    Affected: {item.affected_population} student{item.affected_population !== 1 ? "s" : ""}
+                  </span>
+                  {item.course_code && (
+                    <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
+                      {item.course_code}
+                    </span>
+                  )}
+                </div>
+
+                {successId === item.id ? (
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
+                    <CheckCircle2 size={14} /> Action Authorized & Deployed
+                  </span>
+                ) : permissions.canExecuteRecommendation ? (
+                  <button
+                    onClick={() => handleExecute(item.id)}
+                    disabled={executingId === item.id}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-60"
+                  >
+                    <Play size={12} fill="currentColor" />
+                    {executingId === item.id ? "Deploying…" : "Execute Intervention"}
+                  </button>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+                    <Lock size={12} /> View Only
+                  </span>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-base font-bold text-gray-900">{item.problem}</h3>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm text-gray-700 space-y-1 font-medium">
+                  <strong className="text-indigo-900 block">Agent 10 Recommendation:</strong>
+                  <p className="text-indigo-950 font-semibold">{item.recommendation}</p>
+                </div>
+                {item.evidence.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {item.evidence.map((ev, idx) => (
+                      <span key={idx} className="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+                        {ev}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between text-xs pt-3 border-t border-gray-100 text-gray-600 font-semibold">
+                <span>
+                  Expected Impact:{" "}
+                  <strong className="text-emerald-600">{item.expected_impact}</strong>
+                </span>
+                <span className="flex items-center gap-1 text-indigo-700">
+                  <Sparkles size={14} /> Backed by real DB evidence
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

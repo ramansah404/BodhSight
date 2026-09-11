@@ -1,60 +1,119 @@
+/**
+ * BodhSight — Agent 10 API Client
+ *
+ * Single authoritative API layer.
+ * All calls go to the real FastAPI backend.
+ * No mock fallbacks — errors are surfaced to the UI.
+ *
+ * Base URL: VITE_API_BASE_URL || "http://localhost:8000/api/v1"
+ */
 import axios from "axios";
-import type { 
-  AcademicDashboardMetrics, CoursePerformance, DepartmentPerformance, 
-  TrendData, AcademicException, RecommendationItem, BatchPerformance, StudentRiskGroup 
+import type {
+  AcademicDashboardMetrics,
+  DepartmentPerformance,
+  TrendsResponse,
+  AcademicException,
+  BackendRecommendation,
+  RecommendationItem,
+  InterventionPriorityItem,
+  SectionComparison,
 } from "../types/agent10";
-import { mockDashboard, mockCourses, mockDepartments, mockTrends, mockExceptions, mockRecommendations, mockBatches, mockStudents } from "./mockData";
+import {
+  mapBackendCourse as _mapCourse,
+  mapBackendRecommendation as _mapRec,
+  type CoursePerformance,
+} from "../types/agent10";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
 
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 2000, // Ultra-fast 2-second timeout so UI never hangs
+  baseURL: BASE_URL,
+  timeout: 8000,
+  headers: { "Content-Type": "application/json" },
 });
 
-// In-memory cache store to eliminate redundant network fetches and loading spinners
-const memoryCache: Record<string, any> = {};
-
+// Attach role headers to every request
 apiClient.interceptors.request.use((config) => {
-  const currentRole = localStorage.getItem("bodhsight_role") || "Dean";
-  const displayName = localStorage.getItem("bodhsight_name") || "User";
-  
-  config.headers["X-User-Role"] = currentRole;
-  config.headers["X-User-Name"] = displayName;
+  const role = localStorage.getItem("bodhsight_role") || "Dean";
+  const name = localStorage.getItem("bodhsight_name") || "User";
+  config.headers["X-User-Role"] = role;
+  config.headers["X-User-Name"] = name;
   return config;
-}, (error) => Promise.reject(error));
+});
 
-async function fetchWithCache<T>(endpoint: string, mockFallback: T): Promise<T> {
-  // Return cached data instantly if available
-  if (memoryCache[endpoint]) {
-    return memoryCache[endpoint];
-  }
+// ---------------------------------------------------------------------------
+// Generic fetch helper — throws on error (so UI can show error state)
+// ---------------------------------------------------------------------------
 
-  try {
-    const response = await apiClient.get<T>(endpoint, {
-      validateStatus: (status) => status === 200
-    });
-    
-    if (response.data && typeof response.data === 'object') {
-      memoryCache[endpoint] = response.data; // Cache response
-      return response.data;
-    }
-    memoryCache[endpoint] = mockFallback;
-    return mockFallback;
-  } catch (error) {
-    // Instant fallback to mock data on network error or timeout
-    memoryCache[endpoint] = mockFallback;
-    return mockFallback;
-  }
+async function get<T>(path: string): Promise<T> {
+  const res = await apiClient.get<T>(path);
+  return res.data;
 }
 
+// ---------------------------------------------------------------------------
+// Agent 10 API methods — all backed by real database
+// ---------------------------------------------------------------------------
+
 export const Agent10API = {
-  getPerformance: () => fetchWithCache<AcademicDashboardMetrics>("/agent10/dashboard", mockDashboard),
-  getCourses: () => fetchWithCache<CoursePerformance[]>("/agent10/performance/courses", mockCourses),
-  getDepartments: () => fetchWithCache<DepartmentPerformance[]>("/agent10/performance/departments", mockDepartments),
-  getBatches: () => fetchWithCache<BatchPerformance[]>("/batches", mockBatches), // Fallback to mock/default as backend doesn't have /batches
-  getStudents: () => fetchWithCache<StudentRiskGroup[]>("/students", mockStudents), // Fallback to mock/default as backend doesn't have /students
-  getTrends: () => fetchWithCache<TrendData[]>("/agent10/trends", mockTrends),
-  getAnomalies: () => fetchWithCache<AcademicException[]>("/agent10/exceptions", mockExceptions),
-  getRecommendations: () => fetchWithCache<RecommendationItem[]>("/agent10/recommendations", mockRecommendations),
+  /** Dashboard KPIs — assessment + roster + student profile views */
+  getDashboard(): Promise<AcademicDashboardMetrics> {
+    return get<AcademicDashboardMetrics>("/agent10/dashboard");
+  },
+
+  /** Course-level performance — assessment.v_course_performance */
+  async getCourses(): Promise<CoursePerformance[]> {
+    const raw = await get<Record<string, unknown>[]>("/agent10/performance/courses");
+    return raw.map(_mapCourse);
+  },
+
+  /** Department-level performance */
+  getDepartments(): Promise<DepartmentPerformance[]> {
+    return get<DepartmentPerformance[]>("/agent10/performance/departments");
+  },
+
+  /**
+   * Trends — returns a SINGLE OBJECT (not an array).
+   * historical_data_available is false when only 1 term in DB.
+   */
+  getTrends(): Promise<TrendsResponse> {
+    return get<TrendsResponse>("/agent10/trends");
+  },
+
+  /** Anomalies / exceptions sorted by priority score */
+  getAnomalies(): Promise<AcademicException[]> {
+    return get<AcademicException[]>("/agent10/exceptions");
+  },
+
+  /** Recommendations derived from detected anomalies */
+  async getRecommendations(): Promise<RecommendationItem[]> {
+    const raw = await get<BackendRecommendation[]>("/agent10/recommendations");
+    return raw.map(_mapRec);
+  },
+
+  /** Section-level comparison with disparity flags */
+  getSections(): Promise<SectionComparison[]> {
+    return get<SectionComparison[]>("/agent10/sections");
+  },
+
+  /** Ranked intervention priorities */
+  getPriorities(): Promise<InterventionPriorityItem[]> {
+    return get<InterventionPriorityItem[]>("/agent10/priorities");
+  },
+
+  /** Full evidence chain for one course */
+  getEvidence(courseCode: string): Promise<Record<string, unknown>> {
+    return get<Record<string, unknown>>(`/agent10/evidence/${courseCode}`);
+  },
+
+  /** Executive summary (uses LLM if available) */
+  getSummary(): Promise<Record<string, unknown>> {
+    return get<Record<string, unknown>>("/agent10/summary");
+  },
+
+  /** Backend health check */
+  getHealth(): Promise<{ status: string; service: string; environment: string; agent: string }> {
+    return get("/health");
+  },
 };
+
+// end of file
