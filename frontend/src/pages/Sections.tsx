@@ -64,7 +64,7 @@ export default function Sections() {
 
       {/* Loading */}
       {state === "loading" && (
-        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm flex items-center justify-center py-20 gap-3 text-indigo-600 font-medium">
+        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm flex items-center justify-center py-20 gap-3 text-indigo-400 font-medium">
           <Loader2 size={22} className="animate-spin" />
           Loading section data from database…
         </div>
@@ -72,20 +72,20 @@ export default function Sections() {
 
       {/* Error */}
       {state === "error" && (
-        <div className="bg-white rounded-3xl border border-rose-200 shadow-sm flex flex-col items-center justify-center py-16 gap-4 px-6">
+        <div className="bg-[#0B1120] rounded-3xl border border-rose-500/20 shadow-sm flex flex-col items-center justify-center py-16 gap-4 px-6">
           <AlertCircle size={40} className="text-rose-400" />
           <div className="text-center">
-            <p className="font-bold text-lg text-gray-900">Failed to load sections</p>
-            <p className="text-sm text-gray-500 mt-1">{errorMsg}</p>
+            <p className="font-bold text-lg text-white">Failed to load sections</p>
+            <p className="text-sm text-slate-400 mt-1">{errorMsg}</p>
           </div>
         </div>
       )}
 
       {/* Empty */}
       {state === "empty" && (
-        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm flex flex-col items-center justify-center py-16 gap-3 text-gray-400 px-6">
+        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm flex flex-col items-center justify-center py-16 gap-3 text-slate-500 px-6">
           <Info size={36} />
-          <p className="font-semibold text-gray-600">No section data found.</p>
+          <p className="font-semibold text-slate-400">No section data found.</p>
           <p className="text-sm text-center">The database may not have section-level assessment records yet.</p>
         </div>
       )}
@@ -94,18 +94,18 @@ export default function Sections() {
       {state === "success" && (
         <>
           {visible.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm py-12 text-center text-gray-500 text-sm font-medium">
+            <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm py-12 text-center text-slate-400 text-sm font-medium">
               No sections found for department <strong>{filters.department}</strong>.
             </div>
           ) : (
-            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-slate-800/60 flex justify-between items-center">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
                   <Layers className="text-blue-600" size={20} />
                   Section Performance Matrix ({visible.length} sections)
                 </h2>
                 {disparityCount > 0 && (
-                  <span className="text-xs font-bold bg-rose-50 text-rose-700 px-3 py-1 rounded-full border border-rose-100">
+                  <span className="text-xs font-bold bg-rose-500/10 text-rose-400 px-3 py-1 rounded-full border border-rose-500/20">
                     {disparityCount} disparity flag{disparityCount !== 1 ? "s" : ""} active
                   </span>
                 )}
@@ -113,7 +113,7 @@ export default function Sections() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider border-b border-gray-200">
+                    <tr className="bg-slate-900/40 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-800/60">
                       <th className="py-4 px-6 font-bold">Course</th>
                       <th className="py-4 px-6 font-bold">Section</th>
                       <th className="py-4 px-6 font-bold">Dept</th>
@@ -123,38 +123,38 @@ export default function Sections() {
                       <th className="py-4 px-6 font-bold">Disparity</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 text-sm">
+                  <tbody className="divide-y divide-slate-800/60 text-sm">
                     {visible.map((s, idx) => (
                       <tr
                         key={idx}
-                        className={`hover:bg-slate-50/80 transition-colors ${s.disparity_flag ? "bg-rose-50/30" : ""}`}
+                        className={`hover:bg-slate-900/40/80 transition-colors ${s.disparity_flag ? "bg-rose-500/10/30" : ""}`}
                       >
                         <td className="py-4 px-6">
-                          <div className="font-bold text-gray-900">{s.course_title || s.course_code}</div>
-                          <div className="text-xs text-indigo-600 font-semibold">{s.course_code}</div>
+                          <div className="font-bold text-white">{s.course_title || s.course_code}</div>
+                          <div className="text-xs text-indigo-400 font-semibold">{s.course_code}</div>
                         </td>
-                        <td className="py-4 px-6 font-semibold text-gray-700">{s.section}</td>
-                        <td className="py-4 px-6 font-medium text-gray-600">{s.department}</td>
-                        <td className="py-4 px-6 font-medium text-gray-600">{s.students_appeared}</td>
+                        <td className="py-4 px-6 font-semibold text-slate-300">{s.section}</td>
+                        <td className="py-4 px-6 font-medium text-slate-400">{s.department}</td>
+                        <td className="py-4 px-6 font-medium text-slate-400">{s.students_appeared}</td>
                         <td className="py-4 px-6">
                           {s.pass_rate != null ? (
-                            <span className={`font-extrabold ${s.pass_rate < 70 ? "text-rose-600" : "text-emerald-600"}`}>
+                            <span className={`font-extrabold ${s.pass_rate < 70 ? "text-rose-600" : "text-emerald-500"}`}>
                               {s.pass_rate.toFixed(1)}%
                             </span>
                           ) : (
-                            <span className="text-gray-400">—</span>
+                            <span className="text-slate-500">—</span>
                           )}
                         </td>
-                        <td className="py-4 px-6 font-medium text-gray-600">
+                        <td className="py-4 px-6 font-medium text-slate-400">
                           {s.avg_marks != null ? s.avg_marks.toFixed(1) : "—"}
                         </td>
                         <td className="py-4 px-6">
                           {s.disparity_flag ? (
-                            <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-rose-700 bg-rose-100 px-2.5 py-1 rounded-full border border-rose-200">
+                            <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-rose-400 bg-rose-500/20 px-2.5 py-1 rounded-full border border-rose-500/20">
                               <AlertTriangle size={12} /> Flagged
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-200">
                               <CheckCircle size={12} /> Normal
                             </span>
                           )}
@@ -169,8 +169,8 @@ export default function Sections() {
 
           {/* Disparity explanation */}
           {disparityCount > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-sm text-amber-900 font-medium">
-              <strong className="font-bold text-amber-800">Disparity Flag Explanation:</strong> A section is flagged when its pass rate deviates
+            <div className="bg-amber-500/10 border border-amber-200 rounded-2xl p-5 text-sm text-amber-900 font-medium">
+              <strong className="font-bold text-amber-400">Disparity Flag Explanation:</strong> A section is flagged when its pass rate deviates
               significantly from peer sections teaching the same course in the same term (threshold: ≥15 percentage points).
               This may indicate differences in teaching delivery, attendance patterns, or assessment consistency.
             </div>
