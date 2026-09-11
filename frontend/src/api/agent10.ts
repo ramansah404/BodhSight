@@ -1,4 +1,4 @@
-﻿import type { AcademicDashboardMetrics, CoursePerformance, DepartmentPerformance, SectionComparison, TrendData, AcademicException, InterventionPriorityItem } from "../types/agent10";
+﻿import type { AcademicDashboardMetrics, CoursePerformance, DepartmentPerformance, SectionComparison, TrendData, ReportItem, AcademicException, InterventionPriorityItem } from "../types/agent10";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
 
@@ -28,11 +28,14 @@ const mockSections: SectionComparison[] = [
 ];
 
 const mockTrends: TrendData[] = [
-  { semester: "2024-T1", pass_rate: 84.5, avg_gpa: 8.0, average_marks: 70.1, evaluation_count: 2300 },
-  { semester: "2024-T2", pass_rate: 83.2, avg_gpa: 7.9, average_marks: 69.4, evaluation_count: 2350 },
-  { semester: "2025-T1", pass_rate: 85.0, avg_gpa: 8.1, average_marks: 71.2, evaluation_count: 2400 },
-  { semester: "2025-T2", pass_rate: 84.1, avg_gpa: 8.0, average_marks: 70.0, evaluation_count: 2420 },
-  { semester: "2026-T1", pass_rate: 82.4, avg_gpa: 7.8, average_marks: 68.2, evaluation_count: 2450 },
+  { semester: "2026-T1", pass_rate: 82.4, avg_gpa: 7.8, average_marks: 68.2, evaluation_count: 2450 }
+];
+
+const mockReports: ReportItem[] = [
+  { id: "rep-01", title: "Dean's Executive Academic Summary (2026-T1)", type: "PDF", generated_date: "2026-09-11", category: "Institutional", size: "2.4 MB" },
+  { id: "rep-02", title: "Agent 10 Exception & Anomaly Audit Log", type: "CSV", generated_date: "2026-09-10", category: "Exceptions", size: "840 KB" },
+  { id: "rep-03", title: "Departmental Performance Breakdown Report", type: "PDF", generated_date: "2026-09-08", category: "Departments", size: "4.1 MB" },
+  { id: "rep-04", title: "Intervention Priority Action Plan", type: "JSON", generated_date: "2026-09-07", category: "Remedial", size: "120 KB" }
 ];
 
 const mockExceptions: AcademicException[] = [
@@ -62,5 +65,6 @@ export async function fetchCourses(): Promise<CoursePerformance[]> { return mock
 export async function fetchDepartments(): Promise<DepartmentPerformance[]> { return mockDepartments; }
 export async function fetchSections(): Promise<SectionComparison[]> { return mockSections; }
 export async function fetchTrends(): Promise<TrendData[]> { return mockTrends; }
+export async function fetchReports(): Promise<ReportItem[]> { return mockReports; }
 export async function fetchExceptions(): Promise<AcademicException[]> { return mockExceptions; }
 export async function fetchInterventionPriorities(): Promise<InterventionPriorityItem[]> { return mockPriorities; }
