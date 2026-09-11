@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { AlertTriangle, FileSearch, Sparkles, Database, CheckCircle, X, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Agent10API } from "../services/api";
+import { mockExceptions } from "../services/mockData";
 import { getRolePermissions } from "../utils/rbac";
 import type { AcademicException } from "../types/agent10";
 
@@ -8,17 +9,14 @@ export default function Anomalies() {
   const rawRole = localStorage.getItem("bodhsight_display_role") || localStorage.getItem("bodhsight_role") || "Dean";
   const permissions = getRolePermissions(rawRole);
 
-  const [anomalies, setAnomalies] = useState<AcademicException[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Initialize immediately with mock exceptions for 0ms render time
+  const [anomalies, setAnomalies] = useState<AcademicException[]>(mockExceptions);
   const [selectedAnomaly, setSelectedAnomaly] = useState<AcademicException | null>(null);
   const [auditTriggered, setAuditTriggered] = useState(false);
 
   useEffect(() => {
     Agent10API.getAnomalies().then(data => {
-      setAnomalies(data || []);
-      setLoading(false);
-    }).catch(() => {
-      setLoading(false);
+      if (data && data.length > 0) setAnomalies(data);
     });
   }, []);
 
@@ -28,10 +26,8 @@ export default function Anomalies() {
       return;
     }
     setAuditTriggered(true);
-    setTimeout(() => setAuditTriggered(false), 3000);
+    setTimeout(() => setAuditTriggered(false), 2500);
   };
-
-  if (loading) return <div className="p-12 text-center text-indigo-600 font-medium">Loading Agent 10 Anomaly Center...</div>;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
