@@ -1,0 +1,30 @@
+{
+  "name": "bodhsight",
+  "version": "1.0.0",
+  "description": "Agentic AI for academic performance monitoring, analytics, anomaly detection, and actionable insights.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && .\\venv\\Scripts\\activate && uvicorn app.main:app --reload",
+    "dev": "concurrently -c \"cyan.bold,blue.bold\" -n \"FRONTEND,BACKEND\" \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "install:all": "npm install && cd frontend && npm install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ramansah404/BodhSight.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ramansah404/BodhSight/issues"
+  },
+  "homepage": "https://github.com/ramansah404/BodhSight#readme",
+  "devDependencies": {
+    "concurrently": "^10.0.5",
+    "cross-env": "^10.1.0"
+  }
+}
