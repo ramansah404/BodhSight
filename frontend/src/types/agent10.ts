@@ -69,7 +69,7 @@ export interface StudentRiskGroup {
   recommended_support: string;
 }
 
-export interface AnomalyItem {
+export interface AcademicException {
   id: string;
   severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
   title: string;
@@ -97,6 +97,25 @@ export interface RecommendationItem {
   status: "PENDING" | "IN_PROGRESS" | "RESOLVED";
 }
 
+export interface SectionComparison {
+  course_code: string;
+  course_name: string;
+  section_name: string;
+  instructor_name: string;
+  students_count: number;
+  pass_rate: number;
+  avg_marks: number;
+  disparity_flag: boolean;
+}
+
+export interface TrendData {
+  semester: string;
+  pass_rate: number;
+  avg_gpa: number;
+  average_marks: number;
+  evaluation_count: number;
+}
+
 export interface ReportItem {
   id: string;
   title: string;
@@ -104,4 +123,25 @@ export interface ReportItem {
   generated_date: string;
   category: string;
   size: string;
+}
+
+export interface InterventionPriorityItem {
+  rank: number;
+  course_code: string;
+  course_name: string;
+  department: string;
+  priority: string;
+  severity_score: number;
+  pass_rate: number;
+  failure_rate: number;
+  affected_students: number;
+  recommended_intervention: string;
+}
+
+export interface SlicedDemographics {
+  dimension_type: "gender" | "admission_category" | "entry_qualification";
+  category_name: string;
+  students_count: number;
+  pass_rate: number;
+  avg_gpa: number;
 }

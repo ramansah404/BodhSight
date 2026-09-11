@@ -1,17 +1,19 @@
-﻿import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
-import Topbar from './Topbar';
-import Sidebar from './Sidebar';
+import { Outlet } from "react-router-dom";
+import Sidebar from "./Sidebar";
+import Topbar from "./Topbar";
+import GlobalFilterBar from "../filters/GlobalFilterBar";
 
 export default function Layout() {
-  const [currentRole, setCurrentRole] = useState('Dean');
+  // Always fallback safely to prevent blank screens
+  const currentRole = localStorage.getItem("bodhsight_role") || "Dean";
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Topbar currentRole={currentRole} setRole={setCurrentRole} />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto p-6 relative">
+    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans text-gray-900">
+      <Sidebar />
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        <Topbar currentRole={currentRole} />
+        <GlobalFilterBar />
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
           <Outlet context={{ currentRole }} />
         </main>
       </div>
