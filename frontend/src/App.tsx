@@ -7,6 +7,7 @@ import Departments from "./pages/Departments";
 import Sections from "./pages/Sections";
 import Trends from "./pages/Trends";
 import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -22,12 +23,12 @@ function App() {
           <Route path="trends" element={<Trends />} />
           <Route path="exceptions" element={<Exceptions />} />
           <Route path="reports" element={<Reports />} />
-          
           {/* Placeholders from my side that the teammate didn't explicitly overwrite */}
           <Route path="performance" element={<div>Performance Trends Module placeholder</div>} />
           <Route path="anomalies" element={<div>Anomaly Detection Module placeholder</div>} />
           <Route path="alerts" element={<div>Alerts Module placeholder</div>} />
           <Route path="interventions" element={<div>Interventions Module placeholder</div>} />
+          <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>
