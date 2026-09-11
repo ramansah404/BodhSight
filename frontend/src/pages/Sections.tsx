@@ -1,7 +1,7 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchSections } from "../api/agent10";
 import type { SectionComparison } from "../types/agent10";
-import { Users, AlertTriangle, ArrowUpRight } from "lucide-react";
+import { Users, AlertTriangle } from "lucide-react";
 
 export default function Sections() {
   const [sections, setSections] = useState<SectionComparison[]>([]);

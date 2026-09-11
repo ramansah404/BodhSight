@@ -1,6 +1,6 @@
-﻿import type { AcademicDashboardMetrics, CoursePerformance, DepartmentPerformance, SectionComparison, TrendData, ReportItem, AcademicException, InterventionPriorityItem } from "../types/agent10";
+import type { AcademicDashboardMetrics, CoursePerformance, DepartmentPerformance, SectionComparison, TrendData, ReportItem, AcademicException, InterventionPriorityItem } from "../types/agent10";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+// API_BASE_URL removed as it was unused
 
 const mockDashboard: AcademicDashboardMetrics = {
   as_of_date: "2026-09-11",
