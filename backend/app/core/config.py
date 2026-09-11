@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
     
     DATABASE_URL: str | None = None
+    DATA_SOURCE: str = "demo"  # 'database' or 'demo'
+    SUPABASE_URL: str | None = None
+    SUPABASE_ANON_KEY: str | None = None
+    SUPABASE_SERVICE_ROLE_KEY: str | None = None
     
     # AI/LLM Configuration Placeholders
     LLM_PROVIDER: str = "openai"
