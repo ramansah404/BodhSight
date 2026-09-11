@@ -1,36 +1,6 @@
-<<<<<<< HEAD
 import { useEffect, useState } from 'react';
-import { checkHealth, type HealthResponse } from '../services/api';
-
-export default function Dashboard() {
-  const [health, setHealth] = useState<HealthResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    checkHealth()
-      .then(setHealth)
-      .catch((err) => setError(err.message));
-  }, []);
-
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Academic Performance Dashboard</h1>
-      
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h2 className="text-lg font-semibold mb-4">Backend Connection Status</h2>
-        {error ? (
-          <div className="text-red-600">Error connecting to backend: {error}</div>
-        ) : health ? (
-          <div className="text-green-600">
-            Connected to {health.service} ({health.environment})
-          </div>
-        ) : (
-          <div className="text-gray-500">Checking connection...</div>
-        )}
-      </div>
-=======
-﻿import { useEffect, useState } from 'react';
 import { Sparkles, TrendingDown, AlertCircle, ShieldCheck, ArrowRight, CheckCircle2, Play } from 'lucide-react';
+import { checkHealth, type HealthResponse } from '../services/api';
 import { fetchDashboardMetrics, fetchExceptions, fetchInterventionPriorities } from '../api/agent10';
 import type { AcademicDashboardMetrics, AcademicException, InterventionPriorityItem } from '../types/agent10';
 
@@ -42,7 +12,16 @@ export default function Dashboard() {
   const [deployingItem, setDeployingItem] = useState<InterventionPriorityItem | null>(null);
   const [deploySuccess, setDeploySuccess] = useState(false);
 
+  // Health check state
+  const [health, setHealth] = useState<HealthResponse | null>(null);
+  const [healthError, setHealthError] = useState<string | null>(null);
+
   useEffect(() => {
+    // Backend health check
+    checkHealth()
+      .then(setHealth)
+      .catch((err) => setHealthError(err.message));
+
     async function loadData() {
       try {
         const [dashData, excData, priData] = await Promise.all([
@@ -82,9 +61,16 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-gray-900">Academic Performance Overview</h1>
           <p className="text-sm text-gray-500 mt-1">Institution-wide analytics • As of {metrics.as_of_date}</p>
         </div>
-        <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1.5 rounded-full text-sm font-medium border border-green-200">
-          <ShieldCheck size={16} />
-          Data Trust Score: {metrics.data_trust_score}/100
+        <div className="flex flex-col items-end gap-2">
+          {/* Health Status badge preserved from HEAD */}
+          <div className={`text-xs px-2 py-1 rounded border ${healthError ? 'bg-red-50 text-red-700 border-red-200' : health ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+            {healthError ? `Backend Error: ${healthError}` : health ? `Backend: ${health.service}` : 'Checking backend...'}
+          </div>
+          
+          <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1.5 rounded-full text-sm font-medium border border-green-200">
+            <ShieldCheck size={16} />
+            Data Trust Score: {metrics.data_trust_score}/100
+          </div>
         </div>
       </div>
 
@@ -239,7 +225,6 @@ export default function Dashboard() {
         </div>
       )}
 
->>>>>>> fdaa9ac071934d47fc97884694f45bdb8beab2b8
     </div>
   );
 }

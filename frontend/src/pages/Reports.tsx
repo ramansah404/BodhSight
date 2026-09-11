@@ -1,7 +1,7 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchReports } from "../api/agent10";
 import type { ReportItem } from "../types/agent10";
-import { FileText, Download, Plus, CheckCircle2 } from "lucide-react";
+import { FileText, Download, Plus } from "lucide-react";
 
 export default function Reports() {
   const [reports, setReports] = useState<ReportItem[]>([]);
