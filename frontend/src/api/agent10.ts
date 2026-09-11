@@ -60,11 +60,46 @@ const mockPriorities: InterventionPriorityItem[] = [
   { rank: 1, course_code: "CS301", course_name: "Data Structures", department: "CSE", priority: "CRITICAL", severity_score: 0.92, pass_rate: 61.2, failure_rate: 38.8, affected_students: 84, recommended_intervention: "Mandatory remedial labs" }
 ];
 
-export async function fetchDashboardMetrics(): Promise<AcademicDashboardMetrics> { return mockDashboard; }
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+
+export async function fetchDashboardMetrics(): Promise<AcademicDashboardMetrics> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/agent10/dashboard`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.error("Dashboard metrics fetch failed", e);
+  }
+  return mockDashboard;
+}
+
 export async function fetchCourses(): Promise<CoursePerformance[]> { return mockCourses; }
 export async function fetchDepartments(): Promise<DepartmentPerformance[]> { return mockDepartments; }
 export async function fetchSections(): Promise<SectionComparison[]> { return mockSections; }
 export async function fetchTrends(): Promise<TrendData[]> { return mockTrends; }
 export async function fetchReports(): Promise<ReportItem[]> { return mockReports; }
-export async function fetchExceptions(): Promise<AcademicException[]> { return mockExceptions; }
-export async function fetchInterventionPriorities(): Promise<InterventionPriorityItem[]> { return mockPriorities; }
+
+export async function fetchExceptions(): Promise<AcademicException[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/agent10/exceptions`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.error("Exceptions fetch failed", e);
+  }
+  return mockExceptions;
+}
+
+export async function fetchInterventionPriorities(): Promise<InterventionPriorityItem[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/agent10/priorities`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.error("Priorities fetch failed", e);
+  }
+  return mockPriorities;
+}
