@@ -18,17 +18,11 @@ export default function Layout() {
     }
   }, [navigate, location.pathname]);
 
-  const handleRoleChange = (role: string) => {
-    setCurrentRole(role);
-    localStorage.setItem("bodhsight_role", role);
-  };
-
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden font-sans text-gray-900">
       <Sidebar />
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <Topbar currentRole={currentRole} setRole={handleRoleChange} />
-        {/* The New Global Filter System */}
+        <Topbar currentRole={currentRole} />
         <GlobalFilterBar />
         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
           <Outlet context={{ currentRole }} />

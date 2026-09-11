@@ -1,21 +1,25 @@
-﻿import { Bell, BrainCircuit, Shield } from 'lucide-react';
+﻿import { Bell, BrainCircuit, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface TopbarProps {
-  currentRole: string; // The dashboard routing role (e.g. 'Dean')
-  setRole: (role: string) => void;
+  currentRole: string;
 }
 
-export default function Topbar({ currentRole, setRole }: TopbarProps) {
-  // Read exact formatting from the login portal
+export default function Topbar({ currentRole }: TopbarProps) {
+  const navigate = useNavigate();
   const displayRole = localStorage.getItem("bodhsight_display_role") || currentRole;
   const displayName = localStorage.getItem("bodhsight_name") || `${currentRole} User`;
   
-  // Get initials for avatar (e.g. "Dean Dr. Sharma" -> "DS")
   const getInitials = (name: string) => {
     const parts = name.split(" ").filter(n => n.length > 0);
     if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     if (parts.length === 1) return `${parts[0][0]}${parts[0][1] || ''}`.toUpperCase();
     return "US";
+  };
+
+  const handleSignOut = () => {
+    localStorage.clear();
+    navigate("/login");
   };
 
   return (
@@ -31,22 +35,6 @@ export default function Topbar({ currentRole, setRole }: TopbarProps) {
       </div>
       
       <div className="flex items-center gap-5">
-        
-        {/* Fast Switcher for Demo Purposes */}
-        <div className="hidden md:flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 text-xs">
-          <Shield size={14} className="text-indigo-300" />
-          <span className="text-indigo-200 font-medium">Internal RBAC:</span>
-          <select 
-            value={currentRole} 
-            onChange={(e) => setRole(e.target.value)}
-            className="bg-transparent font-bold text-white focus:outline-none cursor-pointer"
-          >
-            <option value="Dean" className="text-gray-900">Institutional (Principal/Dean/IQAC)</option>
-            <option value="HOD" className="text-gray-900">Departmental (HOD)</option>
-            <option value="Faculty" className="text-gray-900">Protected (Faculty)</option>
-          </select>
-        </div>
-
         <button className="relative p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-indigo-100">
           <Bell size={18} />
           <span className="absolute -top-1 -right-1 h-4 w-4 bg-rose-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold ring-2 ring-indigo-900">3</span>
@@ -63,6 +51,14 @@ export default function Topbar({ currentRole, setRole }: TopbarProps) {
             <span className="text-indigo-200">{displayRole} Scope Active</span>
           </div>
         </div>
+
+        <button 
+          onClick={handleSignOut}
+          className="flex items-center gap-1.5 ml-2 px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-100 hover:text-white rounded-lg transition-colors text-xs font-bold border border-rose-500/30 shadow-sm"
+        >
+          <LogOut size={14} />
+          <span className="hidden md:inline">Sign Out</span>
+        </button>
       </div>
     </header>
   );
