@@ -1,8 +1,12 @@
 ﻿import { useState } from "react";
-import { Lightbulb, CheckCircle2, Play, Sparkles } from "lucide-react";
+import { Lightbulb, CheckCircle2, Play, Sparkles, Lock } from "lucide-react";
+import { getRolePermissions } from "../utils/rbac";
 import type { RecommendationItem } from "../types/agent10";
 
 export default function Recommendations() {
+  const rawRole = localStorage.getItem("bodhsight_display_role") || localStorage.getItem("bodhsight_role") || "Dean";
+  const permissions = getRolePermissions(rawRole);
+
   const [recommendations] = useState<RecommendationItem[]>([
     {
       id: "rec-01",
@@ -30,6 +34,10 @@ export default function Recommendations() {
   const [successId, setSuccessId] = useState<string | null>(null);
 
   const handleExecute = (id: string) => {
+    if (!permissions.canExecuteRecommendation) {
+      alert("Access Denied: Your current role does not have authorization to execute institutional interventions.");
+      return;
+    }
     setExecutingId(id);
     setTimeout(() => {
       setExecutingId(null);
@@ -42,11 +50,13 @@ export default function Recommendations() {
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="bg-gradient-to-r from-purple-950 via-indigo-900 to-slate-900 rounded-3xl p-8 text-white shadow-xl">
         <div className="inline-flex items-center gap-2 bg-purple-500/20 text-purple-200 px-3 py-1 rounded-full text-xs font-bold border border-purple-400/30 mb-2">
-          <Lightbulb size={14} /> Actionable Intelligence
+          <Lightbulb size={14} /> Actionable Intelligence ({rawRole} Scope)
         </div>
         <h1 className="text-3xl font-extrabold tracking-tight">Recommendation & Priority Center</h1>
         <p className="text-purple-100 text-sm mt-1">
-          Translating Agent 10 anomaly detections into prioritized, evidence-backed institutional interventions.
+          {permissions.canExecuteRecommendation 
+            ? "Execute and authorize prioritized institutional interventions based on Agent 10 anomaly detections."
+            : "Review recommended pedagogical support and remediation workflows for your assigned courses."}
         </p>
       </div>
 
@@ -62,18 +72,23 @@ export default function Recommendations() {
                 </span>
                 <span className="text-xs font-bold text-gray-400">Affected Population: {item.affected_population} students</span>
               </div>
+              
               {successId === item.id ? (
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
-                  <CheckCircle2 size={14} /> Action Deployed
+                  <CheckCircle2 size={14} /> Action Authorized & Deployed
                 </span>
-              ) : (
+              ) : permissions.canExecuteRecommendation ? (
                 <button 
                   onClick={() => handleExecute(item.id)}
                   disabled={executingId === item.id}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
                 >
-                  <Play size={12} fill="currentColor" /> {executingId === item.id ? "Deploying..." : "Execute Recommendation"}
+                  <Play size={12} fill="currentColor" /> {executingId === item.id ? "Deploying..." : "Execute Intervention"}
                 </button>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+                  <Lock size={12} /> View Only (Requires HOD/Dean Authorization)
+                </span>
               )}
             </div>
 
