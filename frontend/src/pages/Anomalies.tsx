@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { AlertTriangle, FileSearch, Sparkles, Database, CheckCircle, X, ShieldAlert, ShieldCheck } from "lucide-react";
-import { fetchExceptions } from "../api/agent10";
+import { Agent10API } from "../services/api";
 import { getRolePermissions } from "../utils/rbac";
 import type { AcademicException } from "../types/agent10";
 
@@ -14,8 +14,10 @@ export default function Anomalies() {
   const [auditTriggered, setAuditTriggered] = useState(false);
 
   useEffect(() => {
-    fetchExceptions().then(data => {
-      setAnomalies(data);
+    Agent10API.getAnomalies().then(data => {
+      setAnomalies(data || []);
+      setLoading(false);
+    }).catch(() => {
       setLoading(false);
     });
   }, []);
