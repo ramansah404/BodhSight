@@ -1,6 +1,7 @@
 ﻿import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
+import Courses from './pages/Courses';
 
 function App() {
   return (
@@ -8,8 +9,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
-          {/* We will build these pages in the next step */}
-          <Route path="courses" element={<div className="p-8">Course Performance Page (Coming Soon)</div>} />
+          <Route path="courses" element={<Courses />} />
           <Route path="departments" element={<div className="p-8">Departments Page (Coming Soon)</div>} />
           <Route path="sections" element={<div className="p-8">Section Comparison Page (Coming Soon)</div>} />
           <Route path="trends" element={<div className="p-8">Trends Page (Coming Soon)</div>} />
@@ -22,4 +22,3 @@ function App() {
 }
 
 export default App;
-
