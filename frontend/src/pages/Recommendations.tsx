@@ -92,17 +92,17 @@ export default function Recommendations() {
           <AlertCircle size={40} className="text-rose-400" />
           <div className="text-center">
             <p className="font-bold text-lg text-white">Failed to load recommendations</p>
-            <p className="text-sm text-slate-400 mt-1">{errorMsg}</p>
+            <p className="text-sm text-secondary mt-1">{errorMsg}</p>
           </div>
         </div>
       )}
 
       {/* Empty */}
       {state === "empty" && (
-        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm flex flex-col items-center justify-center py-16 gap-3 text-slate-500 px-6">
+        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm flex flex-col items-center justify-center py-16 gap-3 text-secondary px-6">
           <Info size={36} />
-          <p className="font-semibold text-slate-400">No recommendations at this time.</p>
-          <p className="text-sm text-center text-slate-400">
+          <p className="font-semibold text-secondary">No recommendations at this time.</p>
+          <p className="text-sm text-center text-secondary">
             No actionable anomalies were detected that require intervention. All courses are performing within expected ranges.
           </p>
         </div>
@@ -129,7 +129,7 @@ export default function Recommendations() {
                   }`}>
                     {item.priority} PRIORITY
                   </span>
-                  <span className="text-xs font-bold text-slate-500">
+                  <span className="text-xs font-bold text-secondary">
                     Affected: {item.affected_population} student{item.affected_population !== 1 ? "s" : ""}
                   </span>
                   {item.course_code && (
@@ -153,7 +153,7 @@ export default function Recommendations() {
                     {executingId === item.id ? "Deploying…" : "Execute Intervention"}
                   </button>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-800/50 px-3 py-1.5 rounded-xl border border-slate-800/60">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-secondary bg-slate-800/50 px-3 py-1.5 rounded-xl border border-slate-800/60">
                     <Lock size={12} /> View Only
                   </span>
                 )}
@@ -168,7 +168,7 @@ export default function Recommendations() {
                 {item.evidence.length > 0 && (
                   <div className="flex flex-wrap gap-2 pt-1">
                     {item.evidence.map((ev, idx) => (
-                      <span key={idx} className="text-xs font-mono bg-slate-800/50 text-slate-400 px-2 py-0.5 rounded border border-slate-800/60">
+                      <span key={idx} className="text-xs font-mono bg-slate-800/50 text-secondary px-2 py-0.5 rounded border border-slate-800/60">
                         {ev}
                       </span>
                     ))}
@@ -176,7 +176,7 @@ export default function Recommendations() {
                 )}
               </div>
 
-              <div className="flex items-center justify-between text-xs pt-3 border-t border-slate-800/60 text-slate-400 font-semibold">
+              <div className="flex items-center justify-between text-xs pt-3 border-t border-slate-800/60 text-secondary font-semibold">
                 <span>
                   Expected Impact:{" "}
                   <strong className="text-emerald-500">{item.expected_impact}</strong>

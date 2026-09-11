@@ -59,7 +59,7 @@ export default function Trends() {
         <div className="bg-[#0B1120] rounded-3xl border border-rose-500/20 shadow-sm flex flex-col items-center justify-center py-16 gap-4 px-6">
           <AlertCircle size={40} className="text-rose-400" />
           <p className="font-bold text-lg text-white">Failed to load trends</p>
-          <p className="text-sm text-slate-400">{errorMsg}</p>
+          <p className="text-sm text-secondary">{errorMsg}</p>
         </div>
       )}
 
@@ -93,7 +93,7 @@ export default function Trends() {
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 text-center">
-                  <div className="text-xs font-bold text-slate-400 uppercase">Avg Pass Rate</div>
+                  <div className="text-xs font-bold text-secondary uppercase">Avg Pass Rate</div>
                   <div className="text-2xl font-black text-emerald-500 mt-1">
                     {data.current_term_summary.avg_pass_rate != null
                       ? `${data.current_term_summary.avg_pass_rate.toFixed(1)}%`
@@ -101,7 +101,7 @@ export default function Trends() {
                   </div>
                 </div>
                 <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 text-center">
-                  <div className="text-xs font-bold text-slate-400 uppercase">Avg Marks</div>
+                  <div className="text-xs font-bold text-secondary uppercase">Avg Marks</div>
                   <div className="text-2xl font-black text-white mt-1">
                     {data.current_term_summary.avg_marks != null
                       ? data.current_term_summary.avg_marks.toFixed(1)
@@ -109,13 +109,13 @@ export default function Trends() {
                   </div>
                 </div>
                 <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 text-center">
-                  <div className="text-xs font-bold text-slate-400 uppercase">Course Sections</div>
+                  <div className="text-xs font-bold text-secondary uppercase">Course Sections</div>
                   <div className="text-2xl font-black text-indigo-400 mt-1">
                     {data.current_term_summary.total_sections}
                   </div>
                 </div>
                 <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 text-center">
-                  <div className="text-xs font-bold text-slate-400 uppercase">Students Evaluated</div>
+                  <div className="text-xs font-bold text-secondary uppercase">Students Evaluated</div>
                   <div className="text-2xl font-black text-indigo-400 mt-1">
                     {data.current_term_summary.students_evaluated.toLocaleString()}
                   </div>
@@ -135,7 +135,7 @@ export default function Trends() {
                 </h3>
               </div>
               {data.courses_above_mean.length === 0 ? (
-                <div className="py-10 text-center text-sm text-slate-500 font-medium">
+                <div className="py-10 text-center text-sm text-secondary font-medium">
                   No courses above the institutional mean.
                 </div>
               ) : (
@@ -144,7 +144,7 @@ export default function Trends() {
                     <div key={idx} className="flex items-center justify-between p-4 hover:bg-slate-900/40 transition-colors">
                       <div>
                         <div className="font-bold text-white text-sm">{c.course_title || c.course_code}</div>
-                        <div className="text-xs text-slate-400 font-semibold">{c.course_code}</div>
+                        <div className="text-xs text-secondary font-semibold">{c.course_code}</div>
                       </div>
                       <div className="text-right">
                         <div className="text-sm font-extrabold text-emerald-500">{c.pass_pct.toFixed(1)}%</div>
@@ -167,7 +167,7 @@ export default function Trends() {
                 </h3>
               </div>
               {data.courses_below_mean.length === 0 ? (
-                <div className="py-10 text-center text-sm text-slate-500 font-medium">
+                <div className="py-10 text-center text-sm text-secondary font-medium">
                   No courses below the institutional mean.
                 </div>
               ) : (
@@ -176,7 +176,7 @@ export default function Trends() {
                     <div key={idx} className="flex items-center justify-between p-4 hover:bg-slate-900/40 transition-colors">
                       <div>
                         <div className="font-bold text-white text-sm">{c.course_title || c.course_code}</div>
-                        <div className="text-xs text-slate-400 font-semibold">{c.course_code}</div>
+                        <div className="text-xs text-secondary font-semibold">{c.course_code}</div>
                       </div>
                       <div className="text-right">
                         <div className="text-sm font-extrabold text-rose-600">{c.pass_pct.toFixed(1)}%</div>
@@ -200,7 +200,7 @@ export default function Trends() {
               </h2>
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 text-center">
-                  <div className="text-xs font-bold text-slate-400 uppercase">Total Students</div>
+                  <div className="text-xs font-bold text-secondary uppercase">Total Students</div>
                   <div className="text-2xl font-black text-white mt-1">
                     {data.student_backlog_trend.total_students.toLocaleString()}
                   </div>

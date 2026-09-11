@@ -81,16 +81,16 @@ export default function Sections() {
           <AlertCircle size={40} className="text-rose-400" />
           <div className="text-center">
             <p className="font-bold text-lg text-white">Failed to load sections</p>
-            <p className="text-sm text-slate-400 mt-1">{errorMsg}</p>
+            <p className="text-sm text-secondary mt-1">{errorMsg}</p>
           </div>
         </div>
       )}
 
       {/* Empty */}
       {state === "empty" && (
-        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm flex flex-col items-center justify-center py-16 gap-3 text-slate-500 px-6">
+        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm flex flex-col items-center justify-center py-16 gap-3 text-secondary px-6">
           <Info size={36} />
-          <p className="font-semibold text-slate-400">No section data found.</p>
+          <p className="font-semibold text-secondary">No section data found.</p>
           <p className="text-sm text-center">The database may not have section-level assessment records yet.</p>
         </div>
       )}
@@ -99,7 +99,7 @@ export default function Sections() {
       {state === "success" && (
         <>
           {visible.length === 0 ? (
-            <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm py-12 text-center text-slate-400 text-sm font-medium">
+            <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm py-12 text-center text-secondary text-sm font-medium">
               No sections found for department <strong>{filters.department}</strong>.
             </div>
           ) : (
@@ -118,7 +118,7 @@ export default function Sections() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-900/40 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-800/60">
+                    <tr className="bg-slate-900/40 text-secondary text-xs uppercase tracking-wider border-b border-slate-800/60">
                       <th className="py-4 px-6 font-bold">Course</th>
                       <th className="py-4 px-6 font-bold">Section</th>
                       <th className="py-4 px-6 font-bold">Dept</th>
@@ -139,18 +139,18 @@ export default function Sections() {
                           <div className="text-xs text-indigo-400 font-semibold">{s.course_code}</div>
                         </td>
                         <td className="py-4 px-6 font-semibold text-slate-300">{s.section}</td>
-                        <td className="py-4 px-6 font-medium text-slate-400">{s.department}</td>
-                        <td className="py-4 px-6 font-medium text-slate-400">{s.students_appeared}</td>
+                        <td className="py-4 px-6 font-medium text-secondary">{s.department}</td>
+                        <td className="py-4 px-6 font-medium text-secondary">{s.students_appeared}</td>
                         <td className="py-4 px-6">
                           {s.pass_rate != null ? (
                             <span className={`font-extrabold ${s.pass_rate < 70 ? "text-rose-600" : "text-emerald-500"}`}>
                               {s.pass_rate.toFixed(1)}%
                             </span>
                           ) : (
-                            <span className="text-slate-500">—</span>
+                            <span className="text-secondary">—</span>
                           )}
                         </td>
-                        <td className="py-4 px-6 font-medium text-slate-400">
+                        <td className="py-4 px-6 font-medium text-secondary">
                           {s.avg_marks != null ? s.avg_marks.toFixed(1) : "—"}
                         </td>
                         <td className="py-4 px-6">

@@ -43,11 +43,11 @@ export default function Settings() {
           </h2>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between p-3 bg-slate-900/40 rounded-xl border border-slate-800/60">
-              <span className="font-bold text-slate-400">Authenticated User</span>
+              <span className="font-bold text-secondary">Authenticated User</span>
               <span className="font-bold text-white">{name}</span>
             </div>
             <div className="flex justify-between p-3 bg-slate-900/40 rounded-xl border border-slate-800/60">
-              <span className="font-bold text-slate-400">Email</span>
+              <span className="font-bold text-secondary">Email</span>
               <span className="font-bold text-white">{email}</span>
             </div>
             <div className="flex justify-between p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
@@ -60,7 +60,7 @@ export default function Settings() {
             </div>
           </div>
           <div className="pt-2 border-t border-slate-800/60">
-            <p className="text-xs text-slate-500 font-medium">
+            <p className="text-xs text-secondary font-medium">
               Session is stored in localStorage. No JWT tokens are used.
               Role determines RBAC permissions for all UI actions.
             </p>
@@ -75,7 +75,7 @@ export default function Settings() {
           </h2>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between p-3 bg-slate-900/40 rounded-xl border border-slate-800/60">
-              <span className="font-bold text-slate-400">API Base URL</span>
+              <span className="font-bold text-secondary">API Base URL</span>
               <span className="font-mono text-xs text-slate-300">{apiBase}</span>
             </div>
 
@@ -86,12 +86,12 @@ export default function Settings() {
                 ? "bg-rose-500/10 border-rose-500/20"
                 : "bg-slate-900/40 border-slate-800/60"
             }`}>
-              {healthStatus === "loading" && <Loader2 size={18} className="text-slate-500 animate-spin" />}
+              {healthStatus === "loading" && <Loader2 size={18} className="text-secondary animate-spin" />}
               {healthStatus === "ok" && <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />}
               {healthStatus === "error" && <AlertCircle size={18} className="text-rose-600 shrink-0" />}
               <div>
                 <div className={`font-bold text-sm ${
-                  healthStatus === "ok" ? "text-emerald-400" : healthStatus === "error" ? "text-rose-400" : "text-slate-400"
+                  healthStatus === "ok" ? "text-emerald-400" : healthStatus === "error" ? "text-rose-400" : "text-secondary"
                 }`}>
                   {healthStatus === "loading"
                     ? "Checking connection…"
@@ -108,7 +108,7 @@ export default function Settings() {
             </div>
 
             <div className="flex justify-between p-3 bg-slate-900/40 rounded-xl border border-slate-800/60">
-              <span className="font-bold text-slate-400">Data Source</span>
+              <span className="font-bold text-secondary">Data Source</span>
               <span className="font-bold text-emerald-400">PostgreSQL / Supabase (Live)</span>
             </div>
           </div>
@@ -145,7 +145,7 @@ export default function Settings() {
                   ) : (
                     <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-700 shrink-0" />
                   )}
-                  <span className={`font-semibold ${hasPermission ? "text-emerald-400" : "text-slate-400"}`}>
+                  <span className={`font-semibold ${hasPermission ? "text-emerald-400" : "text-secondary"}`}>
                     {perm.label}
                   </span>
                 </div>
@@ -169,7 +169,7 @@ export default function Settings() {
             ].map((item) => (
               <div key={item.view} className="p-3 bg-slate-900 rounded-xl border border-slate-700">
                 <div className="font-mono text-xs text-emerald-400 font-bold">{item.view}</div>
-                <div className="text-xs text-slate-400 mt-1 font-medium">{item.desc}</div>
+                <div className="text-xs text-secondary mt-1 font-medium">{item.desc}</div>
               </div>
             ))}
           </div>

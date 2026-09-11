@@ -121,6 +121,10 @@ export default function Login() {
         <div className="md:col-span-5 bg-gradient-to-b from-slate-900 to-slate-950 p-8 md:p-12 border-r border-slate-800/60 flex flex-col justify-between relative overflow-hidden">
           
           <div className="space-y-6 relative z-10">
+            <div className="flex items-center gap-3 mb-8">
+              <img src="/logo-b.png" alt="BodhSight Logo" className="h-8 md:h-10 w-auto object-contain shrink-0" />
+              <span className="text-2xl md:text-3xl font-bold tracking-tight text-white whitespace-nowrap">BodhSight</span>
+            </div>
             <div className="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-300 px-3 py-1 rounded-full text-xs font-bold border border-indigo-500/20">
               <Sparkles size={14} className="text-indigo-400" /> Secure Gateway
             </div>
@@ -400,7 +404,7 @@ export default function Login() {
                         <h4 className="font-bold text-xl text-white mb-1">Password Updated</h4>
                         <p className="text-sm text-slate-400">Your institutional credentials have been successfully securely updated.</p>
                       </div>
-                      <button onClick={() => setShowForgotModal(false)} className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-bold transition-colors cursor-pointer mt-4">
+                      <button onClick={() => setShowForgotModal(false)} className="w-full py-2.5 bg-surface-secondary text-white rounded-xl text-sm font-bold transition-colors cursor-pointer mt-4">
                         Return to Sign In
                       </button>
                     </motion.div>

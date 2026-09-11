@@ -55,10 +55,8 @@ export default function Landing() {
       }`}>
         <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <Sparkles size={16} className="text-white" />
-            </div>
-            <span className="text-xl font-bold tracking-tight text-white">BodhSight</span>
+            <img src="/logo-b.png" alt="BodhSight Logo" className="h-8 w-auto object-contain shrink-0" />
+            <span className="text-2xl font-bold tracking-tight text-foreground whitespace-nowrap">BodhSight</span>
           </div>
 
           {/* Desktop Nav */}
@@ -72,7 +70,7 @@ export default function Landing() {
             <button onClick={() => navigate('/login')} className="text-sm font-medium hover:text-white transition-colors">Sign In</button>
             <button 
               onClick={() => navigate('/login')}
-              className="px-4 py-2 bg-white text-slate-900 hover:bg-slate-200 rounded-lg text-sm font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)]"
+              className="px-4 py-2 bg-white text-primary hover:bg-slate-200 rounded-lg text-sm font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)]"
             >
               Enter BodhSight
             </button>
@@ -96,7 +94,10 @@ export default function Landing() {
             className="fixed inset-0 z-[60] bg-[#020817] flex flex-col p-6"
           >
             <div className="flex justify-between items-center mb-8">
-              <span className="text-xl font-bold text-white">BodhSight</span>
+              <div className="flex items-center gap-2">
+                <img src="/logo-b.png" alt="BodhSight Logo" className="h-8 w-auto object-contain shrink-0" />
+                <span className="text-xl font-bold tracking-tight text-foreground whitespace-nowrap">BodhSight</span>
+              </div>
               <button onClick={() => setMobileMenuOpen(false)}><X size={24} /></button>
             </div>
             <div className="flex flex-col gap-6 text-lg">
@@ -139,7 +140,7 @@ export default function Landing() {
           
           <motion.p 
             initial="hidden" animate="visible" variants={fadeIn} transition={{ delay: 0.1 }}
-            className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto font-medium"
+            className="text-lg md:text-xl text-secondary max-w-2xl mx-auto font-medium"
           >
             BodhSight transforms raw institutional data into actionable intelligence. 
             Detect anomalies, track performance trends, and deploy interventions before students fall behind.
@@ -209,7 +210,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">A complete view of your institution.</h2>
-            <p className="text-slate-400">BodhSight connects the dots between isolated database silos, bringing clarity to assessment patterns, faculty distribution, and student risk.</p>
+            <p className="text-secondary">BodhSight connects the dots between isolated database silos, bringing clarity to assessment patterns, faculty distribution, and student risk.</p>
           </div>
 
           <motion.div 
@@ -235,7 +236,7 @@ export default function Landing() {
                   {feature.icon}
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">{feature.desc}</p>
+                <p className="text-sm text-secondary leading-relaxed">{feature.desc}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -256,7 +257,7 @@ export default function Landing() {
                 Workflow
               </div>
               <h2 className="text-3xl md:text-4xl font-bold text-white">How Agent 10 Works</h2>
-              <p className="text-slate-400 text-lg">BodhSight doesn't just show charts. It actively hunts for problems.</p>
+              <p className="text-secondary text-lg">BodhSight doesn't just show charts. It actively hunts for problems.</p>
               
               <div className="space-y-8 pt-4">
                 {[
@@ -269,7 +270,7 @@ export default function Landing() {
                     <div className="text-indigo-500 font-mono font-bold text-sm pt-1">{step.num}</div>
                     <div>
                       <h4 className="text-white font-bold mb-1">{step.title}</h4>
-                      <p className="text-sm text-slate-400">{step.desc}</p>
+                      <p className="text-sm text-secondary">{step.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -289,10 +290,10 @@ export default function Landing() {
                   <span className="font-bold text-white">Agent 10 Detection Log</span>
                 </div>
                 <div className="space-y-4 font-mono text-xs">
-                  <div className="p-3 bg-slate-950 rounded-lg text-slate-400">
+                  <div className="p-3 bg-slate-950 rounded-lg text-secondary">
                     <span className="text-emerald-400">SUCCESS</span> Connected to people.v_student_profile
                   </div>
-                  <div className="p-3 bg-slate-950 rounded-lg text-slate-400">
+                  <div className="p-3 bg-slate-950 rounded-lg text-secondary">
                     <span className="text-indigo-400">ANALYZING</span> Course performance deviation matrix...
                   </div>
                   <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-300">
@@ -315,7 +316,7 @@ export default function Landing() {
             <Lock size={32} />
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Enterprise-Grade Governance</h2>
-          <p className="text-slate-400 max-w-2xl mx-auto mb-12">
+          <p className="text-secondary max-w-2xl mx-auto mb-12">
             BodhSight respects institutional hierarchy. Information access and action authority are strictly gated by the user's role.
           </p>
           
@@ -329,7 +330,7 @@ export default function Landing() {
               <div key={i} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl text-left">
                 <div className="text-emerald-400 mb-3">{item.icon}</div>
                 <div className="font-bold text-white mb-1">{item.role}</div>
-                <div className="text-xs text-slate-500">{item.access}</div>
+                <div className="text-xs text-secondary">{item.access}</div>
               </div>
             ))}
           </div>
@@ -341,7 +342,7 @@ export default function Landing() {
         <div className="absolute inset-0 bg-indigo-600/10 blur-[100px]" />
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center space-y-8">
           <h2 className="text-4xl md:text-5xl font-bold text-white">Turn Academic Data Into<br/>Institutional Intelligence.</h2>
-          <p className="text-slate-400 text-lg">Stop guessing. Start acting.</p>
+          <p className="text-secondary text-lg">Stop guessing. Start acting.</p>
           <button 
             onClick={() => navigate('/login')}
             className="px-8 py-4 bg-white text-slate-950 hover:bg-slate-200 rounded-xl text-sm font-bold transition-all shadow-[0_0_30px_rgba(255,255,255,0.15)] flex items-center justify-center gap-2 mx-auto"
@@ -354,10 +355,10 @@ export default function Landing() {
       {/* ---------------- FOOTER ---------------- */}
       <footer className="py-10 border-t border-slate-800/50 bg-[#020817] text-center">
         <div className="flex items-center justify-center gap-2 mb-4">
-          <Sparkles size={16} className="text-indigo-500" />
-          <span className="text-xl font-bold text-white tracking-tight">BodhSight</span>
+          <img src="/logo-b.png" alt="BodhSight Logo" className="h-8 w-auto object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all shrink-0" />
+          <span className="text-xl font-bold tracking-tight text-muted-foreground whitespace-nowrap">BodhSight</span>
         </div>
-        <p className="text-xs text-slate-600 font-medium">
+        <p className="text-xs text-secondary font-medium">
           © {new Date().getFullYear()} BodhSight Academic Intelligence Platform. All rights reserved.
         </p>
       </footer>

@@ -61,22 +61,22 @@ export default function Departments() {
               {/* Metrics Grid */}
               <div className="grid grid-cols-3 gap-3 my-6 bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60/60">
                 <div>
-                  <div className="text-xs font-bold text-slate-400 uppercase flex items-center gap-1"><Users size={12} className="text-indigo-400" /> Students</div>
+                  <div className="text-xs font-bold text-secondary uppercase flex items-center gap-1"><Users size={12} className="text-indigo-400" /> Students</div>
                   <div className="text-xl font-extrabold text-white mt-1">{dept.total_students}</div>
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-slate-400 uppercase">Pass Rate</div>
+                  <div className="text-xs font-bold text-secondary uppercase">Pass Rate</div>
                   <div className="text-xl font-extrabold text-emerald-500 mt-1">{dept.pass_rate}%</div>
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-slate-400 uppercase flex items-center gap-1"><Award size={12} className="text-amber-500" /> Avg GPA</div>
+                  <div className="text-xs font-bold text-secondary uppercase flex items-center gap-1"><Award size={12} className="text-amber-500" /> Avg GPA</div>
                   <div className="text-xl font-extrabold text-indigo-400 mt-1">{dept.avg_gpa}</div>
                 </div>
               </div>
             </div>
 
             <div className="pt-4 border-t border-slate-800/60 flex items-center justify-between text-sm">
-              <span className="text-slate-400 font-medium">
+              <span className="text-secondary font-medium">
                 Active Exceptions: <strong className={dept.active_exceptions > 0 ? "text-rose-600 font-bold" : "text-emerald-500 font-bold"}>{dept.active_exceptions}</strong>
               </span>
               <button className="text-indigo-400 font-bold flex items-center gap-1 hover:text-indigo-800 transition-colors">

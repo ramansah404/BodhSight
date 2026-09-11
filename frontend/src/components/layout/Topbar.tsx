@@ -38,8 +38,11 @@ export default function Topbar({ currentRole, onMenuToggle }: TopbarProps) {
           <BrainCircuit size={22} className="text-indigo-200" />
         </div>
         <div>
-          <span className="text-lg md:text-xl font-bold tracking-tight text-white">BodhSight</span>
-          <span className="ml-2 text-[10px] md:text-xs font-semibold bg-indigo-500/50 text-indigo-100 px-2 py-0.5 rounded-full border border-indigo-400/30 hidden sm:inline-block">Agent 10</span>
+          <div className="flex items-center gap-2">
+            <img src="/logo-b.png" alt="BodhSight Logo" className="h-6 md:h-7 w-auto object-contain shrink-0" />
+            <span className="text-lg md:text-xl font-bold tracking-tight text-foreground whitespace-nowrap">BodhSight</span>
+            <span className="ml-2 text-[10px] md:text-xs font-semibold bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 px-2 py-0.5 rounded-full border border-indigo-500/20 hidden sm:inline-block">Agent 10</span>
+          </div>
         </div>
       </div>
       

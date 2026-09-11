@@ -86,17 +86,17 @@ export default function Courses() {
             <AlertCircle size={40} className="text-rose-400" />
             <div className="text-center">
               <p className="font-bold text-lg text-white">Failed to load courses</p>
-              <p className="text-sm text-slate-400 mt-1">{errorMsg}</p>
-              <p className="text-xs text-slate-500 mt-2">Verify the backend is running at {import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}</p>
+              <p className="text-sm text-secondary mt-1">{errorMsg}</p>
+              <p className="text-xs text-secondary mt-2">Verify the backend is running at {import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}</p>
             </div>
           </div>
         )}
 
         {/* Empty */}
         {state === "empty" && (
-          <div className="flex flex-col items-center justify-center py-16 gap-3 text-slate-500 px-6">
+          <div className="flex flex-col items-center justify-center py-16 gap-3 text-secondary px-6">
             <Info size={36} />
-            <p className="font-semibold text-slate-400">No course performance data found.</p>
+            <p className="font-semibold text-secondary">No course performance data found.</p>
             <p className="text-sm">The database may not have assessment records for the current term.</p>
           </div>
         )}
@@ -105,13 +105,13 @@ export default function Courses() {
         {state === "success" && (
           <div className="overflow-x-auto">
             {visible.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 text-sm font-medium">
+              <div className="py-12 text-center text-secondary text-sm font-medium">
                 No courses found for department <strong>{filters.department}</strong>.
               </div>
             ) : (
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-900/40 text-slate-500 text-xs uppercase tracking-wider border-b border-slate-800/60">
+                  <tr className="bg-slate-900/40 text-secondary text-xs uppercase tracking-wider border-b border-slate-800/60">
                     <th className="py-4 px-6 font-bold">Course Code & Title</th>
                     <th className="py-4 px-6 font-bold">Dept</th>
                     <th className="py-4 px-6 font-bold">Students</th>
@@ -132,13 +132,13 @@ export default function Courses() {
                         </div>
                       </td>
                       <td className="py-4 px-6 font-semibold text-slate-300">{c.department}</td>
-                      <td className="py-4 px-6 font-medium text-slate-400">{c.students_appeared}</td>
+                      <td className="py-4 px-6 font-medium text-secondary">{c.students_appeared}</td>
                       <td className="py-4 px-6">
                         <span className={`font-extrabold ${c.pass_rate < 70 ? "text-rose-600" : "text-emerald-500"}`}>
                           {c.pass_rate.toFixed(1)}%
                         </span>
                       </td>
-                      <td className="py-4 px-6 font-medium text-slate-400">
+                      <td className="py-4 px-6 font-medium text-secondary">
                         {c.avg_marks > 0 ? c.avg_marks.toFixed(1) : "—"}
                       </td>
                       <td className="py-4 px-6">
@@ -189,19 +189,19 @@ export default function Courses() {
               {/* KPI grid */}
               <div className="grid grid-cols-3 gap-4 bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 text-center">
                 <div>
-                  <div className="text-[11px] font-bold text-slate-400 uppercase">Pass Rate</div>
+                  <div className="text-[11px] font-bold text-secondary uppercase">Pass Rate</div>
                   <div className={`text-xl font-black mt-1 ${selectedCourse.pass_rate < 70 ? "text-rose-600" : "text-emerald-500"}`}>
                     {selectedCourse.pass_rate.toFixed(1)}%
                   </div>
                 </div>
                 <div>
-                  <div className="text-[11px] font-bold text-slate-400 uppercase">Avg Marks</div>
+                  <div className="text-[11px] font-bold text-secondary uppercase">Avg Marks</div>
                   <div className="text-xl font-black text-white mt-1">
                     {selectedCourse.avg_marks > 0 ? selectedCourse.avg_marks.toFixed(1) : "—"}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[11px] font-bold text-slate-400 uppercase">Students</div>
+                  <div className="text-[11px] font-bold text-secondary uppercase">Students</div>
                   <div className="text-xl font-black text-indigo-400 mt-1">{selectedCourse.students_appeared}</div>
                 </div>
               </div>
@@ -213,25 +213,25 @@ export default function Courses() {
                 </div>
                 <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
                   <div>
-                    <span className="text-slate-400 block">Internal Avg:</span>
+                    <span className="text-secondary block">Internal Avg:</span>
                     <strong className="text-white text-sm">
                       {selectedCourse.avg_internal != null ? selectedCourse.avg_internal.toFixed(1) : "N/A"}
                     </strong>
                   </div>
                   <div>
-                    <span className="text-slate-400 block">External Avg:</span>
+                    <span className="text-secondary block">External Avg:</span>
                     <strong className="text-white text-sm">
                       {selectedCourse.avg_external != null ? selectedCourse.avg_external.toFixed(1) : "N/A"}
                     </strong>
                   </div>
                   <div>
-                    <span className="text-slate-400 block">External SD:</span>
+                    <span className="text-secondary block">External SD:</span>
                     <strong className="text-white text-sm">
                       {selectedCourse.sd_external != null ? selectedCourse.sd_external.toFixed(2) : "N/A"}
                     </strong>
                   </div>
                   <div>
-                    <span className="text-slate-400 block">Int-Ext Corr:</span>
+                    <span className="text-secondary block">Int-Ext Corr:</span>
                     <strong className={`text-sm ${
                       selectedCourse.internal_external_corr != null && selectedCourse.internal_external_corr < 0.2
                         ? "text-rose-400"
