@@ -5,6 +5,7 @@ import Courses from "./pages/Courses";
 import Exceptions from "./pages/Exceptions";
 import Departments from "./pages/Departments";
 import Sections from "./pages/Sections";
+import Trends from "./pages/Trends";
 
 function App() {
   return (
@@ -16,7 +17,7 @@ function App() {
           <Route path="departments" element={<Departments />} />
           <Route path="sections" element={<Sections />} />
           <Route path="exceptions" element={<Exceptions />} />
-          <Route path="trends" element={<div className="p-8">Trends Page (Coming Soon)</div>} />
+          <Route path="trends" element={<Trends />} />
           <Route path="reports" element={<div className="p-8">Reports Page (Coming Soon)</div>} />
         </Route>
       </Routes>

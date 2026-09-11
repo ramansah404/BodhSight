@@ -45,6 +45,14 @@ export interface SectionComparison {
   disparity_flag: boolean;
 }
 
+export interface TrendData {
+  semester: string;
+  pass_rate: number;
+  avg_gpa: number;
+  average_marks: number;
+  evaluation_count: number;
+}
+
 export interface AcademicException {
   id: string;
   severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
