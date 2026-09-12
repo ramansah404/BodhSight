@@ -48,6 +48,11 @@ export default function Dashboard() {
       }
 
       setMetricsLoading(false);
+
+      // Silently warm the cache for adjacent tabs after dashboard renders
+      if (!cancelled) {
+        Agent10API.prefetchDashboardData(filters);
+      }
     });
 
     return () => { cancelled = true; };

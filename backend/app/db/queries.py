@@ -6,6 +6,31 @@ All queries are READ-ONLY. Never modify any official schema table here.
 from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+import time
+
+# ---------------------------------------------------------------------------
+# Query-level TTL cache — prevents redundant DB hits within 5 minutes.
+# This is the innermost cache layer. The router-level cache sits on top.
+# ---------------------------------------------------------------------------
+
+class _QueryCache:
+    def __init__(self, ttl: int = 300):
+        self._store: Dict[str, tuple] = {}
+        self._ttl = ttl
+
+    def get(self, key: str):
+        entry = self._store.get(key)
+        if entry and time.time() - entry[1] < self._ttl:
+            return entry[0]
+        return None
+
+    def set(self, key: str, value):
+        self._store[key] = (value, time.time())
+
+    def invalidate(self, key: str):
+        self._store.pop(key, None)
+
+_qcache = _QueryCache(ttl=300)
 
 
 # ---------------------------------------------------------------------------
@@ -13,7 +38,10 @@ from sqlalchemy import text
 # ---------------------------------------------------------------------------
 
 def get_course_performance_all(db: Session) -> List[Dict[str, Any]]:
-    """Return all rows from assessment.v_course_performance."""
+    """Return all rows from assessment.v_course_performance. Cached for 5 minutes."""
+    cached = _qcache.get("course_perf_all")
+    if cached is not None:
+        return cached
     sql = text("""
         SELECT
             course_version_id,
@@ -35,7 +63,9 @@ def get_course_performance_all(db: Session) -> List[Dict[str, Any]]:
         ORDER BY pass_pct ASC NULLS LAST
     """)
     result = db.execute(sql)
-    return [dict(row._mapping) for row in result]
+    rows = [dict(row._mapping) for row in result]
+    _qcache.set("course_perf_all", rows)
+    return rows
 
 
 
@@ -173,7 +203,10 @@ def get_corr_anomaly_courses(db: Session, threshold: float = 0.2) -> List[Dict[s
 # ---------------------------------------------------------------------------
 
 def get_offering_roster_summary(db: Session) -> Dict[str, Any]:
-    """High-level counts from the offering roster."""
+    """High-level counts from the offering roster. Cached 5 minutes."""
+    cached = _qcache.get("roster_summary")
+    if cached is not None:
+        return cached
     sql = text("""
         SELECT
             count(DISTINCT student_id) AS total_students_registered,
@@ -186,7 +219,9 @@ def get_offering_roster_summary(db: Session) -> Dict[str, Any]:
     """)
     result = db.execute(sql)
     row = result.fetchone()
-    return dict(row._mapping) if row else {}
+    data = dict(row._mapping) if row else {}
+    _qcache.set("roster_summary", data)
+    return data
 
 
 def get_department_student_counts(db: Session) -> List[Dict[str, Any]]:
@@ -206,7 +241,10 @@ def get_department_student_counts(db: Session) -> List[Dict[str, Any]]:
 
 
 def get_course_section_roster(db: Session) -> List[Dict[str, Any]]:
-    """Courses and their section enrolment sizes."""
+    """Courses and their section enrolment sizes. Cached 5 minutes."""
+    cached = _qcache.get("section_roster")
+    if cached is not None:
+        return cached
     sql = text("""
         SELECT
             course_code,
@@ -220,7 +258,9 @@ def get_course_section_roster(db: Session) -> List[Dict[str, Any]]:
         ORDER BY course_code, section_code
     """)
     result = db.execute(sql)
-    return [dict(row._mapping) for row in result]
+    rows = [dict(row._mapping) for row in result]
+    _qcache.set("section_roster", rows)
+    return rows
 
 
 # ---------------------------------------------------------------------------
