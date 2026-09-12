@@ -38,6 +38,15 @@ def health_check():
         "agent": "10"
     }
 
+@app.get(f"{settings.API_V1_STR}/health")
+def health_check_v1():
+    return {
+        "status": "ok",
+        "service": settings.APP_NAME,
+        "environment": settings.APP_ENV,
+        "agent": "10"
+    }
+
 from app.api.v1.routes import dashboard, performance, trends, anomalies, insights, alerts, recommendations
 from app.api.routers import agent10
 
