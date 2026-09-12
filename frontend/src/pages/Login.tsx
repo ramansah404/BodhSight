@@ -60,6 +60,11 @@ export default function Login() {
     localStorage.setItem("bodhsight_display_role", displayLabel);
     localStorage.setItem("bodhsight_name", displayName);
     localStorage.setItem("bodhsight_email", userEmail);
+    if (code === "HOD" || code === "Faculty") {
+      localStorage.setItem("bodhsight_department", "CSE");
+    } else {
+      localStorage.removeItem("bodhsight_department");
+    }
     navigate("/dashboard");
   };
 
