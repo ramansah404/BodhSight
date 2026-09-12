@@ -55,7 +55,7 @@ interface CacheEntry {
 
 const cache = new Map<string, CacheEntry>();
 const inFlight = new Map<string, Promise<any>>();
-const CACHE_TTL = 300000; // 5 minutes — matches backend SimpleTTLCache
+const CACHE_TTL = 0; // Disabled cache to ensure real-time data
 
 async function get<T>(path: string, forceFresh = false): Promise<T> {
   if (!forceFresh) {
@@ -76,104 +76,7 @@ async function get<T>(path: string, forceFresh = false): Promise<T> {
     inFlight.delete(path);
     console.warn(`[API] Failed to fetch ${path}, falling back to mock data. Error:`, err.message);
     
-    const userRole = localStorage.getItem("bodhsight_role") || "Dean";
-    const userDept = localStorage.getItem("bodhsight_department");
-    const isRestricted = (userRole === "HOD" || userRole === "Faculty") && userDept;
-
-    if (path.includes("/agent10/dashboard")) return mockData.mockDashboard as T;
-    
-    if (path.includes("/agent10/performance/courses")) {
-        let courses = mockData.mockCourses;
-        if (isRestricted) courses = courses.filter(c => c.department === userDept);
-        return courses as unknown as T;
-    }
-    
-    if (path.includes("/agent10/performance/departments")) {
-        let depts = mockData.mockDepartments;
-        if (isRestricted) depts = depts.filter(d => d.department_code === userDept);
-        return depts as T;
-    }
-    
-    if (path.includes("/agent10/trends")) {
-        let trends = JSON.parse(JSON.stringify(mockData.mockTrends));
-        const overridesStr = localStorage.getItem("bodhsight_student_overrides");
-        
-        if (overridesStr) {
-            try {
-                const overrides = JSON.parse(overridesStr);
-                let highDiff = 0;
-                let anyDiff = 0;
-                
-                // Compare original students with overrides to find the delta
-                mockData.mockStudentDrilldown.forEach(s => {
-                    const over = overrides[s.student_id];
-                    if (over && over.backlog_count !== undefined && over.backlog_count !== s.backlog_count) {
-                        const origHigh = s.backlog_count >= 3;
-                        const newHigh = over.backlog_count >= 3;
-                        if (origHigh && !newHigh) highDiff--;
-                        if (!origHigh && newHigh) highDiff++;
-                        
-                        const origAny = s.backlog_count > 0;
-                        const newAny = over.backlog_count > 0;
-                        if (origAny && !newAny) anyDiff--;
-                        if (!origAny && newAny) anyDiff++;
-                    }
-                });
-                
-                if (trends.student_backlog_trend) {
-                    trends.student_backlog_trend.students_high_backlogs += highDiff;
-                    trends.student_backlog_trend.students_with_backlogs += anyDiff;
-                    
-                    // Prevent counts from dropping below zero due to mock anomalies
-                    trends.student_backlog_trend.students_high_backlogs = Math.max(0, trends.student_backlog_trend.students_high_backlogs);
-                    trends.student_backlog_trend.students_with_backlogs = Math.max(0, trends.student_backlog_trend.students_with_backlogs);
-                }
-            } catch (e) {
-                console.error("Failed to parse student overrides for trends calculation", e);
-            }
-        }
-        return trends as T;
-    }
-    
-    if (path.includes("/agent10/exceptions")) {
-        let exc = mockData.mockExceptions;
-        if (isRestricted) exc = exc.filter(e => e.department === userDept);
-        return exc as T;
-    }
-    
-    if (path.includes("/agent10/recommendations")) {
-        let rec = mockData.mockRecommendations;
-        if (isRestricted) rec = rec.filter(r => r.department === userDept);
-        return rec as unknown as T;
-    }
-    
-    if (path.includes("/agent10/sections")) return mockData.mockSections as T;
-    if (path.includes("/agent10/priorities")) return mockData.mockPriorities as T;
-    if (path.includes("/agent10/condonation")) return mockData.mockCondonationForecast as T;
-    
-    if (path.includes("/agent10/students/drilldown")) {
-        let students = [...mockData.mockStudentDrilldown];
-        if (isRestricted) students = students.filter(s => s.department_code === userDept);
-        
-        // Apply localStorage overrides
-        const overridesStr = localStorage.getItem("bodhsight_student_overrides");
-        if (overridesStr) {
-            try {
-                const overrides = JSON.parse(overridesStr);
-                students = students.map(s => overrides[s.student_id] ? { ...s, ...overrides[s.student_id] } : s);
-            } catch (e) {
-                console.error("Failed to parse student overrides", e);
-            }
-        }
-        return students as T;
-    }
-    
-    if (path.includes("/agent10/evidence")) return mockData.mockEvidence as T;
-    if (path.includes("/agent10/summary")) return mockData.mockSummary as T;
-    if (path.includes("/notifications/unread-count")) return { count: mockData.mockNotifications.filter(n => !n.is_read).length } as T;
-    if (path.includes("/notifications") && !path.includes("read")) return mockData.mockNotifications as T;
-
-    return [] as T;
+    throw new Error(`Failed to fetch ${path} from backend.`);
   });
 
   inFlight.set(path, req);
@@ -275,6 +178,16 @@ export const Agent10API = {
   /** Executive summary (uses LLM if available) */
   getSummary(filters?: Partial<FilterState>): Promise<Record<string, unknown>> {
     return get<Record<string, unknown>>(buildQuery("/agent10/summary", filters));
+  },
+
+  /** Execute a recommendation (updates database status) */
+  async executeRecommendation(id: string): Promise<void> {
+    await apiClient.post(`/agent10/recommendations/${id}/execute`);
+  },
+
+  /** Trigger an ingestion audit */
+  async triggerAudit(): Promise<void> {
+    await apiClient.post("/agent10/audit/trigger");
   },
 
   /** Backend health check */

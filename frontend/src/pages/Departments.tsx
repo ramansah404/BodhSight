@@ -12,11 +12,20 @@ export default function Departments() {
   const [departments, setDepartments] = useState<DepartmentPerformance[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [errorMsg, setErrorMsg] = useState("");
+
   useEffect(() => {
+    let cancelled = false;
     Agent10API.getDepartments(filters).then(data => {
+      if (cancelled) return;
       setDepartments(data || []);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch((err) => {
+      if (cancelled) return;
+      setErrorMsg(err?.message || "Failed to load departments.");
+      setLoading(false);
+    });
+    return () => { cancelled = true; };
   }, [filters]);
 
   const insight = useMemo(() => {
@@ -98,7 +107,26 @@ export default function Departments() {
         />
       </div>
 
-      {departments.length > 0 && (
+      {errorMsg && (
+        <div className="flex flex-col items-center justify-center py-16 gap-4 text-rose-600 px-6">
+          <AlertCircle size={40} className="text-rose-600 dark:text-rose-400" />
+          <div className="text-center">
+            <p className="font-bold text-lg text-primary">Failed to load departments</p>
+            <p className="text-sm text-secondary mt-1">{errorMsg}</p>
+          </div>
+        </div>
+      )}
+
+      {!loading && !errorMsg && departments.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-16 gap-3 text-secondary px-6">
+          <AlertCircle size={36} />
+          <p className="font-semibold text-secondary">No department data found.</p>
+          <p className="text-sm">Adjust filters or ensure data is ingested.</p>
+        </div>
+      )}
+
+      {/* Grid */}
+      {!loading && !errorMsg && departments.length > 0 && (
         <div className="space-y-6">
           {/* Chart Section */}
           <div className="bg-surface rounded-3xl border border-border shadow-sm p-6">
@@ -117,7 +145,7 @@ export default function Departments() {
                   <Legend iconType="circle" />
                   <Bar yAxisId="left" dataKey="pass_rate" name="Pass Rate (%)" radius={[4, 4, 0, 0]} maxBarSize={50} isAnimationActive={true} animationDuration={1500}>
                     {departments.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.status === 'INTERVENTION_REQUIRED' ? '#ef4444' : entry.status === 'MONITORING' ? '#f59e0b' : '#6366f1'} />
+                      <Cell key={`cell-${index}`} fill={entry.status === 'INTERVENTION_REQUIRED' ? '#ef4444' : entry.status === 'MONITORING' ? '#f59e0b' : '#10b981'} />
                     ))}
                   </Bar>
                   <Bar yAxisId="right" dataKey="avg_gpa" name="Avg GPA" fill="#8b5cf6" radius={[4, 4, 0, 0]} maxBarSize={50} isAnimationActive={true} animationDuration={1500} />

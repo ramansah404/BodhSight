@@ -11,12 +11,12 @@ export const mockCourses = [
 ];
 export const mockDepartments = [
   { department_code: "CSE", department_name: "Computer Science", total_students: 980, faculty_count: 42, pass_rate: 81.0, avg_gpa: 7.9, active_exceptions: 2, status: "MONITORING" as const },
-  { department_code: "ECE", department_name: "Electronics", total_students: 450, faculty_count: 24, pass_rate: 88.5, avg_gpa: 8.2, active_exceptions: 0, status: "ON_TRACK" as const },
-  { department_code: "MECH", department_name: "Mechanical", total_students: 320, faculty_count: 18, pass_rate: 62.4, avg_gpa: 6.1, active_exceptions: 4, status: "INTERVENTION_REQUIRED" as const },
-  { department_code: "CIVIL", department_name: "Civil Engineering", total_students: 210, faculty_count: 12, pass_rate: 75.2, avg_gpa: 7.0, active_exceptions: 1, status: "MONITORING" as const }
+  { department_code: "ECE", department_name: "Electronics", total_students: 650, faculty_count: 24, pass_rate: 88.5, avg_gpa: 8.2, active_exceptions: 0, status: "ON_TRACK" as const },
+  { department_code: "MECH", department_name: "Mechanical", total_students: 520, faculty_count: 18, pass_rate: 62.4, avg_gpa: 6.1, active_exceptions: 4, status: "INTERVENTION_REQUIRED" as const },
+  { department_code: "CIVIL", department_name: "Civil Engineering", total_students: 300, faculty_count: 12, pass_rate: 75.2, avg_gpa: 7.0, active_exceptions: 1, status: "MONITORING" as const }
 ];
 export const mockBatches = [
-  { batch_year: "2024-2028", programme: "B.Tech CSE", student_count: 980, avg_gpa: 7.9, pass_rate: 82.4, backlog_percentage: 12.5, trend: "DECLINING" as const, risk_level: "MODERATE" as const }
+  { batch_year: "2024-2028", programme: "B.Tech CSE", student_count: 980, avg_gpa: 7.9, pass_rate: 81.0, backlog_percentage: 12.5, trend: "DECLINING" as const, risk_level: "MODERATE" as const }
 ];
 export const mockStudents = [
   { group_id: "grp-01", category: "Persistent Underperformance", affected_count: 27, avg_cgpa: 5.2, primary_issue: "Failing core courses", trend: "WORSENING", recommended_support: "Peer tutoring" }

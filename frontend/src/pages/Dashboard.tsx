@@ -318,7 +318,7 @@ export default function Dashboard() {
                     {deptChartData.map((entry, index) => (
                       <Cell 
                         key={`cell-${index}`} 
-                        fill={entry.status === 'INTERVENTION_REQUIRED' ? '#ef4444' : entry.status === 'MONITORING' ? '#f59e0b' : '#6366f1'} 
+                        fill={entry.status === 'INTERVENTION_REQUIRED' ? '#ef4444' : entry.status === 'MONITORING' ? '#f59e0b' : '#10b981'} 
                       />
                     ))}
                   </Bar>
