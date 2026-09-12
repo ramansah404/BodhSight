@@ -15,9 +15,11 @@ import {
 
 const ROLE_OPTIONS = [
   { code: "Chairman",   label: "Chairman / Board",        display: "Chairman", desc: "Institutional Overview", icon: ShieldCheck },
+  { code: "Principal",  label: "Principal",               display: "Principal", desc: "Academic Leadership", icon: ShieldCheck },
   { code: "Dean",       label: "Dean of Academics",       display: "Dean",     desc: "Academic Management", icon: Lock },
   { code: "HOD",        label: "Head of Department",      display: "HOD",      desc: "Departmental View", icon: User },
   { code: "Faculty",    label: "Course Instructor",       display: "Faculty",  desc: "Course Management", icon: UserPlus },
+  { code: "IQAC",       label: "Quality Assurance",       display: "IQAC",     desc: "Evidence & Quality", icon: CheckCircle2 },
 ];
 
 export default function Login() {
@@ -155,9 +157,11 @@ export default function Login() {
             <div className="space-y-2">
               {[
                 { code: "Chairman", label: "Chairman / Board",    name: "Dr. K. Vignan", desc: "Login as Chairman" },
+                { code: "Principal",label: "Principal",           name: "Dr. S. Reddy",  desc: "Login as Principal" },
                 { code: "Dean",    label: "Dean of Academics",    name: "Dr. Anil Kumar Mahato", desc: "Login as Dean" },
                 { code: "HOD",     label: "Head of Department",   name: "Prof. Sharma (CSE)", desc: "Login as HOD" },
                 { code: "Faculty", label: "Course Instructor",    name: "Dr. Rao", desc: "Login as Faculty" },
+                { code: "IQAC",    label: "Quality Assurance",    name: "Dr. Meena (IQAC)", desc: "Login as IQAC" },
               ].map((demo) => (
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -252,9 +256,11 @@ export default function Login() {
                             setIsRoleDropdownOpen(false);
                             // Pre-fill email/name logic for convenience in demo
                             if(r.code === "Chairman") { setName("Dr. K. Vignan"); setEmail("chairman@vignan.ac.in"); }
+                            if(r.code === "Principal") { setName("Dr. S. Reddy"); setEmail("principal@vignan.ac.in"); }
                             if(r.code === "Dean") { setName("Dr. Anil Kumar Mahato"); setEmail("dean@vignan.ac.in"); }
                             if(r.code === "HOD") { setName("Prof. Sharma"); setEmail("hod@vignan.ac.in"); }
                             if(r.code === "Faculty") { setName("Dr. Rao"); setEmail("faculty@vignan.ac.in"); }
+                            if(r.code === "IQAC") { setName("Dr. Meena"); setEmail("iqac@vignan.ac.in"); }
                           }}
                           className={`px-4 py-3 cursor-pointer flex items-center gap-3 transition-colors ${roleCode === r.code ? 'bg-indigo-500/10' : 'hover:bg-surface-secondary'}`}
                         >

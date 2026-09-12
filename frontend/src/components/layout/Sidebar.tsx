@@ -28,17 +28,17 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   
   const allNavItems = [
-    { name: "Overview", path: "/dashboard", icon: LayoutDashboard, roles: ["Chairman", "Dean", "HOD", "Faculty"] },
-    { name: "Trends", path: "/trends", icon: TrendingUp, roles: ["Chairman", "Dean", "HOD"] },
-    { name: "Courses", path: "/courses", icon: BookOpen, roles: ["Chairman", "Dean", "HOD", "Faculty"] },
-    { name: "Departments", path: "/departments", icon: Building2, roles: ["Chairman", "Dean"] },
-    { name: "Sections", path: "/sections", icon: Layers, roles: ["Chairman", "Dean", "HOD", "Faculty"] },
-    { name: "Batches", path: "/batches", icon: Users, roles: ["Chairman", "Dean", "HOD"] },
-    { name: "Students (At-Risk)", path: "/students", icon: ShieldAlert, roles: ["Chairman", "Dean", "HOD", "Faculty"] },
-    { name: "Problems", path: "/anomalies", icon: AlertTriangle, roles: ["Chairman", "Dean", "HOD", "Faculty"] },
-    { name: "Recommendations", path: "/recommendations", icon: Lightbulb, roles: ["Chairman", "Dean", "HOD", "Faculty"] },
-    { name: "Executive Reports", path: "/reports", icon: FileText, roles: ["Chairman", "Dean"] },
-    { name: "Settings", path: "/settings", icon: Settings, roles: ["Chairman", "Dean", "HOD", "Faculty"] },
+    { name: "Overview", path: "/dashboard", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: LayoutDashboard },
+    { name: "Trends", path: "/trends", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: TrendingUp },
+    { name: "Courses", path: "/courses", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: BookOpen },
+    { name: "Departments", path: "/departments", roles: ["Chairman", "Principal", "IQAC", "Dean"], icon: Building2 },
+    { name: "Sections", path: "/sections", roles: ["Chairman", "Principal", "Dean", "HOD", "Faculty"], icon: Layers },
+    { name: "Batches", path: "/batches", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: Users },
+    { name: "Students (At-Risk)", path: "/students", roles: ["Chairman", "Principal", "Dean", "HOD", "Faculty"], icon: ShieldAlert },
+    { name: "Problems", path: "/anomalies", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: AlertTriangle },
+    { name: "Recommendations", path: "/recommendations", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: Lightbulb },
+    { name: "Executive Reports", path: "/reports", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: FileText },
+    { name: "Settings", path: "/settings", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: Settings },
   ];
 
   const navItems = allNavItems.filter(item => item.roles.includes(currentRole));
