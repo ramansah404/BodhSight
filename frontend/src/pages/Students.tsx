@@ -13,6 +13,9 @@ export default function Students() {
   const [trendsData, setTrendsData] = useState<TrendsResponse | null>(null);
   const [state, setState] = useState<LoadState>("loading");
   const [errorMsg, setErrorMsg] = useState("");
+  
+  const currentRole = localStorage.getItem("bodhsight_role") || "Chairman";
+  const canDrilldown = ["Principal", "Dean", "HOD", "Faculty"].includes(currentRole);
 
   // Drilldown state
   const [drilldown, setDrilldown] = useState<{ isOpen: boolean; context: string; title: string }>({
@@ -156,8 +159,8 @@ export default function Students() {
             </div>
 
             <div 
-              onClick={() => setDrilldown({ isOpen: true, context: "at_risk", title: "Students With Backlogs" })}
-              className="bg-surface p-6 rounded-3xl border border-amber-500/20 shadow-sm cursor-pointer hover:bg-surface/80 group transition-colors"
+              onClick={() => canDrilldown && setDrilldown({ isOpen: true, context: "at_risk", title: "Students With Backlogs" })}
+              className={`bg-surface p-6 rounded-3xl border border-amber-500/20 shadow-sm transition-colors group ${canDrilldown ? 'cursor-pointer hover:bg-surface/80' : 'opacity-90'}`}
             >
               <div className="flex justify-between items-start">
                 <div className="text-xs font-bold uppercase tracking-wider text-amber-500 group-hover:text-amber-600 transition-colors">With Backlogs</div>
@@ -174,8 +177,8 @@ export default function Students() {
             </div>
 
             <div 
-              onClick={() => setDrilldown({ isOpen: true, context: "high_risk", title: "High Risk Students" })}
-              className="bg-surface p-6 rounded-3xl border border-rose-500/20 shadow-sm cursor-pointer hover:bg-surface/80 group transition-colors"
+              onClick={() => canDrilldown && setDrilldown({ isOpen: true, context: "high_risk", title: "High Risk Students" })}
+              className={`bg-surface p-6 rounded-3xl border border-rose-500/20 shadow-sm transition-colors group ${canDrilldown ? 'cursor-pointer hover:bg-surface/80' : 'opacity-90'}`}
             >
               <div className="flex justify-between items-start">
                 <div className="text-xs font-bold uppercase tracking-wider text-rose-500 group-hover:text-rose-600 transition-colors">High Backlogs (≥3)</div>
