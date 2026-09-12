@@ -81,13 +81,13 @@ export default function Departments() {
     <div className="max-w-7xl mx-auto space-y-6" id="departments-content">
       
       {/* Header */}
-      <div className="bg-gradient-to-r from-violet-900 via-indigo-900 to-blue-900 rounded-3xl p-8 text-white shadow-xl flex justify-between items-start md:items-end flex-col md:flex-row gap-4">
+      <div className="bg-surface/80 backdrop-blur-sm border border-border/60 rounded-3xl p-8 text-primary shadow-sm flex justify-between items-start md:items-end flex-col md:flex-row gap-4">
         <div>
-          <div className="flex items-center gap-2 text-violet-300 text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-2">
             <Building2 size={14} /> Institutional Structure
           </div>
-          <h1 className="text-3xl font-bold text-white">Department Academic Health</h1>
-          <p className="text-violet-100 text-sm mt-1 max-w-2xl">Aggregated performance indicators and anomaly tracking per academic department.</p>
+          <h1 className="text-3xl font-bold text-primary">Department Academic Health</h1>
+          <p className="text-secondary text-sm mt-1 max-w-2xl">Aggregated performance indicators and anomaly tracking per academic department.</p>
         </div>
         
         <ExportMenu 

@@ -77,14 +77,14 @@ export default function Trends() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6" id="trends-content">
-      <div className="bg-gradient-to-r from-amber-950 via-surface to-indigo-950 rounded-3xl p-8 text-white shadow-xl">
+      <div className="bg-surface/80 backdrop-blur-sm border border-border/60 rounded-3xl p-8 text-primary shadow-sm">
         <div className="flex justify-between items-start md:items-end">
           <div>
-            <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-200 px-3 py-1 rounded-full text-xs font-bold border border-amber-400/30 mb-3">
+            <div className="inline-flex items-center gap-2 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 px-3 py-1 rounded-full text-xs font-bold border border-amber-200 dark:border-amber-500/20 mb-3">
               <TrendingUp size={14} /> Historical Timeline
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-white">Institutional Trend Analysis</h1>
-            <p className="text-amber-100/80 text-sm mt-1 max-w-2xl">
+            <h1 className="text-3xl font-extrabold tracking-tight text-primary">Institutional Trend Analysis</h1>
+            <p className="text-secondary text-sm mt-1 max-w-2xl">
               Relative performance analysis across courses compared to the institutional mean for the current academic term.
             </p>
           </div>

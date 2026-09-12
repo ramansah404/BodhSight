@@ -36,13 +36,13 @@ export default function Reports() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6" id="reports-content">
-      <div className="bg-gradient-to-r from-surface via-indigo-950 to-violet-950 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="bg-surface/80 backdrop-blur-sm border border-border/60 rounded-3xl p-8 text-primary shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 bg-surface/10 text-indigo-200 px-3 py-1 rounded-full text-xs font-bold border border-white/15">
+          <div className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-bold border border-indigo-200 dark:border-indigo-500/20">
             <FileText size={14} /> Executive Reporting Suite ({rawRole} View)
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Academic Performance Reports</h1>
-          <p className="text-white text-sm">
+          <h1 className="text-3xl font-extrabold tracking-tight text-primary">Academic Performance Reports</h1>
+          <p className="text-secondary text-sm">
             {permissions.canExportOfficialReports 
               ? "Generate, export, and review consolidated institutional reports for management and accreditation bodies."
               : "Your current role is restricted from exporting institutional master reports."}
