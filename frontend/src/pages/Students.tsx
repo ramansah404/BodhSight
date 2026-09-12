@@ -206,8 +206,10 @@ export default function Students() {
                       paddingAngle={5}
                       dataKey="value"
                       stroke="none"
-                      label={({ value }) => value > 0 ? value : ""}
-                      labelLine={false}
+                      label={{ fill: "var(--color-text-primary)", fontSize: 12, fontWeight: 600 }}
+                      labelLine={{ stroke: "var(--color-border)", strokeWidth: 1 }}
+                      isAnimationActive={true}
+                      animationDuration={1500}
                     >
                       {pieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />

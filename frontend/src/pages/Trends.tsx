@@ -77,13 +77,13 @@ export default function Trends() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6" id="trends-content">
-      <div className="bg-gradient-to-r from-amber-950 via-surface to-indigo-950 rounded-3xl p-8 text-primary shadow-xl">
+      <div className="bg-gradient-to-r from-amber-950 via-surface to-indigo-950 rounded-3xl p-8 text-white shadow-xl">
         <div className="flex justify-between items-start md:items-end">
           <div>
             <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-200 px-3 py-1 rounded-full text-xs font-bold border border-amber-400/30 mb-3">
               <TrendingUp size={14} /> Historical Timeline
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight">Institutional Trend Analysis</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight text-white">Institutional Trend Analysis</h1>
             <p className="text-amber-100/80 text-sm mt-1 max-w-2xl">
               Relative performance analysis across courses compared to the institutional mean for the current academic term.
             </p>
@@ -204,7 +204,7 @@ export default function Trends() {
                         <XAxis type="number" hide />
                         <YAxis dataKey="course_code" type="category" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10 }} width={60} />
                         <Tooltip cursor={{ fill: "#1e293b" }} contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#0f172a", color: "#f8fafc" }} />
-                        <Bar dataKey="delta_vs_mean" fill="#10b981" radius={[0, 4, 4, 0]} barSize={16} name="Delta (pp)" />
+                        <Bar dataKey="delta_vs_mean" fill="#10b981" radius={[0, 4, 4, 0]} barSize={16} name="Delta (pp)" isAnimationActive={true} animationDuration={1500} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -249,7 +249,7 @@ export default function Trends() {
                         <XAxis type="number" hide />
                         <YAxis dataKey="course_code" type="category" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10 }} width={60} />
                         <Tooltip cursor={{ fill: "#1e293b" }} contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#0f172a", color: "#f8fafc" }} />
-                        <Bar dataKey="delta_vs_mean" fill="#e11d48" radius={[0, 4, 4, 0]} barSize={16} name="Delta (pp)" />
+                        <Bar dataKey="delta_vs_mean" fill="#e11d48" radius={[0, 4, 4, 0]} barSize={16} name="Delta (pp)" isAnimationActive={true} animationDuration={1500} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
