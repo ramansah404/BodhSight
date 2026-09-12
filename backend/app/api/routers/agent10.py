@@ -272,6 +272,53 @@ async def get_section_comparison(db: Session = Depends(get_db)):
 
 
 # ---------------------------------------------------------------------------
+# Condonation Forecaster
+# ---------------------------------------------------------------------------
+
+@router.get("/condonation")
+async def get_condonation_forecast(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+    """Condonation zone risk & revenue forecaster."""
+    from app.db import queries
+    return await run_in_threadpool(
+        _safe, 
+        queries.get_condonation_forecast, 
+        db, 
+        department=department, 
+        semester=semester, 
+        programme=programme, 
+        academic_year=academic_year
+    )
+
+
+# ---------------------------------------------------------------------------
+# Student Drill-Down
+# ---------------------------------------------------------------------------
+
+@router.get("/students/drilldown")
+async def get_student_drilldown(
+    context: str,
+    course_code: str = None,
+    department: str = None, 
+    semester: str = None, 
+    programme: str = None, 
+    academic_year: str = None, 
+    db: Session = Depends(get_db)
+):
+    """Fetch real student details for dashboard metric drill-downs."""
+    from app.db import queries
+    return await run_in_threadpool(
+        _safe, 
+        queries.get_student_drilldown, 
+        db, 
+        context=context,
+        course_code=course_code,
+        department=department, 
+        semester=semester, 
+        programme=programme, 
+        academic_year=academic_year
+    )
+
+# ---------------------------------------------------------------------------
 # LLM Status
 # ---------------------------------------------------------------------------
 

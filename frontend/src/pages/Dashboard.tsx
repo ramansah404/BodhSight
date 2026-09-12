@@ -10,6 +10,8 @@ import { Agent10API } from "../services/api";
 import type { AcademicDashboardMetrics, DepartmentPerformance } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
+import CondonationWidget from "../components/dashboard/CondonationWidget";
+import StudentDrilldownModal from "../components/ui/StudentDrilldownModal";
 
 export default function Dashboard() {
   const { filters } = useFilters();
@@ -20,6 +22,13 @@ export default function Dashboard() {
   const [departments, setDepartments] = useState<DepartmentPerformance[]>([]);
   const [metricsLoading, setMetricsLoading] = useState(true);
   const [metricsError, setMetricsError] = useState("");
+  
+  // Drill-down state
+  const [drilldown, setDrilldown] = useState<{ isOpen: boolean; context: string; title: string }>({
+    isOpen: false,
+    context: "",
+    title: "",
+  });
 
   const displayRole = localStorage.getItem("bodhsight_display_role") || currentRole;
   const displayName = localStorage.getItem("bodhsight_name") || `${currentRole} User`;
@@ -186,15 +195,18 @@ export default function Dashboard() {
         </div>
       ) : metrics ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-surface hover:bg-surface/80 transition-colors p-6 rounded-3xl border border-border/60 shadow-sm">
+          <div 
+            onClick={() => setDrilldown({ isOpen: true, context: "evaluated", title: "Students Evaluated" })}
+            className="bg-surface hover:bg-surface/80 transition-colors p-6 rounded-3xl border border-border/60 shadow-sm cursor-pointer group"
+          >
             <div className="flex justify-between items-start">
-              <div className="text-xs font-bold uppercase tracking-wider text-secondary">Students Evaluated</div>
-              <Users size={16} className="text-indigo-600 dark:text-indigo-400" />
+              <div className="text-xs font-bold uppercase tracking-wider text-secondary group-hover:text-primary transition-colors">Students Evaluated</div>
+              <Users size={16} className="text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
             </div>
             <div className="text-3xl font-bold text-primary mt-3">
               {metrics.students_evaluated.toLocaleString()}
             </div>
-            <div className="text-xs text-secondary font-medium mt-1">
+            <div className="text-xs text-secondary font-medium mt-1 group-hover:text-foreground transition-colors">
               {metrics.total_students
                 ? `of ${metrics.total_students.toLocaleString()} registered`
                 : "Institutional active scope"}
@@ -227,21 +239,38 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-surface to-surface/80 p-6 rounded-3xl border border-rose-500/20 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-full blur-xl pointer-events-none" />
+          <div 
+            onClick={() => setDrilldown({ isOpen: true, context: "problems", title: "Active Problems" })}
+            className="bg-gradient-to-br from-surface to-surface/80 hover:to-rose-500/5 transition-colors p-6 rounded-3xl border border-rose-500/20 shadow-sm relative overflow-hidden cursor-pointer group"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-full blur-xl pointer-events-none group-hover:bg-rose-500/20 transition-colors" />
             <div className="flex justify-between items-start relative z-10">
               <div className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Active Problems</div>
-              <AlertTriangle size={16} className="text-rose-500" />
+              <AlertTriangle size={16} className="text-rose-500 group-hover:scale-110 transition-transform" />
             </div>
             <div className="text-3xl font-bold text-primary mt-3 relative z-10">
               {metrics.active_anomalies ?? metrics.significant_deviations}
             </div>
-            <div className="text-xs text-rose-600 dark:text-rose-400 font-medium mt-1 relative z-10">
+            <div className="text-xs text-rose-600 dark:text-rose-400 font-medium mt-1 relative z-10 group-hover:text-rose-500 transition-colors">
               Requires administrative attention
             </div>
           </div>
         </div>
       ) : null}
+
+      <StudentDrilldownModal
+        isOpen={drilldown.isOpen}
+        onClose={() => setDrilldown({ ...drilldown, isOpen: false })}
+        context={drilldown.context}
+        title={drilldown.title}
+      />
+
+      {/* Condonation Forecaster (Chairman & Principal Only) */}
+      {(currentRole === "Chairman" || currentRole === "Principal") && (
+        <div className="mt-4 h-32">
+          <CondonationWidget />
+        </div>
+      )}
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

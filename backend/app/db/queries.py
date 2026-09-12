@@ -541,3 +541,113 @@ def get_term_context(db: Session) -> Dict[str, Any]:
     row = result.fetchone()
     return dict(row._mapping) if row else {}
 
+
+def get_condonation_forecast(db: Session, department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> Dict[str, Any]:
+    """
+    Returns the number of students in the 65-75% condonation zone,
+    and dynamically resolves expected fee collection by querying finance tables.
+    """
+    cached = _qcache.get(f"cond_fcst_{department}_{semester}_{programme}_{academic_year}")
+    if cached is not None:
+        return cached
+
+    filters = []
+    params = {}
+    
+    sql = text("""
+        WITH condonation_fee AS (
+            SELECT coalesce(max(fsl.amount), 0) AS fee_amount
+            FROM finance.fee_structure_line fsl
+            JOIN finance.fee_head fh ON fsl.fee_head_id = fh.fee_head_id
+            WHERE fh.name ILIKE '%condonation%'
+        ),
+        zone_students AS (
+            SELECT
+                s.student_id,
+                s.term_id,
+                s.band,
+                s.projected_end_pct
+            FROM attendance.attendance_summary s
+            WHERE s.band IN ('B65_70', 'B70_75')
+        ),
+        payment_status AS (
+            SELECT student_id, term_id, fee_paid
+            FROM attendance.condonation
+        )
+        SELECT 
+            count(z.student_id) AS total_at_risk,
+            count(z.student_id) - count(p.student_id) AS requiring_condonation,
+            (count(z.student_id) - count(p.student_id)) * (SELECT fee_amount FROM condonation_fee) AS expected_revenue,
+            avg(z.projected_end_pct) AS avg_projected_attendance
+        FROM zone_students z
+        LEFT JOIN payment_status p ON z.student_id = p.student_id AND z.term_id = p.term_id
+    """)
+    result = db.execute(sql, params)
+    row = result.fetchone()
+    
+    data = {
+        "at_risk_students": row[0] or 0,
+        "requiring_condonation": row[1] or 0,
+        "expected_revenue": float(row[2] or 0),
+        "academic_impact": float(row[3] or 0)
+    }
+    _qcache.set(f"cond_fcst_{department}_{semester}_{programme}_{academic_year}", data)
+    return data
+
+
+def get_student_drilldown(
+    db: Session, 
+    context: str, 
+    course_code: str = None,
+    department: str = None, 
+    semester: str = None, 
+    programme: str = None, 
+    academic_year: str = None
+) -> List[Dict[str, Any]]:
+    """
+    Returns student details for a drill-down context:
+    contexts: 'evaluated', 'condonation', 'problems'
+    """
+    select_clause = """
+        SELECT 
+            p.student_id,
+            p.roll_no,
+            p.full_name,
+            p.status,
+            p.programme_code,
+            p.department_code,
+            p.batch_label,
+            p.section_code,
+            p.cgpa,
+            p.backlog_count,
+            p.attendance_pct,
+            p.fee_outstanding,
+    """
+    
+    from_clause = " FROM people.v_student_profile p "
+    where_clause = " WHERE p.status = 'ACTIVE' "
+    
+    if department:
+        where_clause += f" AND p.department_code = '{department}' "
+    if programme:
+        where_clause += f" AND p.programme_code = '{programme}' "
+        
+    if context == "condonation":
+        select_clause += " a.band AS reason "
+        from_clause += " JOIN attendance.attendance_summary a ON p.student_id = a.student_id "
+        where_clause += " AND a.band IN ('B65_70', 'B70_75') "
+    elif context == "problems":
+        select_clause += " f.category AS reason "
+        from_clause += " JOIN core.student_flag f ON p.student_id = f.student_id "
+        where_clause += " AND f.status = 'OPEN' "
+    elif context == "course" and course_code:
+        select_clause += " cp.pass_pct::text AS reason "
+        from_clause += f" JOIN assessment.v_course_performance cp ON p.student_id = cp.student_id "
+        where_clause += f" AND cp.course_code = '{course_code}' "
+    else:
+        select_clause += " 'Evaluated' AS reason "
+
+    sql_text = select_clause + from_clause + where_clause + " ORDER BY p.roll_no ASC LIMIT 500"
+    
+    result = db.execute(text(sql_text))
+    return [dict(row._mapping) for row in result]

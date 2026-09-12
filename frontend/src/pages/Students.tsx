@@ -5,6 +5,7 @@ import { Agent10API } from "../services/api";
 import type { TrendsResponse } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
+import StudentDrilldownModal from "../components/ui/StudentDrilldownModal";
 
 type LoadState = "loading" | "success" | "error" | "empty";
 
@@ -12,6 +13,13 @@ export default function Students() {
   const [trendsData, setTrendsData] = useState<TrendsResponse | null>(null);
   const [state, setState] = useState<LoadState>("loading");
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Drilldown state
+  const [drilldown, setDrilldown] = useState<{ isOpen: boolean; context: string; title: string }>({
+    isOpen: false,
+    context: "",
+    title: "",
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -135,7 +143,7 @@ export default function Students() {
 
       {state === "success" && backlog && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-surface p-6 rounded-3xl border border-border shadow-sm">
               <div className="flex justify-between items-start">
                 <div className="text-xs font-bold uppercase tracking-wider text-secondary">Total Students</div>
@@ -147,10 +155,13 @@ export default function Students() {
               <div className="text-xs text-secondary font-medium mt-1">Active in institution</div>
             </div>
 
-            <div className="bg-surface p-6 rounded-3xl border border-amber-500/20 shadow-sm">
+            <div 
+              onClick={() => setDrilldown({ isOpen: true, context: "at_risk", title: "Students With Backlogs" })}
+              className="bg-surface p-6 rounded-3xl border border-amber-500/20 shadow-sm cursor-pointer hover:bg-surface/80 group transition-colors"
+            >
               <div className="flex justify-between items-start">
-                <div className="text-xs font-bold uppercase tracking-wider text-amber-500">With Backlogs</div>
-                <AlertTriangle size={16} className="text-amber-500" />
+                <div className="text-xs font-bold uppercase tracking-wider text-amber-500 group-hover:text-amber-600 transition-colors">With Backlogs</div>
+                <AlertTriangle size={16} className="text-amber-500 group-hover:scale-110 transition-transform" />
               </div>
               <div className="text-3xl font-black text-amber-500 mt-2">
                 {backlog.students_with_backlogs.toLocaleString()}
@@ -162,10 +173,13 @@ export default function Students() {
               </div>
             </div>
 
-            <div className="bg-surface p-6 rounded-3xl border border-rose-500/20 shadow-sm">
+            <div 
+              onClick={() => setDrilldown({ isOpen: true, context: "problems", title: "High Risk Students" })}
+              className="bg-surface p-6 rounded-3xl border border-rose-500/20 shadow-sm cursor-pointer hover:bg-surface/80 group transition-colors"
+            >
               <div className="flex justify-between items-start">
-                <div className="text-xs font-bold uppercase tracking-wider text-rose-500">High Backlogs (≥3)</div>
-                <ShieldAlert size={16} className="text-rose-500" />
+                <div className="text-xs font-bold uppercase tracking-wider text-rose-500 group-hover:text-rose-600 transition-colors">High Backlogs (≥3)</div>
+                <ShieldAlert size={16} className="text-rose-500 group-hover:scale-110 transition-transform" />
               </div>
               <div className="text-3xl font-black text-rose-500 mt-2">
                 {backlog.students_high_backlogs.toLocaleString()}
@@ -282,6 +296,13 @@ export default function Students() {
           </div>
         </>
       )}
+
+      <StudentDrilldownModal
+        isOpen={drilldown.isOpen}
+        onClose={() => setDrilldown({ ...drilldown, isOpen: false })}
+        context={drilldown.context}
+        title={drilldown.title}
+      />
     </div>
   );
 }
