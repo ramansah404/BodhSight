@@ -69,12 +69,12 @@ export default function Problems() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <div className="bg-gradient-to-r from-rose-950 via-indigo-900 to-violet-950 rounded-3xl p-8 text-primary shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-gradient-to-r from-rose-950 via-indigo-900 to-violet-950 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="inline-flex items-center gap-2 bg-rose-500/20 text-rose-200 px-3 py-1 rounded-full text-xs font-bold border border-rose-400/30 mb-2">
             <AlertTriangle size={14} /> Agent 10 Detection Engine ({rawRole} View)
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Anomaly Center & Evidence Explorer</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-white">Anomaly Center & Evidence Explorer</h1>
           <p className="text-rose-100 text-sm mt-1">
             Statistical deviation detection across courses with transparent, evidence-backed attribution.
           </p>
@@ -236,10 +236,10 @@ export default function Problems() {
       {selectedAnomaly && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border/60 animate-in zoom-in-95">
-            <div className="px-6 py-4 border-b border-border/60 flex justify-between items-center bg-gradient-to-r from-indigo-900 to-violet-900 text-primary">
+            <div className="px-6 py-4 border-b border-border/60 flex justify-between items-center bg-gradient-to-r from-indigo-900 to-violet-900 text-white">
               <div className="flex items-center gap-2">
                 <Sparkles size={20} className="text-indigo-300" />
-                <h3 className="font-bold text-lg">Evidence Explorer</h3>
+                <h3 className="font-bold text-lg text-white">Evidence Explorer</h3>
               </div>
               <button onClick={() => setSelectedAnomaly(null)} className="text-primary/80 hover:text-primary cursor-pointer">
                 <X size={20} />

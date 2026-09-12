@@ -81,12 +81,12 @@ export default function Departments() {
     <div className="max-w-7xl mx-auto space-y-6" id="departments-content">
       
       {/* Header */}
-      <div className="bg-gradient-to-r from-violet-900 via-indigo-900 to-blue-900 rounded-3xl p-8 text-primary shadow-xl flex justify-between items-start md:items-end flex-col md:flex-row gap-4">
+      <div className="bg-gradient-to-r from-violet-900 via-indigo-900 to-blue-900 rounded-3xl p-8 text-white shadow-xl flex justify-between items-start md:items-end flex-col md:flex-row gap-4">
         <div>
           <div className="flex items-center gap-2 text-violet-300 text-xs font-bold uppercase tracking-wider mb-2">
             <Building2 size={14} /> Institutional Structure
           </div>
-          <h1 className="text-3xl font-bold">Department Academic Health</h1>
+          <h1 className="text-3xl font-bold text-white">Department Academic Health</h1>
           <p className="text-violet-100 text-sm mt-1 max-w-2xl">Aggregated performance indicators and anomaly tracking per academic department.</p>
         </div>
         
@@ -115,12 +115,12 @@ export default function Departments() {
                     contentStyle={{ borderRadius: "12px", border: "1px solid var(--color-border)", backgroundColor: "var(--color-surface)", color: "var(--color-text-primary)" }}
                   />
                   <Legend iconType="circle" />
-                  <Bar yAxisId="left" dataKey="pass_rate" name="Pass Rate (%)" radius={[4, 4, 0, 0]} maxBarSize={50}>
+                  <Bar yAxisId="left" dataKey="pass_rate" name="Pass Rate (%)" radius={[4, 4, 0, 0]} maxBarSize={50} isAnimationActive={true} animationDuration={1500}>
                     {departments.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.status === 'INTERVENTION_REQUIRED' ? '#ef4444' : entry.status === 'MONITORING' ? '#f59e0b' : '#6366f1'} />
                     ))}
                   </Bar>
-                  <Bar yAxisId="right" dataKey="avg_gpa" name="Avg GPA" fill="#8b5cf6" radius={[4, 4, 0, 0]} maxBarSize={50} />
+                  <Bar yAxisId="right" dataKey="avg_gpa" name="Avg GPA" fill="#8b5cf6" radius={[4, 4, 0, 0]} maxBarSize={50} isAnimationActive={true} animationDuration={1500} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

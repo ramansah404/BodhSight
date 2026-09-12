@@ -93,12 +93,12 @@ export default function Students() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6" id="students-content">
-      <div className="bg-gradient-to-r from-rose-950 via-indigo-900 to-surface rounded-3xl p-8 text-primary shadow-xl flex justify-between items-start md:items-end flex-col md:flex-row gap-4">
+      <div className="bg-gradient-to-r from-rose-950 via-indigo-900 to-surface rounded-3xl p-8 text-white shadow-xl flex justify-between items-start md:items-end flex-col md:flex-row gap-4">
         <div>
           <div className="inline-flex items-center gap-2 bg-rose-500/20 text-rose-200 px-3 py-1 rounded-full text-xs font-bold border border-rose-400/30 mb-2">
             <ShieldAlert size={14} /> At-Risk Intelligence
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight">At-Risk Student Cohort Management</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-white">At-Risk Student Cohort Management</h1>
           <p className="text-rose-100 text-sm mt-1 max-w-2xl">
             Identifying persistent underperformance via backlog analysis and deploying targeted support actions.
           </p>
