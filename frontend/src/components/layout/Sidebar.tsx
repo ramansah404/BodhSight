@@ -10,7 +10,6 @@ import {
   AlertTriangle, 
   Lightbulb, 
   FileText, 
-  Settings,
   ShieldAlert,
   X,
   PanelLeftClose,

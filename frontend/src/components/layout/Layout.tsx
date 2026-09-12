@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "./Sidebar";
@@ -52,11 +52,7 @@ export default function Layout() {
                 animate="animate"
                 exit="exit"
                 transition={pageTransition}
-<<<<<<< HEAD
                 className="min-h-full pb-8"
-=======
-                className="min-h-full"
->>>>>>> 0d27828 (merge latest main with UI improvements)
               >
                 <ErrorBoundary>
                   <Outlet context={{ currentRole }} />
