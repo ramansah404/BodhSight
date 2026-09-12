@@ -76,16 +76,59 @@ async function get<T>(path: string, forceFresh = false): Promise<T> {
     inFlight.delete(path);
     console.warn(`[API] Failed to fetch ${path}, falling back to mock data. Error:`, err.message);
     
+    const userRole = localStorage.getItem("bodhsight_role") || "Dean";
+    const userDept = localStorage.getItem("bodhsight_department");
+    const isRestricted = (userRole === "HOD" || userRole === "Faculty") && userDept;
+
     if (path.includes("/agent10/dashboard")) return mockData.mockDashboard as T;
-    if (path.includes("/agent10/performance/courses")) return mockData.mockCourses as unknown as T; // gets mapped later
-    if (path.includes("/agent10/performance/departments")) return mockData.mockDepartments as T;
+    
+    if (path.includes("/agent10/performance/courses")) {
+        let courses = mockData.mockCourses;
+        if (isRestricted) courses = courses.filter(c => c.department === userDept);
+        return courses as unknown as T;
+    }
+    
+    if (path.includes("/agent10/performance/departments")) {
+        let depts = mockData.mockDepartments;
+        if (isRestricted) depts = depts.filter(d => d.department_code === userDept);
+        return depts as T;
+    }
+    
     if (path.includes("/agent10/trends")) return mockData.mockTrends as T;
-    if (path.includes("/agent10/exceptions")) return mockData.mockExceptions as T;
-    if (path.includes("/agent10/recommendations")) return mockData.mockRecommendations as unknown as T;
+    
+    if (path.includes("/agent10/exceptions")) {
+        let exc = mockData.mockExceptions;
+        if (isRestricted) exc = exc.filter(e => e.department === userDept);
+        return exc as T;
+    }
+    
+    if (path.includes("/agent10/recommendations")) {
+        let rec = mockData.mockRecommendations;
+        if (isRestricted) rec = rec.filter(r => r.department === userDept);
+        return rec as unknown as T;
+    }
+    
     if (path.includes("/agent10/sections")) return mockData.mockSections as T;
     if (path.includes("/agent10/priorities")) return mockData.mockPriorities as T;
     if (path.includes("/agent10/condonation")) return mockData.mockCondonationForecast as T;
-    if (path.includes("/agent10/students/drilldown")) return mockData.mockStudentDrilldown as T;
+    
+    if (path.includes("/agent10/students/drilldown")) {
+        let students = [...mockData.mockStudentDrilldown];
+        if (isRestricted) students = students.filter(s => s.department_code === userDept);
+        
+        // Apply localStorage overrides
+        const overridesStr = localStorage.getItem("bodhsight_student_overrides");
+        if (overridesStr) {
+            try {
+                const overrides = JSON.parse(overridesStr);
+                students = students.map(s => overrides[s.student_id] ? { ...s, ...overrides[s.student_id] } : s);
+            } catch (e) {
+                console.error("Failed to parse student overrides", e);
+            }
+        }
+        return students as T;
+    }
+    
     if (path.includes("/agent10/evidence")) return mockData.mockEvidence as T;
     if (path.includes("/agent10/summary")) return mockData.mockSummary as T;
     if (path.includes("/notifications/unread-count")) return { count: mockData.mockNotifications.filter(n => !n.is_read).length } as T;
@@ -168,6 +211,21 @@ export const Agent10API = {
   /** Fetch student drilldown details for a specific context */
   getStudentDrilldown(context: string, filters?: Partial<FilterState> & { course_code?: string }): Promise<import("../types/agent10").StudentProfile[]> {
     return get<import("../types/agent10").StudentProfile[]>(buildQuery("/agent10/students/drilldown", { ...filters, context } as any));
+  },
+
+  /** Update a student profile (saves to localStorage if backend is down) */
+  async updateStudentProfile(studentId: string, updates: Partial<import("../types/agent10").StudentProfile>): Promise<void> {
+    try {
+      // Try sending to the backend first (if it existed)
+      await apiClient.put(`/agent10/students/${studentId}`, updates);
+    } catch (err) {
+      console.warn("Backend update failed, saving to local overrides for hackathon demo persistence.");
+      // Fallback: save to localStorage
+      const overridesStr = localStorage.getItem("bodhsight_student_overrides");
+      const overrides = overridesStr ? JSON.parse(overridesStr) : {};
+      overrides[studentId] = { ...(overrides[studentId] || {}), ...updates };
+      localStorage.setItem("bodhsight_student_overrides", JSON.stringify(overrides));
+    }
   },
 
   /** Full evidence chain for one course */
