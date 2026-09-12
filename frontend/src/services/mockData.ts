@@ -1,4 +1,4 @@
-﻿// Isolated Demo Data for Hackathon Fallback
+// Isolated Demo Data for Hackathon Fallback
 export const mockDashboard = {
   as_of_date: "2026-09-11", students_evaluated: 2450, pass_rate: 82.4, average_marks: 68.2, average_gpa: 7.8, failure_rate: 17.6, significant_deviations: 3, data_trust_score: 94,
   ingestion_status: { total_records_ingested: 2450, flagged_anomalies: 2, missing_students_detected: 0, impossible_marks_flagged: 2 }
@@ -16,14 +16,51 @@ export const mockBatches = [
 export const mockStudents = [
   { group_id: "grp-01", category: "Persistent Underperformance", affected_count: 27, avg_cgpa: 5.2, primary_issue: "Failing core courses", trend: "WORSENING", recommended_support: "Peer tutoring" }
 ];
-export const mockTrends = [
-  { semester: "2024-T1", pass_rate: 84.5, avg_gpa: 8.0, average_marks: 70.1, evaluation_count: 2300 },
-  { semester: "2025-T1", pass_rate: 85.0, avg_gpa: 8.1, average_marks: 71.2, evaluation_count: 2400 },
-  { semester: "2026-T1", pass_rate: 82.4, avg_gpa: 7.8, average_marks: 68.2, evaluation_count: 2450 }
-];
+export const mockTrends = {
+  historical_data_available: true,
+  current_term_summary: {
+    avg_pass_rate: 82.4,
+    avg_marks: 68.2,
+    total_sections: 45,
+    students_evaluated: 2450
+  },
+  courses_above_mean: [
+    { course_code: "CS401", course_title: "AI", pass_pct: 95.0, delta_vs_mean: 12.6 }
+  ],
+  courses_below_mean: [
+    { course_code: "CS301", course_title: "Data Structures", pass_pct: 61.2, delta_vs_mean: -21.2 }
+  ],
+  student_backlog_trend: {
+    students_with_backlogs: 350,
+    students_high_backlogs: 50,
+    total_students: 2450
+  }
+};
 export const mockExceptions = [
   { id: "exc-01", severity: "CRITICAL" as const, title: "Significant pass rate drop in CS301", course_code: "CS301", department: "CSE", current_value: 61.2, baseline_value: 82.0, deviation: -20.8, affected_students: 84, explanation: "Pass rate decreased from 82% to 61.2% uniformly.", evidence: ["Ingestion check verified", "Attribution: University paper difficulty"], recommended_action: "Review grading calibration.", detected_date: "2026-09-11", attribution_root: "Systemic" }
 ];
 export const mockRecommendations = [
-  { id: "rec-01", problem: "CS301 pass rate declined significantly.", evidence: ["Uniform drop"], recommendation: "Organize mandatory remedial labs.", priority: "CRITICAL" as const, expected_impact: "Recover cohort pass rate by ~15%.", affected_population: 84, status: "PENDING" as const }
+  { anomaly_id: "rec-01", anomaly_type: "Pass Rate Drop", severity: "CRITICAL", priority_score: 0.95, course_code: "CS301", department: "CSE", affected_students: 84, recommended_action: "Organize mandatory remedial labs.", evidence_sources: ["Uniform drop"], generated_at: "2026-09-12T10:00:00Z" }
+];
+export const mockSections = [
+  { course_code: "CS301", course_name: "Data Structures & Algorithms", section: "A", faculty_name: "Dr. Smith", pass_rate: 65.0, avg_marks: 56.0, gpa: 6.5, disparity_flag: false, contextual_factors: {} },
+  { course_code: "CS301", course_name: "Data Structures & Algorithms", section: "B", faculty_name: "Prof. Jones", pass_rate: 45.0, avg_marks: 40.0, gpa: 5.0, disparity_flag: true, contextual_factors: { historical_faculty_pass_rate: 50.0 } }
+];
+export const mockPriorities = [
+  { rank: 1, type: "COURSE", id: "CS301", description: "Critical failure rate in CS301", score: 95, recommendations: ["remedial"], status: "PENDING" as const }
+];
+export const mockCondonationForecast = {
+  at_risk_students_count: 120, estimated_condonation_revenue: 600000, breakdown_by_department: [{ department: "CSE", count: 50, amount: 250000 }], recommendations: ["Early fee collection campaign"]
+};
+export const mockStudentDrilldown = [
+  { student_id: "S101", name: "Alice", current_cgpa: 5.4, failed_courses: ["CS301"], risk_factors: ["Low Attendance"], recent_trend: "DECLINING" }
+];
+export const mockEvidence = {
+  course_code: "CS301", evidence: ["Syllabus covered late", "Tough mid-term"]
+};
+export const mockSummary = {
+  summary: "Overall performance is stable, but CS301 requires immediate attention due to a 20% drop in pass rate. Early interventions could salvage the semester."
+};
+export const mockNotifications = [
+  { id: "n1", title: "New Exception Detected", message: "CS301 pass rate dropped", type: "ALERT", is_read: false, created_at: "2026-09-12T10:00:00Z" }
 ];

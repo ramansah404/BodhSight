@@ -25,6 +25,7 @@ import {
   mapBackendRecommendation as _mapRec,
   type CoursePerformance,
 } from "../types/agent10";
+import * as mockData from "./mockData";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
 
@@ -73,7 +74,24 @@ async function get<T>(path: string, forceFresh = false): Promise<T> {
     return res.data;
   }).catch((err) => {
     inFlight.delete(path);
-    throw err;
+    console.warn(`[API] Failed to fetch ${path}, falling back to mock data. Error:`, err.message);
+    
+    if (path.includes("/agent10/dashboard")) return mockData.mockDashboard as T;
+    if (path.includes("/agent10/performance/courses")) return mockData.mockCourses as unknown as T; // gets mapped later
+    if (path.includes("/agent10/performance/departments")) return mockData.mockDepartments as T;
+    if (path.includes("/agent10/trends")) return mockData.mockTrends as T;
+    if (path.includes("/agent10/exceptions")) return mockData.mockExceptions as T;
+    if (path.includes("/agent10/recommendations")) return mockData.mockRecommendations as unknown as T;
+    if (path.includes("/agent10/sections")) return mockData.mockSections as T;
+    if (path.includes("/agent10/priorities")) return mockData.mockPriorities as T;
+    if (path.includes("/agent10/condonation")) return mockData.mockCondonationForecast as T;
+    if (path.includes("/agent10/students/drilldown")) return mockData.mockStudentDrilldown as T;
+    if (path.includes("/agent10/evidence")) return mockData.mockEvidence as T;
+    if (path.includes("/agent10/summary")) return mockData.mockSummary as T;
+    if (path.includes("/notifications/unread-count")) return { count: mockData.mockNotifications.filter(n => !n.is_read).length } as T;
+    if (path.includes("/notifications") && !path.includes("read")) return mockData.mockNotifications as T;
+
+    return [] as T;
   });
 
   inFlight.set(path, req);
