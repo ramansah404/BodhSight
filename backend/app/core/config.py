@@ -25,7 +25,11 @@ class Settings(BaseSettings):
     LLM_MAX_TOKENS: int = 512
 
     
-    CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    CORS_ORIGINS: List[str] = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://bodhsight.vercel.app",
+]
 
     model_config = SettingsConfigDict(env_file=[".env", "../.env"], env_file_encoding="utf-8", extra="ignore")
 
