@@ -7,11 +7,13 @@ Data flow:
 Frontend expects these endpoints to match the TypeScript types in
 frontend/src/types/agent10.ts. Preserve field names exactly.
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from typing import List
 import logging
+
+from app.api.rbac import apply_rbac, get_current_user_role, get_current_user_name
 
 from app.db.session import get_db
 import app.agents.agent10 as agent10
@@ -66,12 +68,13 @@ def get_dashboard_metrics(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/exceptions", response_model=List[AcademicException])
-def get_exceptions(db: Session = Depends(get_db)):
+def get_exceptions(db: Session = Depends(get_db), role: str = Depends(get_current_user_role), name: str = Depends(get_current_user_name)):
     """
     Academic anomalies and exceptions backed by database evidence.
     Sorted by priority score (most critical first).
     """
     anomalies = _safe(agent10.compute_anomalies, db)
+    anomalies = apply_rbac(anomalies, role, name, dept_key="department", course_key="course_code")
 
     results = []
     for a in anomalies:
@@ -102,11 +105,12 @@ def get_exceptions(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/priorities", response_model=List[InterventionPriority])
-def get_priorities(db: Session = Depends(get_db)):
+def get_priorities(db: Session = Depends(get_db), role: str = Depends(get_current_user_role), name: str = Depends(get_current_user_name)):
     """
     Ranked intervention priority list from deterministic priority scoring.
     """
     priorities = _safe(agent10.compute_priorities, db)
+    priorities = apply_rbac(priorities, role, name, dept_key="department", course_key="course_code")
 
     results = []
     for p in priorities:
@@ -131,9 +135,10 @@ def get_priorities(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/performance/courses")
-def get_course_performance(db: Session = Depends(get_db)):
+def get_course_performance(db: Session = Depends(get_db), role: str = Depends(get_current_user_role), name: str = Depends(get_current_user_name)):
     """Course-level performance from assessment.v_course_performance."""
-    return _safe(agent10.compute_course_performance, db)
+    data = _safe(agent10.compute_course_performance, db)
+    return apply_rbac(data, role, name, dept_key="department_id", course_key="course_code")
 
 
 # ---------------------------------------------------------------------------
@@ -141,9 +146,10 @@ def get_course_performance(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/performance/departments")
-def get_department_performance(db: Session = Depends(get_db)):
+def get_department_performance(db: Session = Depends(get_db), role: str = Depends(get_current_user_role), name: str = Depends(get_current_user_name)):
     """Department-level performance aggregation."""
-    return _safe(agent10.compute_department_performance, db)
+    data = _safe(agent10.compute_department_performance, db)
+    return apply_rbac(data, role, name, dept_key="department_code")
 
 
 # ---------------------------------------------------------------------------
@@ -164,9 +170,10 @@ def get_trends(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/recommendations")
-def get_recommendations(db: Session = Depends(get_db)):
+def get_recommendations(db: Session = Depends(get_db), role: str = Depends(get_current_user_role), name: str = Depends(get_current_user_name)):
     """Actionable recommendations derived from detected anomalies."""
-    return _safe(agent10.compute_recommendations, db)
+    data = _safe(agent10.compute_recommendations, db)
+    return apply_rbac(data, role, name, dept_key="department", course_key="course_code")
 
 
 # ---------------------------------------------------------------------------
@@ -184,7 +191,7 @@ def get_evidence(course_code: str, db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/sections")
-def get_section_comparison(db: Session = Depends(get_db)):
+def get_section_comparison(db: Session = Depends(get_db), role: str = Depends(get_current_user_role), name: str = Depends(get_current_user_name)):
     """Section-level performance comparison — detects inter-section disparities."""
     from app.db import queries
     sections = queries.get_section_comparison(db)
@@ -207,7 +214,7 @@ def get_section_comparison(db: Session = Depends(get_db)):
             "avg_external": float(s.get("avg_external") or 0) if s.get("avg_external") else None,
             "disparity_flag": code in disparity_courses,
         })
-    return results
+    return apply_rbac(results, role, name, dept_key="department", course_key="course_code")
 
 
 # ---------------------------------------------------------------------------

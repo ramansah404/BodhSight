@@ -23,25 +23,36 @@ export default function Recommendations() {
 
   useEffect(() => {
     let cancelled = false;
-    setState("loading");
+    
+    const fetchRecs = (isInitial = false) => {
+      if (isInitial) setState("loading");
 
-    Agent10API.getRecommendations()
-      .then((data) => {
-        if (cancelled) return;
-        if (!data || data.length === 0) {
-          setState("empty");
-        } else {
-          setRecommendations(data);
-          setState("success");
-        }
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setErrorMsg(err?.message ?? "Failed to load recommendations from backend.");
-        setState("error");
-      });
+      Agent10API.getRecommendations()
+        .then((data) => {
+          if (cancelled) return;
+          if (!data || data.length === 0) {
+            setState("empty");
+          } else {
+            setRecommendations(data);
+            setState("success");
+          }
+        })
+        .catch((err) => {
+          if (cancelled) return;
+          if (isInitial) {
+            setErrorMsg(err?.message ?? "Failed to load recommendations from backend.");
+            setState("error");
+          }
+        });
+    };
 
-    return () => { cancelled = true; };
+    fetchRecs(true);
+    const interval = setInterval(() => fetchRecs(false), 3000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   const handleExecute = (id: string) => {

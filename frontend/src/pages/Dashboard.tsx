@@ -24,18 +24,24 @@ export default function Dashboard() {
 
   useEffect(() => {
     let cancelled = false;
-    setMetricsLoading(true);
-    setMetricsError("");
+    
+    const fetchData = async (isInitial = false) => {
+      if (isInitial) {
+        setMetricsLoading(true);
+        setMetricsError("");
+      }
 
-    Promise.allSettled([
-      Agent10API.getDashboard(),
-      Agent10API.getDepartments(),
-    ]).then(([metricsResult, deptsResult]) => {
+      const [metricsResult, deptsResult] = await Promise.allSettled([
+        Agent10API.getDashboard(),
+        Agent10API.getDepartments(),
+      ]);
+
       if (cancelled) return;
 
       if (metricsResult.status === "fulfilled") {
         setMetrics(metricsResult.value);
-      } else {
+        setMetricsError("");
+      } else if (isInitial) {
         setMetricsError("Failed to load dashboard metrics from backend.");
       }
 
@@ -43,10 +49,18 @@ export default function Dashboard() {
         setDepartments(deptsResult.value);
       }
 
-      setMetricsLoading(false);
-    });
+      if (isInitial) {
+        setMetricsLoading(false);
+      }
+    };
 
-    return () => { cancelled = true; };
+    fetchData(true);
+    const interval = setInterval(() => fetchData(false), 3000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   const deptChartData = departments.map((d) => ({

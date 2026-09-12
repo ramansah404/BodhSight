@@ -17,7 +17,12 @@ from decimal import Decimal
 from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session
 
-from app.db import queries
+from app.core.config import settings
+
+if settings.DATA_SOURCE == "demo":
+    from app.db import mock_queries as queries
+else:
+    from app.db import queries
 
 
 # ---------------------------------------------------------------------------
