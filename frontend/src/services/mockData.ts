@@ -5,10 +5,15 @@ export const mockDashboard = {
 };
 export const mockCourses = [
   { course_code: "CS301", course_name: "Data Structures & Algorithms", department: "CSE", semester: "2026-T1", regulation: "R-24", batch: "2024-2028", pass_rate: 61.2, failure_rate: 38.8, avg_marks: 54.1, gpa: 6.2, students_appeared: 180, trend: "DOWN" as const, priority: "CRITICAL" as const, attribution: "University Question Paper Difficulty (All Sections)", contextual_factors: { entry_ability_score: 84.5, course_difficulty_rating: "High" as const, historical_pass_rate: 82.0 } },
-  { course_code: "EC202", course_name: "Digital Signal Processing", department: "ECE", semester: "2026-T1", regulation: "R-24", batch: "2024-2028", pass_rate: 73.5, failure_rate: 26.5, avg_marks: 63.0, gpa: 7.1, students_appeared: 140, trend: "DOWN" as const, priority: "HIGH" as const, attribution: "Section-specific variance (Section B lagging)", contextual_factors: { entry_ability_score: 79.0, course_difficulty_rating: "Moderate" as const, historical_pass_rate: 78.5 } }
+  { course_code: "EC202", course_name: "Digital Signal Processing", department: "ECE", semester: "2026-T1", regulation: "R-24", batch: "2024-2028", pass_rate: 73.5, failure_rate: 26.5, avg_marks: 63.0, gpa: 7.1, students_appeared: 140, trend: "DOWN" as const, priority: "HIGH" as const, attribution: "Section-specific variance (Section B lagging)", contextual_factors: { entry_ability_score: 79.0, course_difficulty_rating: "Moderate" as const, historical_pass_rate: 78.5 } },
+  { course_code: "ME401", course_name: "Thermodynamics", department: "MECH", semester: "2026-T1", regulation: "R-24", batch: "2024-2028", pass_rate: 45.0, failure_rate: 55.0, avg_marks: 42.1, gpa: 5.0, students_appeared: 95, trend: "DOWN" as const, priority: "CRITICAL" as const, attribution: "Systemic Core Subject Failure", contextual_factors: { entry_ability_score: 72.0, course_difficulty_rating: "High" as const, historical_pass_rate: 65.0 } },
+  { course_code: "CE305", course_name: "Structural Analysis", department: "CIVIL", semester: "2026-T1", regulation: "R-24", batch: "2024-2028", pass_rate: 82.5, failure_rate: 17.5, avg_marks: 75.0, gpa: 8.0, students_appeared: 110, trend: "UP" as const, priority: "LOW" as const, attribution: "High Engagement Lab Component", contextual_factors: { entry_ability_score: 76.5, course_difficulty_rating: "Moderate" as const, historical_pass_rate: 75.0 } }
 ];
 export const mockDepartments = [
-  { department_code: "CSE", department_name: "Computer Science", total_students: 980, faculty_count: 42, pass_rate: 81.0, avg_gpa: 7.9, active_exceptions: 2, status: "MONITORING" as const }
+  { department_code: "CSE", department_name: "Computer Science", total_students: 980, faculty_count: 42, pass_rate: 81.0, avg_gpa: 7.9, active_exceptions: 2, status: "MONITORING" as const },
+  { department_code: "ECE", department_name: "Electronics", total_students: 450, faculty_count: 24, pass_rate: 88.5, avg_gpa: 8.2, active_exceptions: 0, status: "ON_TRACK" as const },
+  { department_code: "MECH", department_name: "Mechanical", total_students: 320, faculty_count: 18, pass_rate: 62.4, avg_gpa: 6.1, active_exceptions: 4, status: "INTERVENTION_REQUIRED" as const },
+  { department_code: "CIVIL", department_name: "Civil Engineering", total_students: 210, faculty_count: 12, pass_rate: 75.2, avg_gpa: 7.0, active_exceptions: 1, status: "MONITORING" as const }
 ];
 export const mockBatches = [
   { batch_year: "2024-2028", programme: "B.Tech CSE", student_count: 980, avg_gpa: 7.9, pass_rate: 82.4, backlog_percentage: 12.5, trend: "DECLINING" as const, risk_level: "MODERATE" as const }
@@ -50,7 +55,15 @@ export const mockPriorities = [
   { rank: 1, type: "COURSE", id: "CS301", description: "Critical failure rate in CS301", score: 95, recommendations: ["remedial"], status: "PENDING" as const }
 ];
 export const mockCondonationForecast = {
-  at_risk_students_count: 120, estimated_condonation_revenue: 600000, breakdown_by_department: [{ department: "CSE", count: 50, amount: 250000 }], recommendations: ["Early fee collection campaign"]
+  at_risk_students_count: 185, 
+  estimated_condonation_revenue: 925000, 
+  breakdown_by_department: [
+    { department: "CSE", count: 50, amount: 250000 },
+    { department: "MECH", count: 85, amount: 425000 },
+    { department: "ECE", count: 30, amount: 150000 },
+    { department: "CIVIL", count: 20, amount: 100000 }
+  ], 
+  recommendations: ["Targeted fee collection drive for MECH department", "Early parent communication for high-risk cohorts"]
 };
 export const mockStudentDrilldown = [
   { student_id: "S101", roll_no: "21A91A0501", full_name: "Alice Smith", department_code: "CSE", batch_label: "2024-2028", programme_code: "B.Tech", attendance_pct: 68, cgpa: 5.4, backlog_count: 3, reason: "Failing core courses, Low Attendance", status: "AT_RISK", section_code: "A", fee_outstanding: 0 },
@@ -64,5 +77,7 @@ export const mockSummary = {
   dashboard_snapshot: { as_of_date: "2026-09-12" }
 };
 export const mockNotifications = [
-  { id: "n1", title: "New Exception Detected", message: "CS301 pass rate dropped", type: "ALERT", is_read: false, created_at: "2026-09-12T10:00:00Z" }
+  { id: "n1", title: "Macro Intervention Approval Required", message: "Review mandatory remedial labs proposed for MECH department.", type: "ALERT", is_read: false, created_at: "2026-09-12T10:00:00Z" },
+  { id: "n2", title: "New Exception Detected (CS301)", message: "CS301 pass rate dropped by 20% uniformly.", type: "WARNING", is_read: false, created_at: "2026-09-11T14:30:00Z" },
+  { id: "n3", title: "Pending HOD Review", message: "Faculty feedback pending for EC202 Section B variance.", type: "INFO", is_read: false, created_at: "2026-09-11T09:15:00Z" }
 ];

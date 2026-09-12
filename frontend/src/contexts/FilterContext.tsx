@@ -29,7 +29,7 @@ const FilterContext = createContext<FilterContextValue>({
 
 export function FilterProvider({ children }: { children: ReactNode }) {
   const [filters, setFiltersState] = useState<FilterState>({
-    department: "",
+    department: localStorage.getItem("bodhsight_department") || "",
     semester: "",
     programme: "",
   });

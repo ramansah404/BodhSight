@@ -1,8 +1,11 @@
 import { Filter, Calendar, Building, Book } from "lucide-react";
 import { useFilters } from "../../contexts/FilterContext";
+import { getRolePermissions } from "../../utils/rbac";
 
 export default function GlobalFilterBar() {
   const { filters, setFilters, departments, activeTerm, isLoading } = useFilters();
+  const currentRole = localStorage.getItem("bodhsight_role") || "Chairman";
+  const { canViewAllDepartments } = getRolePermissions(currentRole);
 
   return (
     <div className="bg-surface/80 backdrop-blur-md border-b border-border/60 px-6 py-3 flex flex-wrap items-center gap-4 shadow-sm z-10 relative">
@@ -31,15 +34,18 @@ export default function GlobalFilterBar() {
         </select>
       </div>
 
-      {/* Department — populated from real backend data */}
-      <div className="flex items-center gap-2 bg-surface/50 px-3 py-1.5 rounded-lg border border-border/60">
-        <Building size={14} className="text-secondary" />
+      {/* Department — populated from real backend data or locked by RBAC */}
+      <div className={`flex items-center gap-2 bg-surface/50 px-3 py-1.5 rounded-lg border ${!canViewAllDepartments ? 'border-amber-500/30 bg-amber-500/5' : 'border-border/60'}`}>
+        <Building size={14} className={!canViewAllDepartments ? "text-amber-500" : "text-secondary"} />
         <select
           value={filters.department}
           onChange={(e) => setFilters({ department: e.target.value })}
-          className="bg-transparent text-sm font-semibold text-primary focus:outline-none cursor-pointer [&>option]:bg-surface"
+          disabled={!canViewAllDepartments}
+          className={`bg-transparent text-sm font-semibold focus:outline-none cursor-pointer [&>option]:bg-surface ${
+            !canViewAllDepartments ? "text-amber-600 dark:text-amber-500 opacity-90 cursor-not-allowed" : "text-primary"
+          }`}
         >
-          <option value="">All Departments</option>
+          {canViewAllDepartments && <option value="">All Departments</option>}
           {departments.length > 0
             ? departments.map((d) => (
                 <option key={d} value={d}>{d}</option>
@@ -54,6 +60,9 @@ export default function GlobalFilterBar() {
               </>
             )}
         </select>
+        {!canViewAllDepartments && (
+          <span className="text-[10px] uppercase font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded ml-1">Locked</span>
+        )}
       </div>
 
       {/* Programme — no backend endpoint yet; kept as UI control */}

@@ -140,14 +140,18 @@ export default function Dashboard() {
             Authenticated as {displayName}
           </div>
           <h1 className="text-3xl font-bold text-primary tracking-tight">
-            {currentRole === "Dean"
+            {currentRole === "Chairman" || currentRole === "Principal"
+              ? "Executive Board Overview"
+              : currentRole === "Dean"
               ? "Institutional Macro Governance"
               : currentRole === "HOD"
               ? "Departmental Command Center"
               : "Course Instructor Telemetry"}
           </h1>
           <p className="text-secondary font-medium mt-1">
-            {currentRole === "Dean"
+            {currentRole === "Chairman" || currentRole === "Principal"
+              ? "High-level strategic forecasting, condonation analytics, and campus-wide academic metrics."
+              : currentRole === "Dean"
               ? "University-wide academic health, trust audits, and strategic exceptions."
               : currentRole === "HOD"
               ? "Departmental pass percentages, faculty distribution, and section disparities."
@@ -326,7 +330,7 @@ export default function Dashboard() {
         {/* Courses analyzed sidebar */}
         <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6">
           <h2 className="text-lg font-bold text-primary mb-4">
-            {currentRole === "Faculty" ? "My Sections Summary" : currentRole === "HOD" ? "Department Summary" : "College Overview"}
+            {currentRole === "Chairman" || currentRole === "Principal" ? "Campus Overview" : currentRole === "Faculty" ? "My Sections Summary" : currentRole === "HOD" ? "Department Summary" : "College Overview"}
           </h2>
           {metrics ? (
             <div className="space-y-4">
