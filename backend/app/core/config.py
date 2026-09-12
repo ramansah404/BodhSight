@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://bodhsight.vercel.app",
+    "https://bodhsight-acmqdmpjr-ramansah404-5576s-projects.vercel.app",
 ]
 
     model_config = SettingsConfigDict(env_file=[".env", "../.env"], env_file_encoding="utf-8", extra="ignore")
