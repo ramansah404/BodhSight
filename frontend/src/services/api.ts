@@ -142,6 +142,16 @@ export const Agent10API = {
     return get<InterventionPriorityItem[]>(buildQuery("/agent10/priorities", filters));
   },
 
+  /** Condonation risk & revenue forecast */
+  getCondonationForecast(filters?: Partial<FilterState>): Promise<import("../types/agent10").CondonationForecastMetrics> {
+    return get<import("../types/agent10").CondonationForecastMetrics>(buildQuery("/agent10/condonation", filters));
+  },
+
+  /** Fetch student drilldown details for a specific context */
+  getStudentDrilldown(context: string, filters?: Partial<FilterState> & { course_code?: string }): Promise<import("../types/agent10").StudentProfile[]> {
+    return get<import("../types/agent10").StudentProfile[]>(buildQuery("/agent10/students/drilldown", { ...filters, context } as any));
+  },
+
   /** Full evidence chain for one course */
   getEvidence(courseCode: string): Promise<Record<string, unknown>> {
     return get<Record<string, unknown>>(`/agent10/evidence/${courseCode}`);
