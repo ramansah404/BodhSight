@@ -11,8 +11,12 @@
   --border: 214.3 31.8% 91.4%; /* slate-200 */
   --border-muted: 214.3 31.8% 91.4%;
   --text-primary: 222.2 84% 4.9%; /* slate-900 */
-  --text-secondary: 215.3 19.3% 34.5%; /* slate-600 */
+  --text-secondary: 215.3 19.3% 32%; /* slate-700 */
   --accent: 239 84% 67%; /* indigo-600 (approx) */
+  --glass-surface: 0 0% 100%;
+  --glass-surface-strong: 0 0% 100%;
+  --glass-border: 214.3 31.8% 88%;
+  --glass-shadow: 222.2 47.4% 11%;
   
   /* Legacy aliases to prevent immediate breaks */
   --foreground: 222.2 84% 4.9%;
@@ -29,8 +33,12 @@
   --border: 217.2 32.6% 17.5%; /* slate-800 */
   --border-muted: 217.2 32.6% 17.5%;
   --text-primary: 210 40% 98%; /* white-ish */
-  --text-secondary: 215 20.2% 65.1%; /* slate-400 */
+  --text-secondary: 215 20.2% 72%; /* brighter slate-300 for readable secondary content */
   --accent: 239 84% 67%; /* indigo-600 (approx) */
+  --glass-surface: 222.2 47.4% 10%;
+  --glass-surface-strong: 222.2 47.4% 13%;
+  --glass-border: 215 27.9% 28%;
+  --glass-shadow: 222.2 84% 3%;
   
   /* Legacy aliases */
   --foreground: 210 40% 98%;
@@ -41,6 +49,194 @@
 
 
   body {
-    @apply bg-background text-foreground transition-colors duration-200;
+    @apply bg-background text-foreground transition-colors duration-500 antialiased;
+    background-image:
+      radial-gradient(circle at 8% 0%, hsl(var(--accent) / 0.12), transparent 28rem),
+      radial-gradient(circle at 92% 12%, hsl(190 80% 55% / 0.08), transparent 24rem),
+      linear-gradient(135deg, hsl(var(--background)), hsl(var(--surface-secondary)));
+    background-attachment: fixed;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  body,
+  #root {
+    min-width: 0;
+    min-height: 100%;
+    max-width: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: hsl(var(--accent) / 0.28);
+  }
+
+  @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .public-page,
+    .public-page a,
+    .public-page button,
+    .public-page input,
+    .public-page textarea,
+    .public-page select {
+      cursor: none;
+    }
+  }
+
+  .bodh-cursor {
+    position: fixed;
+    top: -7px;
+    left: -7px;
+    z-index: 9999;
+    width: 14px;
+    height: 14px;
+    border: 1px solid rgba(125, 211, 252, 0.9);
+    border-radius: 999px;
+    background: rgba(129, 140, 248, 0.5);
+    box-shadow: 0 0 24px rgba(99, 102, 241, 0.65);
+    pointer-events: none;
+    will-change: transform;
+    transition: width 180ms ease, height 180ms ease, top 180ms ease, left 180ms ease, background 180ms ease;
+  }
+
+  .bodh-cursor.is-hovering {
+    top: -16px;
+    left: -16px;
+    width: 32px;
+    height: 32px;
+    background: rgba(34, 211, 238, 0.18);
+  }
+
+  .bodh-cursor.is-pressed {
+    transform: scale(0.7);
+  }
+
+  @media (pointer: coarse), (prefers-reduced-motion: reduce) {
+    .bodh-cursor {
+      display: none;
+    }
+  }
+}
+
+@layer components {
+  .glass-panel {
+    background: linear-gradient(135deg, hsl(var(--glass-surface) / 0.78), hsl(var(--glass-surface) / 0.54));
+    border: 1px solid hsl(var(--glass-border) / 0.78);
+    box-shadow: 0 18px 45px hsl(var(--glass-shadow) / 0.12), inset 0 1px 0 hsl(0 0% 100% / 0.08);
+    backdrop-filter: blur(18px) saturate(125%);
+    -webkit-backdrop-filter: blur(18px) saturate(125%);
+  }
+
+  .glass-card {
+    background: hsl(var(--glass-surface) / 0.68);
+    border: 1px solid hsl(var(--glass-border) / 0.7);
+    box-shadow: 0 12px 30px hsl(var(--glass-shadow) / 0.1), inset 0 1px 0 hsl(0 0% 100% / 0.06);
+    backdrop-filter: blur(14px) saturate(118%);
+    -webkit-backdrop-filter: blur(14px) saturate(118%);
+    transition: background-color 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+  }
+
+  .glass-card:hover {
+    border-color: hsl(var(--accent) / 0.35);
+    box-shadow: 0 16px 34px hsl(var(--glass-shadow) / 0.15), inset 0 1px 0 hsl(0 0% 100% / 0.09);
+  }
+
+  .glass-control {
+    background: hsl(var(--glass-surface) / 0.58);
+    border: 1px solid hsl(var(--glass-border) / 0.78);
+    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.07);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .glass-overlay {
+    background: hsl(var(--background) / 0.62);
+    backdrop-filter: blur(14px) saturate(120%);
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
+  }
+
+  .glass-surface {
+    background: hsl(var(--glass-surface) / 0.68) !important;
+    border-color: hsl(var(--glass-border) / 0.72) !important;
+    backdrop-filter: blur(14px) saturate(118%);
+    -webkit-backdrop-filter: blur(14px) saturate(118%);
+  }
+
+  .glass-surface-strong {
+    background: hsl(var(--glass-surface-strong) / 0.84) !important;
+    border-color: hsl(var(--glass-border) / 0.82) !important;
+    backdrop-filter: blur(18px) saturate(125%);
+    -webkit-backdrop-filter: blur(18px) saturate(125%);
+  }
+
+  /* Existing page surfaces inherit the shared glass treatment without changing markup. */
+  .bg-surface {
+    background-color: hsl(var(--glass-surface) / 0.68) !important;
+    background-image: linear-gradient(135deg, hsl(var(--glass-surface) / 0.08), transparent 55%);
+    backdrop-filter: blur(14px) saturate(118%);
+    -webkit-backdrop-filter: blur(14px) saturate(118%);
+  }
+
+  .bg-surface-secondary {
+    background-color: hsl(var(--surface-secondary) / 0.68) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  table thead tr {
+    background-color: hsl(var(--glass-surface-strong) / 0.58);
+  }
+
+  table tbody tr {
+    transition: background-color 180ms ease;
+  }
+
+  table tbody tr:hover {
+    background-color: hsl(var(--accent) / 0.07);
+  }
+
+  /* Keep wide data views inside their intended horizontal scroll containers. */
+  .overflow-x-auto {
+    min-width: 0;
+    max-width: 100%;
+    overscroll-behavior-x: contain;
+  }
+
+  main img,
+  main svg,
+  main canvas {
+    max-width: 100%;
+  }
+
+  /* Existing full-screen page modals scroll internally instead of trapping the page. */
+  .fixed.inset-0 > .bg-surface {
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .text-secondary,
+  .text-muted-foreground {
+    color: hsl(var(--text-secondary) / 0.96) !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: hsl(var(--text-secondary) / 0.78);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-duration: 180ms;
+    transition-timing-function: ease-out;
   }
 }

@@ -65,7 +65,7 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 glass-overlay"
           />
 
           {/* Modal Container */}
@@ -74,10 +74,10 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-5xl bg-surface border border-border shadow-2xl rounded-2xl overflow-hidden flex flex-col max-h-[85vh] pointer-events-auto min-w-0"
+              className="glass-panel w-full max-w-5xl border border-border shadow-2xl rounded-2xl overflow-hidden flex flex-col max-h-[85dvh] pointer-events-auto min-w-0"
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface-secondary/50">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border glass-surface-strong">
               <div>
                 <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                   <Users className="w-5 h-5 text-primary" />
@@ -96,7 +96,7 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-auto p-6">
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-6">
               {loading ? (
                 <div className="h-64 flex flex-col items-center justify-center text-muted-foreground gap-3">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -113,7 +113,7 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
                   <p className="text-sm font-medium">No students found matching this criteria.</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto border border-border rounded-xl">
+                <div className="max-w-full overflow-x-auto border border-border rounded-xl">
                   <table className="w-full text-left border-collapse text-sm">
                     <thead>
                       <tr className="bg-surface-secondary/50 border-b border-border text-muted-foreground">

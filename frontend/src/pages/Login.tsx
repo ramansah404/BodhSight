@@ -1,4 +1,5 @@
 import BrandLogo from "../components/ui/BrandLogo";
+import ThemeToggle from "../components/ui/ThemeToggle";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -114,7 +115,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 sm:p-6 lg:p-8 overflow-hidden relative transition-colors duration-300">
+    <div className="public-page min-h-[100dvh] bg-background text-foreground flex items-center justify-center p-4 sm:p-6 lg:p-8 overflow-x-hidden overflow-y-auto relative transition-colors duration-500">
       {/* Background Gradients */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-violet-600/10 dark:bg-violet-600/20 blur-[120px]" />
@@ -130,14 +131,18 @@ export default function Login() {
         Back to BodhSight
       </button>
 
+      <div className="absolute top-6 right-6 z-20">
+        <ThemeToggle />
+      </div>
+
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="max-w-5xl w-full bg-surface backdrop-blur-2xl rounded-3xl shadow-2xl border border-border overflow-hidden grid grid-cols-1 md:grid-cols-12 relative z-10 my-auto"
+        className="max-w-5xl w-full bg-surface/80 backdrop-blur-2xl rounded-[2rem] shadow-2xl shadow-indigo-950/20 border border-border/80 overflow-hidden grid grid-cols-1 md:grid-cols-12 relative z-10 my-auto"
       >
         {/* Left Branding Column */}
-        <div className="md:col-span-5 bg-surface-secondary/50 p-8 md:p-12 border-r border-border flex flex-col justify-between relative overflow-hidden">
+        <div className="md:col-span-5 bg-gradient-to-br from-surface-secondary/80 via-surface-secondary/40 to-indigo-500/5 p-8 md:p-12 border-r border-border flex flex-col justify-between relative overflow-hidden">
           
           <div className="space-y-6 relative z-10">
             <BrandLogo className="mb-8 scale-110 origin-left" />

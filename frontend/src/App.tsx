@@ -4,6 +4,7 @@ import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import { lazy, Suspense } from "react";
 import LoadingFallback from "./components/ui/LoadingFallback";
+import CustomCursor from "./components/ui/CustomCursor";
 
 const Landing = lazy(() => import("./pages/Landing"));
 const Login = lazy(() => import("./pages/Login"));
@@ -23,6 +24,7 @@ export default function App() {
   return (
     <ThemeProvider>
     <HashRouter>
+      <CustomCursor />
       <Suspense fallback={<LoadingFallback />}>
       <Routes>
         <Route path="/login" element={<Login />} />

@@ -33,7 +33,7 @@ export default function CondonationWidget() {
     <>
       <div 
         onClick={() => setIsModalOpen(true)}
-        className="flex flex-col h-full bg-surface hover:bg-surface/80 transition-colors border border-border/60 rounded-3xl shadow-sm relative overflow-hidden cursor-pointer group"
+        className="glass-card flex flex-col h-full hover:bg-surface/80 border border-border/60 rounded-3xl shadow-sm relative overflow-hidden cursor-pointer group"
       >
       {/* Background Gradient matching the theme */}
       <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-transparent opacity-50 pointer-events-none" />

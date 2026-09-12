@@ -73,16 +73,16 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
       {/* Backdrop */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity"
+          className="fixed inset-0 glass-overlay z-40 transition-opacity"
           onClick={onClose}
         />
       )}
 
       {/* Slide-over panel */}
-      <div className={`fixed inset-y-0 right-0 w-full sm:w-[400px] bg-surface border-l border-border shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`glass-panel fixed inset-y-0 right-0 h-[100dvh] max-h-[100dvh] w-full sm:w-[400px] min-h-0 border-l border-border shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/60 bg-background">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border/60 glass-surface-strong">
           <div className="flex items-center gap-2">
             <Bell size={18} className="text-indigo-600 dark:text-indigo-400" />
             <h2 className="text-lg font-bold text-primary">Notifications</h2>
@@ -106,7 +106,7 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-3">
           {loading ? (
             <div className="flex flex-col items-center justify-center h-40 text-secondary gap-3">
               <Loader2 size={24} className="animate-spin text-indigo-500" />
@@ -124,8 +124,8 @@ export default function NotificationPanel({ isOpen, onClose }: NotificationPanel
                 onClick={() => handleNotificationClick(n)}
                 className={`p-4 rounded-xl border transition-all cursor-pointer group ${
                   n.is_read 
-                    ? 'bg-surface/40 border-border/40 opacity-75 hover:opacity-100 hover:bg-surface/60' 
-                    : 'bg-indigo-950/20 border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)] hover:bg-indigo-950/40'
+                    ? 'glass-card border-border/50 hover:bg-surface/60' 
+                    : 'glass-card bg-indigo-950/20 border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)] hover:bg-indigo-950/40'
                 }`}
               >
                 <div className="flex gap-3">

@@ -8,13 +8,13 @@ export default function GlobalFilterBar() {
   const { canViewAllDepartments } = getRolePermissions(currentRole);
 
   return (
-    <div className="bg-surface/80 backdrop-blur-md border-b border-border/60 px-6 py-3 flex flex-wrap items-center gap-4 shadow-sm z-10 relative">
+    <div className="glass-panel border-b border-border/60 px-6 py-3 flex flex-wrap items-center gap-4 shadow-sm z-10 relative">
       <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 font-bold text-sm bg-indigo-50 dark:bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-500/20">
         <Filter size={16} /> Global Scope
       </div>
 
       {/* Academic Year — derived from active term */}
-      <div className="flex items-center gap-2 bg-surface/50 px-3 py-1.5 rounded-lg border border-border/60">
+      <div className="glass-control flex items-center gap-2 px-3 py-1.5 rounded-lg">
         <Calendar size={14} className="text-secondary" />
         <span className="text-sm font-semibold text-primary">
           {isLoading ? "Loading…" : activeTerm ? `AY ${activeTerm}` : "Academic Year"}
@@ -22,7 +22,7 @@ export default function GlobalFilterBar() {
       </div>
 
       {/* Semester — hardcoded to Term 1 since backend only has one active term */}
-      <div className="flex items-center gap-2 bg-surface/50 px-3 py-1.5 rounded-lg border border-border/60">
+      <div className="glass-control flex items-center gap-2 px-3 py-1.5 rounded-lg">
         <Calendar size={14} className="text-secondary" />
         <select
           value={filters.semester}
@@ -66,7 +66,7 @@ export default function GlobalFilterBar() {
       </div>
 
       {/* Programme — no backend endpoint yet; kept as UI control */}
-      <div className="flex items-center gap-2 bg-surface/50 px-3 py-1.5 rounded-lg border border-border/60">
+      <div className="glass-control flex items-center gap-2 px-3 py-1.5 rounded-lg">
         <Book size={14} className="text-secondary" />
         <select
           value={filters.programme}

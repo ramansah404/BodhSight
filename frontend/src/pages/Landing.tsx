@@ -1,4 +1,5 @@
 import BrandLogo from "../components/ui/BrandLogo";
+import ThemeToggle from "../components/ui/ThemeToggle";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
@@ -47,13 +48,13 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-primary font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
+    <div className="public-page min-h-screen overflow-x-hidden bg-background text-primary font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
       
       {/* ---------------- NAVBAR ---------------- */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-500 border-b ${
         isScrolled 
-          ? "bg-background backdrop-blur-xl border-slate-800/50 py-3 shadow-2xl shadow-indigo-500/5" 
-          : "bg-transparent border-transparent py-5"
+          ? "bg-background/80 backdrop-blur-2xl border-border/80 py-3 shadow-2xl shadow-indigo-500/5" 
+          : "bg-background/20 backdrop-blur-sm border-transparent py-5"
       }`}>
         <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
           <div onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
@@ -68,11 +69,19 @@ export default function Landing() {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
+<<<<<<< HEAD
             <ThemeToggle showLabel />
             <button onClick={() => navigate('/login')} className="text-sm font-medium hover:text-primary transition-colors">Sign In</button>
             <button 
               onClick={() => navigate('/login')}
               className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm font-bold transition-all shadow-[0_0_20px_rgba(79,70,229,0.2)] hover:shadow-[0_0_25px_rgba(79,70,229,0.4)]"
+=======
+            <ThemeToggle />
+            <button onClick={() => navigate('/login')} className="text-sm font-medium hover:text-primary transition-colors">Sign In</button>
+            <button 
+              onClick={() => navigate('/login')}
+              className="px-5 py-2.5 bg-indigo-600 text-white hover:bg-indigo-500 rounded-full text-sm font-bold transition-all duration-300 hover:scale-[1.03] shadow-lg shadow-indigo-600/25"
+>>>>>>> 0d27828 (merge latest main with UI improvements)
             >
               Enter BodhSight
             </button>
@@ -100,7 +109,14 @@ export default function Landing() {
               <button onClick={() => setMobileMenuOpen(false)}><X size={24} /></button>
             </div>
             <div className="flex flex-col gap-6 text-lg">
+<<<<<<< HEAD
               <ThemeToggle showLabel />
+=======
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-secondary">Appearance</span>
+                <ThemeToggle />
+              </div>
+>>>>>>> 0d27828 (merge latest main with UI improvements)
               <button onClick={() => scrollTo('features')} className="text-left font-medium">Platform</button>
               <button onClick={() => scrollTo('intelligence')} className="text-left font-medium">Intelligence</button>
               <button onClick={() => scrollTo('security')} className="text-left font-medium">Security</button>
@@ -113,9 +129,9 @@ export default function Landing() {
       </AnimatePresence>
 
       {/* ---------------- HERO ---------------- */}
-      <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden flex flex-col items-center">
+      <div className="relative pt-32 pb-20 lg:pt-44 lg:pb-28 overflow-hidden flex flex-col items-center">
         {/* Glow Effects */}
-        <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-[8%] left-1/2 -translate-x-1/2 w-[720px] h-[360px] bg-gradient-to-b from-indigo-500/20 via-cyan-400/10 to-transparent rounded-full blur-[110px] pointer-events-none" />
         
         <motion.div 
           style={{ y: heroY, opacity: heroOpacity }}
@@ -125,17 +141,17 @@ export default function Landing() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-bold uppercase tracking-widest"
+            className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-indigo-500/30 bg-gradient-to-r from-indigo-500/10 via-cyan-500/10 to-indigo-500/10 backdrop-blur-xl text-cyan-300 text-xs font-bold uppercase tracking-widest shadow-lg shadow-indigo-500/10"
           >
             <Sparkles size={14} /> Agent 10 is Live
           </motion.div>
           
           <motion.h1 
             initial="hidden" animate="visible" variants={fadeIn}
-            className="text-5xl md:text-7xl font-bold text-primary tracking-tight leading-[1.1]"
+            className="text-5xl md:text-7xl lg:text-8xl font-bold text-primary tracking-tight leading-[1.05]"
           >
             Academic Intelligence,<br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">Built for Better Decisions.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400">Built for Better Decisions.</span>
           </motion.h1>
           
           <motion.p 
@@ -152,13 +168,13 @@ export default function Landing() {
           >
             <button 
               onClick={() => navigate('/login')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-primary rounded-xl text-sm font-bold transition-all shadow-[0_0_30px_rgba(79,70,229,0.3)] hover:shadow-[0_0_40px_rgba(79,70,229,0.5)] flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-sm font-bold transition-all duration-300 hover:scale-[1.03] shadow-xl shadow-indigo-600/25 flex items-center justify-center gap-2"
             >
               Enter Dashboard <MoveRight size={16} />
             </button>
             <button 
               onClick={() => scrollTo('features')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-surface-secondary/50 hover:bg-surface-secondary border border-border/50 hover:border-slate-600 text-primary rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-3.5 bg-surface/60 hover:bg-surface-secondary border border-border hover:border-indigo-500/40 text-primary rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2"
             >
               Explore BodhSight
             </button>
@@ -172,7 +188,7 @@ export default function Landing() {
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="relative z-20 mt-20 max-w-6xl w-full px-6"
         >
-          <div className="rounded-2xl border border-slate-800/80 bg-surface/50 backdrop-blur-sm p-2 shadow-2xl overflow-hidden ring-1 ring-white/10">
+          <div className="rounded-[2rem] border border-border/80 bg-surface/60 backdrop-blur-2xl p-2 shadow-2xl shadow-indigo-950/20 overflow-hidden ring-1 ring-white/10">
             <div className="rounded-xl overflow-hidden border border-border relative bg-surface">
               {/* Fake Dashboard Header */}
               <div className="h-12 border-b border-border flex items-center px-4 gap-2 bg-surface/80">
@@ -206,7 +222,7 @@ export default function Landing() {
       </div>
 
       {/* ---------------- FEATURES ---------------- */}
-      <section id="features" className="py-24 relative z-10 border-t border-slate-800/50 bg-background/50">
+      <section id="features" className="py-24 relative z-10 border-t border-border/70 bg-background/50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">A complete view of your institution.</h2>
@@ -230,7 +246,7 @@ export default function Landing() {
             ].map((feature, i) => (
               <motion.div 
                 key={i} variants={fadeIn}
-                className="bg-surface/50 border border-border/60 p-6 rounded-2xl hover:bg-surface-secondary/50 transition-colors group"
+                className="bg-surface/70 backdrop-blur-xl border border-border/70 p-7 rounded-[2rem] hover:bg-surface-secondary/60 hover:border-indigo-500/40 transition-all duration-500 group shadow-xl shadow-slate-950/5"
               >
                 <div className="w-12 h-12 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   {feature.icon}
@@ -244,7 +260,7 @@ export default function Landing() {
       </section>
 
       {/* ---------------- HOW IT WORKS ---------------- */}
-      <section id="intelligence" className="py-24 relative z-10 border-t border-slate-800/50">
+      <section id="intelligence" className="py-24 relative z-10 border-t border-border/70">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div 
@@ -284,7 +300,7 @@ export default function Landing() {
               className="relative"
             >
               <div className="absolute inset-0 bg-violet-600/20 blur-[100px] rounded-full" />
-              <div className="relative bg-surface border border-border rounded-2xl p-6 shadow-2xl">
+              <div className="relative bg-surface/80 backdrop-blur-2xl border border-border rounded-[2rem] p-6 shadow-2xl shadow-indigo-950/20">
                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
                   <BrainCircuit className="text-violet-400" />
                   <span className="font-bold text-primary">Agent 10 Detection Log</span>
@@ -310,7 +326,7 @@ export default function Landing() {
       </section>
 
       {/* ---------------- SECURITY / RBAC ---------------- */}
-      <section id="security" className="py-24 relative z-10 border-y border-slate-800/50 bg-surface">
+      <section id="security" className="py-24 relative z-10 border-y border-border/70 bg-surface/60">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-6">
             <Lock size={32} />
@@ -327,7 +343,7 @@ export default function Landing() {
               { role: "IQAC Officer", access: "Quality Reports", icon: <LineChart /> },
               { role: "Faculty", access: "Assigned Courses Only", icon: <Search /> }
             ].map((item, i) => (
-              <div key={i} className="bg-surface border border-border p-6 rounded-2xl text-left">
+              <div key={i} className="bg-background/60 backdrop-blur-xl border border-border p-6 rounded-[1.5rem] text-left hover:border-emerald-500/40 transition-colors">
                 <div className="text-emerald-600 dark:text-emerald-400 mb-3">{item.icon}</div>
                 <div className="font-bold text-primary mb-1">{item.role}</div>
                 <div className="text-xs text-secondary">{item.access}</div>
@@ -353,7 +369,7 @@ export default function Landing() {
       </section>
 
       {/* ---------------- FOOTER ---------------- */}
-      <footer className="py-10 border-t border-slate-800/50 bg-background text-center">
+      <footer className="py-10 border-t border-border/70 bg-background text-center">
         <div className="flex justify-center mb-4 opacity-60 hover:opacity-100 transition-opacity grayscale hover:grayscale-0">
           <BrandLogo />
         </div>
