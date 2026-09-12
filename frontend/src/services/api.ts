@@ -6,7 +6,7 @@ import type { FilterState } from "../contexts/FilterContext";
  * All calls go to the real FastAPI backend.
  * No mock fallbacks — errors are surfaced to the UI.
  *
- * Base URL: VITE_API_BASE_URL || "http://localhost:8000/api/v1"
+ * Base URL: VITE_API_BASE_URL, with environment-safe development and production defaults.
  */
 import axios from "axios";
 import type {
@@ -26,7 +26,10 @@ import {
   type CoursePerformance,
 } from "../types/agent10";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
+const DEFAULT_API_BASE_URL = import.meta.env.PROD
+  ? "https://bodhsight.onrender.com/api/v1"
+  : "http://localhost:8000/api/v1";
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
