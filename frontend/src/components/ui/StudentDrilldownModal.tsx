@@ -57,15 +57,16 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
             className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
           />
 
-          {/* Modal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-5xl -translate-x-1/2 -translate-y-1/2 bg-surface border border-border shadow-2xl rounded-2xl overflow-hidden flex flex-col max-h-[85vh]"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface-secondary/50">
+          {/* Modal Container */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="w-full max-w-5xl bg-surface border border-border shadow-2xl rounded-2xl overflow-hidden flex flex-col max-h-[85vh] pointer-events-auto"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface-secondary/50">
               <div>
                 <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                   <Users className="w-5 h-5 text-primary" />
@@ -148,6 +149,7 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
               )}
             </div>
           </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>

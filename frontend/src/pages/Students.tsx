@@ -206,6 +206,8 @@ export default function Students() {
                       paddingAngle={5}
                       dataKey="value"
                       stroke="none"
+                      label={({ value }) => value > 0 ? value : ""}
+                      labelLine={false}
                     >
                       {pieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
