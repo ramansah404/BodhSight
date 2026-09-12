@@ -1,7 +1,7 @@
 import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ showLabel = false }: { showLabel?: boolean }) {
   const { theme, toggleTheme } = useTheme();
   
   return (
@@ -12,6 +12,11 @@ export default function ThemeToggle() {
       title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
     >
       {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+      {showLabel && (
+        <span className="ml-2 text-sm font-medium">
+          {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+        </span>
+      )}
     </button>
   );
 }

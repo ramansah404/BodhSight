@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import Lenis from "lenis";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import ErrorBoundary from "../ui/ErrorBoundary";
@@ -27,32 +26,7 @@ export default function Layout() {
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
 
-  // Lenis smooth scrolling — from KrishakMitra performance pattern
-  useEffect(() => {
-    const el = mainRef.current;
-    if (!el) return;
 
-    const lenis = new Lenis({
-      wrapper: el,
-      content: el,
-      duration: 1.1,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-      touchMultiplier: 2,
-    });
-
-    let rafId: number;
-    function raf(time: number) {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    }
-    rafId = requestAnimationFrame(raf);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      lenis.destroy();
-    };
-  }, []);
 
   return (
     <FilterProvider>

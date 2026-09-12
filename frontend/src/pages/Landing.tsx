@@ -8,6 +8,7 @@ import {
   ChevronRight, MoveRight, Database, Lock, Search, Users,
   Menu, X
 } from "lucide-react";
+import ThemeToggle from "../components/ui/ThemeToggle";
 
 const fadeIn: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -67,10 +68,11 @@ export default function Landing() {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
+            <ThemeToggle showLabel />
             <button onClick={() => navigate('/login')} className="text-sm font-medium hover:text-primary transition-colors">Sign In</button>
             <button 
               onClick={() => navigate('/login')}
-              className="px-4 py-2 bg-white text-primary hover:bg-slate-200 rounded-lg text-sm font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)]"
+              className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm font-bold transition-all shadow-[0_0_20px_rgba(79,70,229,0.2)] hover:shadow-[0_0_25px_rgba(79,70,229,0.4)]"
             >
               Enter BodhSight
             </button>
@@ -98,6 +100,7 @@ export default function Landing() {
               <button onClick={() => setMobileMenuOpen(false)}><X size={24} /></button>
             </div>
             <div className="flex flex-col gap-6 text-lg">
+              <ThemeToggle showLabel />
               <button onClick={() => scrollTo('features')} className="text-left font-medium">Platform</button>
               <button onClick={() => scrollTo('intelligence')} className="text-left font-medium">Intelligence</button>
               <button onClick={() => scrollTo('security')} className="text-left font-medium">Security</button>

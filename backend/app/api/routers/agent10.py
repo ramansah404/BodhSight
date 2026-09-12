@@ -16,15 +16,21 @@ import logging
 import time
 
 class SimpleTTLCache:
-    def __init__(self, ttl_seconds=300):
+    def __init__(self, ttl_seconds=60):
         self.cache = {}
-        self.ttl = 0
+        self.ttl = ttl_seconds
 
     def get(self, key):
+        if key in self.cache:
+            val, timestamp = self.cache[key]
+            if time.time() - timestamp < self.ttl:
+                return val
+            else:
+                del self.cache[key]
         return None
 
     def set(self, key, value):
-        pass
+        self.cache[key] = (value, time.time())
 
 # Global cache instances (5 minutes TTL)
 dashboard_cache = SimpleTTLCache(300)
@@ -376,6 +382,13 @@ def execute_recommendation(anomaly_id: str, db: Session = Depends(get_db)):
             {"id": anomaly_id}
         )
         db.commit()
+        
+        # Invalidate caches
+        exceptions_cache.cache.clear()
+        dashboard_cache.cache.clear()
+        priorities_cache.cache.clear()
+        recommendations_cache.cache.clear()
+        
         return {"success": True, "message": "Recommendation marked as IN_PROGRESS."}
     except Exception as e:
         db.rollback()
@@ -385,4 +398,9 @@ def execute_recommendation(anomaly_id: str, db: Session = Depends(get_db)):
 def trigger_audit(db: Session = Depends(get_db)):
     """Trigger an ingestion audit check."""
     # Return success so the frontend knows the connected backend acknowledged it.
+    
+    # Invalidate caches
+    exceptions_cache.cache.clear()
+    dashboard_cache.cache.clear()
+    
     return {"success": True, "message": "Audit ingestion check triggered successfully."}
