@@ -58,12 +58,12 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
           />
 
           {/* Modal Container */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 pointer-events-none">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="w-full max-w-5xl bg-surface border border-border shadow-2xl rounded-2xl overflow-hidden flex flex-col max-h-[85vh] pointer-events-auto"
+              className="w-full max-w-5xl bg-surface border border-border shadow-2xl rounded-2xl overflow-hidden flex flex-col max-h-[85vh] pointer-events-auto min-w-0"
             >
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface-secondary/50">

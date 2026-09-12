@@ -640,6 +640,12 @@ def get_student_drilldown(
         select_clause += " f.category AS reason "
         from_clause += " JOIN core.student_flag f ON p.student_id = f.student_id "
         where_clause += " AND f.status = 'OPEN' "
+    elif context == "at_risk":
+        select_clause += " 'Backlogs' AS reason "
+        where_clause += " AND p.backlog_count > 0 "
+    elif context == "high_risk":
+        select_clause += " 'High Backlogs' AS reason "
+        where_clause += " AND p.backlog_count >= 3 "
     elif context == "course" and course_code:
         select_clause += " cp.pass_pct::text AS reason "
         from_clause += f" JOIN assessment.v_course_performance cp ON p.student_id = cp.student_id "
