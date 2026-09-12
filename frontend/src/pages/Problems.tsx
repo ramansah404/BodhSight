@@ -258,6 +258,11 @@ export default function Problems() {
                     : selectedAnomaly.severity + " ANOMALY"}
                 </span>
                 <h4 className="text-xl font-bold text-primary mt-2">{selectedAnomaly.title}</h4>
+                {selectedAnomaly.attribution_root && (
+                  <div className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 mt-2 flex items-center gap-1.5">
+                    <Sparkles size={14} /> Attribution Root: {selectedAnomaly.attribution_root}
+                  </div>
+                )}
               </div>
 
               {(selectedAnomaly.current_value !== 0 || selectedAnomaly.baseline_value !== 0) && (
