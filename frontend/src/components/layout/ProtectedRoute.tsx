@@ -27,7 +27,7 @@ export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
           <div className="pt-2">
             <button 
               onClick={() => window.location.href = "/#/"}
-              className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-primary rounded-xl text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
             >
               <ArrowLeft size={16} /> Return to Authorized Dashboard
             </button>

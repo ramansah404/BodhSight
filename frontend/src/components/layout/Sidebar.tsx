@@ -35,7 +35,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     { name: "Sections", path: "/sections", icon: Layers, roles: ["Chairman", "Dean", "HOD", "Faculty"] },
     { name: "Batches", path: "/batches", icon: Users, roles: ["Chairman", "Dean", "HOD"] },
     { name: "Students (At-Risk)", path: "/students", icon: ShieldAlert, roles: ["Chairman", "Dean", "HOD", "Faculty"] },
-    { name: "Anomalies", path: "/anomalies", icon: AlertTriangle, roles: ["Chairman", "Dean", "HOD", "Faculty"] },
+    { name: "Problems", path: "/anomalies", icon: AlertTriangle, roles: ["Chairman", "Dean", "HOD", "Faculty"] },
     { name: "Recommendations", path: "/recommendations", icon: Lightbulb, roles: ["Chairman", "Dean", "HOD", "Faculty"] },
     { name: "Executive Reports", path: "/reports", icon: FileText, roles: ["Chairman", "Dean"] },
     { name: "Settings", path: "/settings", icon: Settings, roles: ["Chairman", "Dean", "HOD", "Faculty"] },
@@ -47,13 +47,13 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     const collapsed = !isMobile && isDesktopCollapsed;
     
     return (
-      <div className={`${collapsed ? 'w-20' : 'w-64'} bg-[#020817] border-r border-slate-800/60 flex flex-col h-full text-slate-300 transition-all duration-300`}>
-        <div className={`p-6 border-b border-slate-800/60 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} h-16 md:h-20 shrink-0`}>
+      <div className={`${collapsed ? 'w-20' : 'w-64'} bg-background border-r border-border/60 flex flex-col h-full text-primary transition-all duration-300`}>
+        <div className={`p-6 border-b border-border/60 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} h-16 md:h-20 shrink-0`}>
           <BrandLogo isCollapsed={collapsed} />
         {/* Mobile close button inside sidebar */}
         <button 
           onClick={() => setIsOpen(false)} 
-          className="md:hidden text-secondary hover:text-white p-1"
+          className="md:hidden text-secondary hover:text-primary p-1"
           aria-label="Close menu"
         >
           <X size={20} />
@@ -72,13 +72,13 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               className={({ isActive }) => `
                 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group
                 ${isActive 
-                  ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20' 
-                  : 'text-secondary hover:bg-slate-900 hover:text-slate-200 border border-transparent'}
+                  ? 'bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' 
+                  : 'text-secondary hover:bg-surface hover:text-primary border border-transparent'}
               `}
             >
               {({ isActive }) => (
                 <>
-                  <Icon size={18} className={isActive ? "text-indigo-400" : "text-secondary group-hover:text-secondary"} />
+                  <Icon size={18} className={isActive ? "text-indigo-600 dark:text-indigo-400" : "text-secondary group-hover:text-secondary"} />
                   {!collapsed && <span className="whitespace-nowrap">{item.name}</span>}
                 </>
               )}
@@ -87,11 +87,11 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         })}
       </nav>
 
-      <div className="p-4 border-t border-slate-800/60 flex flex-col items-center shrink-0">
+      <div className="p-4 border-t border-border/60 flex flex-col items-center shrink-0">
         {!isMobile && (
           <button 
             onClick={() => setIsDesktopCollapsed(!isDesktopCollapsed)}
-            className="w-full flex justify-center py-2 text-secondary hover:text-white transition-colors"
+            className="w-full flex justify-center py-2 text-secondary hover:text-primary transition-colors"
           >
             {collapsed ? <Menu size={20} /> : <X size={20} />}
           </button>
@@ -123,7 +123,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="md:hidden fixed inset-0 bg-[#020817]/80 backdrop-blur-sm z-40"
+              className="md:hidden fixed inset-0 bg-background backdrop-blur-sm z-40"
             />
             {/* Sliding Drawer */}
             <motion.aside

@@ -9,9 +9,39 @@ frontend/src/types/agent10.ts. Preserve field names exactly.
 """
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 from typing import List
 import logging
+import time
+
+class SimpleTTLCache:
+    def __init__(self, ttl_seconds=300):
+        self.cache = {}
+        self.ttl = ttl_seconds
+
+    def get(self, key):
+        if key in self.cache:
+            val, timestamp = self.cache[key]
+            if time.time() - timestamp < self.ttl:
+                return val
+            else:
+                del self.cache[key]
+        return None
+
+    def set(self, key, value):
+        self.cache[key] = (value, time.time())
+
+# Global cache instances (5 minutes TTL)
+dashboard_cache = SimpleTTLCache(300)
+exceptions_cache = SimpleTTLCache(300)
+priorities_cache = SimpleTTLCache(300)
+course_perf_cache = SimpleTTLCache(300)
+dept_perf_cache = SimpleTTLCache(300)
+trends_cache = SimpleTTLCache(300)
+summary_cache = SimpleTTLCache(300)
+sections_cache = SimpleTTLCache(300)
+recommendations_cache = SimpleTTLCache(300)
 
 from app.db.session import get_db
 import app.agents.agent10 as agent10
@@ -39,13 +69,18 @@ def _safe(fn, db, *args, **kwargs):
 # ---------------------------------------------------------------------------
 
 @router.get("/dashboard", response_model=DashboardMetrics)
-def get_dashboard_metrics(db: Session = Depends(get_db)):
+async def get_dashboard_metrics(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """
     Dashboard KPIs from real Supabase database views.
     All values are deterministically computed from official university schema.
     """
-    metrics = _safe(agent10.compute_dashboard_metrics, db)
-    return DashboardMetrics(
+    cache_key = f"dashboard_{department}_{semester}_{programme}_{academic_year}"
+    cached = dashboard_cache.get(cache_key)
+    if cached:
+        return cached
+
+    metrics = await run_in_threadpool(_safe, agent10.compute_dashboard_metrics, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
+    resp = DashboardMetrics(
         as_of_date=metrics["as_of_date"],
         students_evaluated=metrics["students_evaluated"],
         pass_rate=metrics["pass_rate"],
@@ -59,19 +94,26 @@ def get_dashboard_metrics(db: Session = Depends(get_db)):
         active_anomalies=metrics.get("active_anomalies", 0),
         data_source=metrics.get("data_source", "database"),
     )
+    dashboard_cache.set(cache_key, resp)
+    return resp
 
 
 # ---------------------------------------------------------------------------
-# Exceptions / Anomalies — matches frontend AcademicException[] contract
+# Exceptions / Problems — matches frontend AcademicException[] contract
 # ---------------------------------------------------------------------------
 
 @router.get("/exceptions", response_model=List[AcademicException])
-def get_exceptions(db: Session = Depends(get_db)):
+async def get_exceptions(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """
     Academic anomalies and exceptions backed by database evidence.
     Sorted by priority score (most critical first).
     """
-    anomalies = _safe(agent10.compute_anomalies, db)
+    cache_key = f"exceptions_{department}_{semester}_{programme}_{academic_year}"
+    cached = exceptions_cache.get(cache_key)
+    if cached:
+        return cached
+
+    anomalies = await run_in_threadpool(_safe, agent10.compute_anomalies, db)
 
     results = []
     for a in anomalies:
@@ -94,6 +136,7 @@ def get_exceptions(db: Session = Depends(get_db)):
             course_title=a.get("course_title"),
             is_overdue=a.get("is_overdue", False),
         ))
+    exceptions_cache.set(cache_key, results)
     return results
 
 
@@ -102,11 +145,16 @@ def get_exceptions(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/priorities", response_model=List[InterventionPriority])
-def get_priorities(db: Session = Depends(get_db)):
+async def get_priorities(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """
     Ranked intervention priority list from deterministic priority scoring.
     """
-    priorities = _safe(agent10.compute_priorities, db)
+    cache_key = f"priorities_{department}_{semester}_{programme}_{academic_year}"
+    cached = priorities_cache.get(cache_key)
+    if cached:
+        return cached
+
+    priorities = await run_in_threadpool(_safe, agent10.compute_priorities, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
 
     results = []
     for p in priorities:
@@ -123,6 +171,7 @@ def get_priorities(db: Session = Depends(get_db)):
             recommended_intervention=p.get("recommended_intervention", ""),
             anomaly_type=p.get("anomaly_type"),
         ))
+    priorities_cache.set(cache_key, results)
     return results
 
 
@@ -131,19 +180,31 @@ def get_priorities(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/performance/courses")
-def get_course_performance(db: Session = Depends(get_db)):
+async def get_course_performance(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """Course-level performance from assessment.v_course_performance."""
-    return _safe(agent10.compute_course_performance, db)
+    cache_key = f"courses_{department}_{semester}_{programme}_{academic_year}"
+    cached = course_perf_cache.get(cache_key)
+    if cached:
+        return cached
+    resp = await run_in_threadpool(_safe, agent10.compute_course_performance, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
+    course_perf_cache.set(cache_key, resp)
+    return resp
 
 
 # ---------------------------------------------------------------------------
 # Department performance
 # ---------------------------------------------------------------------------
 
-@router.get("/performance/departments")
-def get_department_performance(db: Session = Depends(get_db)):
-    """Department-level performance aggregation."""
-    return _safe(agent10.compute_department_performance, db)
+@router.get("/performance/departments", response_model=List[DepartmentPerformanceItem])
+async def get_department_performance(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+    """Department-level aggregation."""
+    cache_key = f"departments_{department}_{semester}_{programme}_{academic_year}"
+    cached = dept_perf_cache.get(cache_key)
+    if cached:
+        return cached
+    resp = await run_in_threadpool(_safe, agent10.compute_department_performance, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
+    dept_perf_cache.set(cache_key, resp)
+    return resp
 
 
 # ---------------------------------------------------------------------------
@@ -151,12 +212,12 @@ def get_department_performance(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/trends")
-def get_trends(db: Session = Depends(get_db)):
+async def get_trends(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """
     Academic trends. Returns current-term data with honest state notation
     when multi-term historical data is insufficient.
     """
-    return _safe(agent10.compute_trends, db)
+    return await run_in_threadpool(_safe, agent10.compute_trends, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
 
 
 # ---------------------------------------------------------------------------
@@ -164,9 +225,9 @@ def get_trends(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/recommendations")
-def get_recommendations(db: Session = Depends(get_db)):
+async def get_recommendations(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """Actionable recommendations derived from detected anomalies."""
-    return _safe(agent10.compute_recommendations, db)
+    return await run_in_threadpool(_safe, agent10.compute_recommendations, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
 
 
 # ---------------------------------------------------------------------------
@@ -174,9 +235,9 @@ def get_recommendations(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/evidence/{course_code}")
-def get_evidence(course_code: str, db: Session = Depends(get_db)):
+async def get_evidence(course_code: str, db: Session = Depends(get_db)):
     """Full evidence chain for a specific course."""
-    return _safe(agent10.get_evidence_for_course, db, course_code)
+    return await run_in_threadpool(_safe, agent10.get_evidence_for_course, db, course_code)
 
 
 # ---------------------------------------------------------------------------
@@ -184,7 +245,7 @@ def get_evidence(course_code: str, db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/sections")
-def get_section_comparison(db: Session = Depends(get_db)):
+async def get_section_comparison(db: Session = Depends(get_db)):
     """Section-level performance comparison — detects inter-section disparities."""
     from app.db import queries
     sections = queries.get_section_comparison(db)
@@ -211,6 +272,53 @@ def get_section_comparison(db: Session = Depends(get_db)):
 
 
 # ---------------------------------------------------------------------------
+# Condonation Forecaster
+# ---------------------------------------------------------------------------
+
+@router.get("/condonation")
+async def get_condonation_forecast(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+    """Condonation zone risk & revenue forecaster."""
+    from app.db import queries
+    return await run_in_threadpool(
+        _safe, 
+        queries.get_condonation_forecast, 
+        db, 
+        department=department, 
+        semester=semester, 
+        programme=programme, 
+        academic_year=academic_year
+    )
+
+
+# ---------------------------------------------------------------------------
+# Student Drill-Down
+# ---------------------------------------------------------------------------
+
+@router.get("/students/drilldown")
+async def get_student_drilldown(
+    context: str,
+    course_code: str = None,
+    department: str = None, 
+    semester: str = None, 
+    programme: str = None, 
+    academic_year: str = None, 
+    db: Session = Depends(get_db)
+):
+    """Fetch real student details for dashboard metric drill-downs."""
+    from app.db import queries
+    return await run_in_threadpool(
+        _safe, 
+        queries.get_student_drilldown, 
+        db, 
+        context=context,
+        course_code=course_code,
+        department=department, 
+        semester=semester, 
+        programme=programme, 
+        academic_year=academic_year
+    )
+
+# ---------------------------------------------------------------------------
 # LLM Status
 # ---------------------------------------------------------------------------
 
@@ -232,7 +340,7 @@ def get_executive_summary(db: Session = Depends(get_db)):
     Executive summary combining dashboard metrics and top anomalies.
     Uses LLM to humanize if configured; otherwise returns structured text.
     """
-    metrics = _safe(agent10.compute_dashboard_metrics, db)
+    metrics = _safe(agent10.compute_dashboard_metrics, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
     anomalies = _safe(agent10.compute_anomalies, db)
     summary_text = agent10.generate_executive_summary(metrics, anomalies)
 
