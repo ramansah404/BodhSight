@@ -4,15 +4,30 @@ from app.core.config import settings
 
 app = FastAPI(title=settings.APP_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json")
 
-# Set all CORS enabled origins
+# Guarantee required production origins regardless of Render environment overrides
+required_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://bodhsight.vercel.app",
+    "https://bodhsight-acmqdmpjr-ramansah404-5576s-projects.vercel.app"
+]
+
 if settings.CORS_ORIGINS:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.CORS_ORIGINS,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    if isinstance(settings.CORS_ORIGINS, str):
+        required_origins.extend([o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()])
+    else:
+        required_origins.extend(settings.CORS_ORIGINS)
+
+# Remove duplicates
+final_origins = list(set(required_origins))
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=final_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 def health_check():
