@@ -335,7 +335,13 @@ def get_llm_status():
 # ---------------------------------------------------------------------------
 
 @router.get("/summary")
-def get_executive_summary(db: Session = Depends(get_db)):
+def get_executive_summary(
+    department: str = None,
+    semester: str = None,
+    programme: str = None,
+    academic_year: str = None,
+    db: Session = Depends(get_db),
+):
     """
     Executive summary combining dashboard metrics and top anomalies.
     Uses LLM to humanize if configured; otherwise returns structured text.

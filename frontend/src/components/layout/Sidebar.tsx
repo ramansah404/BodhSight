@@ -13,7 +13,8 @@ import {
   Settings,
   ShieldAlert,
   X,
-  Menu
+  PanelLeftClose,
+  PanelLeftOpen
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
@@ -46,7 +47,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     const collapsed = !isMobile && isDesktopCollapsed;
     
     return (
-      <div className={`${collapsed ? 'w-20' : 'w-64'} bg-surface/50 dark:bg-background backdrop-blur-xl border-r border-border/60 flex flex-col h-full text-primary transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-none`}>
+      <div className={`${collapsed ? 'w-20' : 'w-64'} glass-panel min-h-0 border-r border-border/80 flex flex-col h-full text-primary transition-[width] duration-300 ease-out`}>
         <div className={`p-6 border-b border-border/60 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} h-16 md:h-20 shrink-0`}>
           <BrandLogo isCollapsed={collapsed} />
         {/* Mobile close button inside sidebar */}
@@ -59,7 +60,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1">
+      <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 py-6 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -72,12 +73,13 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group
                 ${isActive 
                   ? 'bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' 
-                  : 'text-secondary hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-700 dark:hover:text-indigo-300 border border-transparent'}
+                  : 'text-primary/85 hover:bg-surface/60 hover:text-primary border border-transparent'}
+                ${collapsed ? 'justify-center px-3' : ''}
               `}
             >
               {({ isActive }) => (
                 <>
-                  <Icon size={18} className={isActive ? "text-indigo-600 dark:text-indigo-400" : "text-secondary group-hover:text-secondary"} />
+                  <Icon size={18} className={isActive ? "text-indigo-600 dark:text-indigo-400" : "text-primary/70 group-hover:text-primary"} />
                   {!collapsed && <span className="whitespace-nowrap">{item.name}</span>}
                 </>
               )}
@@ -90,9 +92,11 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
         {!isMobile && (
           <button 
             onClick={() => setIsDesktopCollapsed(!isDesktopCollapsed)}
-            className="w-full flex justify-center py-2 text-secondary hover:text-primary transition-colors"
+            className="glass-control w-full flex items-center justify-center gap-2 py-2 text-primary/85 hover:text-primary hover:bg-surface rounded-lg"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            {collapsed ? <Menu size={20} /> : <X size={20} />}
+            {collapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
           </button>
         )}
         {!collapsed && (
@@ -108,7 +112,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   return (
     <>
       {/* Desktop Sidebar (Persistent) */}
-      <aside className="hidden md:block h-screen z-10 shrink-0">
+      <aside className="hidden md:block h-[100dvh] min-h-0 z-10 shrink-0">
         <SidebarContent isMobile={false} />
       </aside>
 
@@ -122,7 +126,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="md:hidden fixed inset-0 bg-background backdrop-blur-sm z-40"
+              className="md:hidden fixed inset-0 glass-overlay z-40"
             />
             {/* Sliding Drawer */}
             <motion.aside
@@ -130,7 +134,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="md:hidden fixed inset-y-0 left-0 z-50 h-screen shadow-2xl shadow-indigo-900/20"
+              className="md:hidden fixed inset-y-0 left-0 z-50 h-[100dvh] max-h-[100dvh] shadow-2xl shadow-indigo-900/20"
             >
               <SidebarContent isMobile={true} />
             </motion.aside>

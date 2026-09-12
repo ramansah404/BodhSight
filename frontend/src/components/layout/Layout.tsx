@@ -31,19 +31,19 @@ export default function Layout() {
   return (
     <FilterProvider>
       <NotificationProvider>
-      <div className="flex h-screen bg-background overflow-hidden font-sans text-primary selection:bg-indigo-500/30 selection:text-indigo-200">
+      <div className="flex h-[100dvh] min-h-0 min-w-0 bg-transparent overflow-hidden font-sans text-primary selection:bg-indigo-500/30 selection:text-indigo-200">
         <Sidebar 
           isOpen={isMobileMenuOpen} 
           setIsOpen={setIsMobileMenuOpen} 
         />
         
-        <div className="flex-1 flex flex-col h-screen overflow-hidden w-full relative">
+        <div className="flex-1 min-h-0 min-w-0 flex flex-col h-[100dvh] overflow-hidden w-full relative">
           <Topbar 
             currentRole={currentRole} 
             onMenuToggle={() => setIsMobileMenuOpen(true)} 
           />
           <GlobalFilterBar />
-          <main ref={mainRef} className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+          <main ref={mainRef} className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
@@ -52,7 +52,11 @@ export default function Layout() {
                 animate="animate"
                 exit="exit"
                 transition={pageTransition}
+<<<<<<< HEAD
                 className="min-h-full pb-8"
+=======
+                className="min-h-full"
+>>>>>>> 0d27828 (merge latest main with UI improvements)
               >
                 <ErrorBoundary>
                   <Outlet context={{ currentRole }} />
