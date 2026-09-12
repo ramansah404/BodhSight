@@ -69,10 +69,15 @@ export function FilterProvider({ children }: { children: ReactNode }) {
             // Extract year for display e.g. "2026-09-12" → "2026-27"
             const yr = new Date(date).getFullYear();
             setActiveTerm(`${yr}-${String(yr + 1).slice(2)}`);
+          } else {
+            setActiveTerm("2026-27");
           }
+        } else {
+          setActiveTerm("2026-27");
         }
       } catch {
         // Non-critical — filter context degrades gracefully
+        setActiveTerm("2026-27");
       } finally {
         if (!cancelled) setIsLoading(false);
       }

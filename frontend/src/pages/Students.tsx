@@ -174,7 +174,7 @@ export default function Students() {
             </div>
 
             <div 
-              onClick={() => setDrilldown({ isOpen: true, context: "problems", title: "High Risk Students" })}
+              onClick={() => setDrilldown({ isOpen: true, context: "high_risk", title: "High Risk Students" })}
               className="bg-surface p-6 rounded-3xl border border-rose-500/20 shadow-sm cursor-pointer hover:bg-surface/80 group transition-colors"
             >
               <div className="flex justify-between items-start">
@@ -189,11 +189,17 @@ export default function Students() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-surface rounded-3xl border border-border shadow-sm p-6 flex flex-col justify-center min-h-[350px]">
+            <div className="bg-surface rounded-3xl border border-border shadow-sm p-6 flex flex-col justify-center min-h-[350px] relative">
               <h2 className="text-lg font-bold text-primary mb-2 flex items-center gap-2">
                 <PieChartIcon className="text-indigo-500" size={20} />
                 Risk Composition
               </h2>
+              
+              <div className="absolute top-6 right-6 text-right">
+                <div className="text-2xl font-black text-amber-500">{backlog.students_with_backlogs}</div>
+                <div className="text-[10px] font-bold text-secondary uppercase tracking-widest">Total At-Risk</div>
+              </div>
+
               <div style={{ width: "100%", height: 300 }}>
                 <ResponsiveContainer>
                   <PieChart>
