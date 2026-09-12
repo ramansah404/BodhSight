@@ -12,6 +12,32 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from typing import List
 import logging
+import time
+
+class SimpleTTLCache:
+    def __init__(self, ttl_seconds=300):
+        self.cache = {}
+        self.ttl = ttl_seconds
+
+    def get(self, key):
+        if key in self.cache:
+            val, timestamp = self.cache[key]
+            if time.time() - timestamp < self.ttl:
+                return val
+            else:
+                del self.cache[key]
+        return None
+
+    def set(self, key, value):
+        self.cache[key] = (value, time.time())
+
+# Global cache instances (5 minutes TTL)
+dashboard_cache = SimpleTTLCache(300)
+exceptions_cache = SimpleTTLCache(300)
+priorities_cache = SimpleTTLCache(300)
+course_perf_cache = SimpleTTLCache(300)
+dept_perf_cache = SimpleTTLCache(300)
+trends_cache = SimpleTTLCache(300)
 
 from app.db.session import get_db
 import app.agents.agent10 as agent10
@@ -44,8 +70,12 @@ def get_dashboard_metrics(db: Session = Depends(get_db)):
     Dashboard KPIs from real Supabase database views.
     All values are deterministically computed from official university schema.
     """
+    cached = dashboard_cache.get("dashboard")
+    if cached:
+        return cached
+
     metrics = _safe(agent10.compute_dashboard_metrics, db)
-    return DashboardMetrics(
+    resp = DashboardMetrics(
         as_of_date=metrics["as_of_date"],
         students_evaluated=metrics["students_evaluated"],
         pass_rate=metrics["pass_rate"],
@@ -59,6 +89,8 @@ def get_dashboard_metrics(db: Session = Depends(get_db)):
         active_anomalies=metrics.get("active_anomalies", 0),
         data_source=metrics.get("data_source", "database"),
     )
+    dashboard_cache.set("dashboard", resp)
+    return resp
 
 
 # ---------------------------------------------------------------------------
@@ -71,6 +103,10 @@ def get_exceptions(db: Session = Depends(get_db)):
     Academic anomalies and exceptions backed by database evidence.
     Sorted by priority score (most critical first).
     """
+    cached = exceptions_cache.get("exceptions")
+    if cached:
+        return cached
+
     anomalies = _safe(agent10.compute_anomalies, db)
 
     results = []
@@ -94,6 +130,7 @@ def get_exceptions(db: Session = Depends(get_db)):
             course_title=a.get("course_title"),
             is_overdue=a.get("is_overdue", False),
         ))
+    exceptions_cache.set("exceptions", results)
     return results
 
 
@@ -106,6 +143,10 @@ def get_priorities(db: Session = Depends(get_db)):
     """
     Ranked intervention priority list from deterministic priority scoring.
     """
+    cached = priorities_cache.get("priorities")
+    if cached:
+        return cached
+
     priorities = _safe(agent10.compute_priorities, db)
 
     results = []
@@ -123,6 +164,7 @@ def get_priorities(db: Session = Depends(get_db)):
             recommended_intervention=p.get("recommended_intervention", ""),
             anomaly_type=p.get("anomaly_type"),
         ))
+    priorities_cache.set("priorities", results)
     return results
 
 
@@ -133,17 +175,27 @@ def get_priorities(db: Session = Depends(get_db)):
 @router.get("/performance/courses")
 def get_course_performance(db: Session = Depends(get_db)):
     """Course-level performance from assessment.v_course_performance."""
-    return _safe(agent10.compute_course_performance, db)
+    cached = course_perf_cache.get("courses")
+    if cached:
+        return cached
+    resp = _safe(agent10.compute_course_performance, db)
+    course_perf_cache.set("courses", resp)
+    return resp
 
 
 # ---------------------------------------------------------------------------
 # Department performance
 # ---------------------------------------------------------------------------
 
-@router.get("/performance/departments")
+@router.get("/performance/departments", response_model=List[DepartmentPerformanceItem])
 def get_department_performance(db: Session = Depends(get_db)):
-    """Department-level performance aggregation."""
-    return _safe(agent10.compute_department_performance, db)
+    """Department-level aggregation."""
+    cached = dept_perf_cache.get("departments")
+    if cached:
+        return cached
+    resp = _safe(agent10.compute_department_performance, db)
+    dept_perf_cache.set("departments", resp)
+    return resp
 
 
 # ---------------------------------------------------------------------------

@@ -39,23 +39,30 @@ def get_course_performance_all(db: Session) -> List[Dict[str, Any]]:
 
 
 def get_course_performance_summary(db: Session) -> Dict[str, Any]:
-    """Aggregate KPIs from assessment.v_course_performance."""
-    sql = text("""
-        SELECT
-            count(*) AS total_course_sections,
-            sum(students_appeared) AS students_evaluated,
-            sum(passed) AS total_passed,
-            round(avg(pass_pct)::numeric, 2) AS avg_pass_pct,
-            round(avg(avg_total)::numeric, 2) AS avg_marks,
-            round(avg(sd_external)::numeric, 2) AS avg_sd_external,
-            min(pass_pct) AS min_pass_pct,
-            max(pass_pct) AS max_pass_pct
-        FROM assessment.v_course_performance
-        WHERE students_appeared > 0
-    """)
-    result = db.execute(sql)
-    row = result.fetchone()
-    return dict(row._mapping) if row else {}
+    """Aggregate KPIs from assessment.v_course_performance using fast in-memory aggregation."""
+    rows = get_course_performance_all(db)
+    valid_rows = [r for r in rows if (r.get("students_appeared") or 0) > 0]
+    
+    if not valid_rows:
+        return {}
+        
+    students_evaluated = sum((r.get("students_appeared") or 0) for r in valid_rows)
+    total_passed = sum((r.get("passed") or 0) for r in valid_rows)
+    
+    pass_pcts = [float(r["pass_pct"]) for r in valid_rows if r.get("pass_pct") is not None]
+    avg_totals = [float(r["avg_total"]) for r in valid_rows if r.get("avg_total") is not None]
+    sd_externals = [float(r["sd_external"]) for r in valid_rows if r.get("sd_external") is not None]
+    
+    return {
+        "total_course_sections": len(rows),
+        "students_evaluated": students_evaluated,
+        "total_passed": total_passed,
+        "avg_pass_pct": round(sum(pass_pcts) / len(pass_pcts), 2) if pass_pcts else 0.0,
+        "avg_marks": round(sum(avg_totals) / len(avg_totals), 2) if avg_totals else 0.0,
+        "avg_sd_external": round(sum(sd_externals) / len(sd_externals), 2) if sd_externals else 0.0,
+        "min_pass_pct": min(pass_pcts) if pass_pcts else 0.0,
+        "max_pass_pct": max(pass_pcts) if pass_pcts else 0.0
+    }
 
 
 def get_low_pass_rate_courses(db: Session, threshold: float = 60.0) -> List[Dict[str, Any]]:
@@ -302,23 +309,51 @@ def get_critical_high_flags(db: Session) -> List[Dict[str, Any]]:
 # ---------------------------------------------------------------------------
 
 def get_department_performance(db: Session) -> List[Dict[str, Any]]:
-    """Per-department performance aggregated from course performance + roster."""
-    sql = text("""
-        SELECT
-            r.department_code,
-            count(DISTINCT r.student_id) AS total_students,
-            count(DISTINCT r.course_offering_id) AS total_offerings,
-            round(avg(p.pass_pct)::numeric, 2) AS avg_pass_rate,
-            round(avg(p.avg_total)::numeric, 2) AS avg_marks,
-            count(p.course_offering_id) FILTER (WHERE p.pass_pct < 60) AS low_pass_offerings
-        FROM academics.v_offering_roster r
-        LEFT JOIN assessment.v_course_performance p
-            ON p.course_offering_id = r.course_offering_id
-        GROUP BY r.department_code
-        ORDER BY avg_pass_rate ASC NULLS LAST
-    """)
-    result = db.execute(sql)
-    return [dict(row._mapping) for row in result]
+    """Per-department performance aggregated from course performance in memory."""
+    rows = get_course_performance_all(db)
+    
+    depts: Dict[str, Dict[str, Any]] = {}
+    for r in rows:
+        dept = str(r.get("department_id") or "Unknown")
+        if dept not in depts:
+            depts[dept] = {
+                "department_code": dept,
+                "total_students": 0,
+                "total_offerings": 0,
+                "pass_pcts": [],
+                "avg_totals": [],
+                "low_pass_offerings": 0
+            }
+        
+        depts[dept]["total_students"] += (r.get("students_appeared") or 0)
+        depts[dept]["total_offerings"] += 1
+        
+        pp = r.get("pass_pct")
+        if pp is not None:
+            depts[dept]["pass_pcts"].append(float(pp))
+            if float(pp) < 60:
+                depts[dept]["low_pass_offerings"] += 1
+                
+        avt = r.get("avg_total")
+        if avt is not None:
+            depts[dept]["avg_totals"].append(float(avt))
+            
+    results = []
+    for dept_code, data in depts.items():
+        pp_list = data["pass_pcts"]
+        avt_list = data["avg_totals"]
+        
+        results.append({
+            "department_code": data["department_code"],
+            "total_students": data["total_students"],
+            "total_offerings": data["total_offerings"],
+            "avg_pass_rate": round(sum(pp_list) / len(pp_list), 2) if pp_list else 0.0,
+            "avg_marks": round(sum(avt_list) / len(avt_list), 2) if avt_list else 0.0,
+            "low_pass_offerings": data["low_pass_offerings"]
+        })
+        
+    results.sort(key=lambda x: x["avg_pass_rate"])
+    return results
 
 
 # ---------------------------------------------------------------------------
