@@ -38,9 +38,39 @@ def get_course_performance_all(db: Session) -> List[Dict[str, Any]]:
     return [dict(row._mapping) for row in result]
 
 
-def get_course_performance_summary(db: Session) -> Dict[str, Any]:
+
+def filter_course_rows(rows: List[Dict[str, Any]], roster: List[Dict[str, Any]], department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> List[Dict[str, Any]]:
+    if not any([department, semester, programme, academic_year]):
+        return rows
+        
+    course_to_dept = {r["course_code"]: r["department_code"] for r in roster}
+    filtered = []
+    
+    for r in rows:
+        # Department filter
+        if department:
+            dept = str(course_to_dept.get(r.get("course_code"), r.get("department_id") or "Unknown"))
+            if dept != department:
+                continue
+        
+        # Semester / Term filter (frontend passes e.g. "T1")
+        if semester:
+            term = r.get("term_id")
+            if term != semester and str(term) != semester:
+                continue
+                
+        # Academic year or programme filtering can be added here based on schema
+        
+        filtered.append(r)
+        
+    return filtered
+
+
+def get_course_performance_summary(db: Session, department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> Dict[str, Any]:
     """Aggregate KPIs from assessment.v_course_performance using fast in-memory aggregation."""
     rows = get_course_performance_all(db)
+    roster = get_course_section_roster(db)
+    rows = filter_course_rows(rows, roster, department, semester, programme, academic_year)
     valid_rows = [r for r in rows if (r.get("students_appeared") or 0) > 0]
     
     if not valid_rows:
@@ -308,13 +338,21 @@ def get_critical_high_flags(db: Session) -> List[Dict[str, Any]]:
 # Department performance  (joins offering roster + course performance)
 # ---------------------------------------------------------------------------
 
-def get_department_performance(db: Session) -> List[Dict[str, Any]]:
+def get_department_performance(db: Session, department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> List[Dict[str, Any]]:
     """Per-department performance aggregated from course performance in memory."""
     rows = get_course_performance_all(db)
+    roster = get_course_section_roster(db)
+    rows = filter_course_rows(rows, roster, department, semester, programme, academic_year)
+    
+    # Map course_code to department_code from the roster view
+    course_to_dept_code = {r["course_code"]: r["department_code"] for r in roster}
     
     depts: Dict[str, Dict[str, Any]] = {}
     for r in rows:
-        dept = str(r.get("department_id") or "Unknown")
+        # Use the mapped department_code instead of the UUID department_id
+        course_code = r.get("course_code")
+        dept = str(course_to_dept_code.get(course_code, r.get("department_id") or "Unknown"))
+        
         if dept not in depts:
             depts[dept] = {
                 "department_code": dept,
