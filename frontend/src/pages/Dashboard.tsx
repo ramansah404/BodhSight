@@ -201,11 +201,13 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div 
             onClick={() => setDrilldown({ isOpen: true, context: "evaluated", title: "Students Evaluated" })}
-            className="bg-surface hover:bg-surface/80 transition-colors p-6 rounded-3xl border border-border/60 shadow-sm cursor-pointer group"
+            className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md cursor-pointer group"
           >
             <div className="flex justify-between items-start">
-              <div className="text-xs font-bold uppercase tracking-wider text-secondary group-hover:text-primary transition-colors">Students Evaluated</div>
-              <Users size={16} className="text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
+              <div className="text-xs font-bold uppercase tracking-wider text-secondary group-hover:text-primary transition-colors mt-1">Students Evaluated</div>
+              <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl">
+                <Users size={16} className="text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
+              </div>
             </div>
             <div className="text-3xl font-bold text-primary mt-3">
               {metrics.students_evaluated.toLocaleString()}
@@ -217,10 +219,12 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-surface hover:bg-surface/80 transition-colors p-6 rounded-3xl border border-border/60 shadow-sm">
+          <div className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md">
             <div className="flex justify-between items-start">
-              <div className="text-xs font-bold uppercase tracking-wider text-secondary">Pass Rate</div>
-              <Activity size={16} className="text-emerald-600 dark:text-emerald-400" />
+              <div className="text-xs font-bold uppercase tracking-wider text-secondary mt-1">Pass Rate</div>
+              <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl">
+                <Activity size={16} className="text-emerald-600 dark:text-emerald-400" />
+              </div>
             </div>
             <div className="text-3xl font-bold text-primary mt-3">{metrics.pass_rate.toFixed(1)}%</div>
             <div className="text-xs text-secondary font-medium mt-1">
@@ -228,10 +232,12 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-surface hover:bg-surface/80 transition-colors p-6 rounded-3xl border border-border/60 shadow-sm">
+          <div className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md">
             <div className="flex justify-between items-start">
-              <div className="text-xs font-bold uppercase tracking-wider text-secondary">Average Marks</div>
-              <BookOpen size={16} className="text-blue-600 dark:text-blue-400" />
+              <div className="text-xs font-bold uppercase tracking-wider text-secondary mt-1">Average Marks</div>
+              <div className="p-2 bg-blue-50 dark:bg-blue-500/10 rounded-xl">
+                <BookOpen size={16} className="text-blue-600 dark:text-blue-400" />
+              </div>
             </div>
             <div className="text-3xl font-bold text-primary mt-3">
               {metrics.average_marks.toFixed(1)}
@@ -245,12 +251,13 @@ export default function Dashboard() {
 
           <div 
             onClick={() => setDrilldown({ isOpen: true, context: "problems", title: "Active Problems" })}
-            className="bg-gradient-to-br from-surface to-surface/80 hover:to-rose-500/5 transition-colors p-6 rounded-3xl border border-rose-500/20 shadow-sm relative overflow-hidden cursor-pointer group"
+            className="bg-surface hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-all p-6 rounded-3xl border border-rose-100 dark:border-rose-900/30 shadow-sm hover:shadow-md relative overflow-hidden cursor-pointer group"
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-full blur-xl pointer-events-none group-hover:bg-rose-500/20 transition-colors" />
             <div className="flex justify-between items-start relative z-10">
-              <div className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Active Problems</div>
-              <AlertTriangle size={16} className="text-rose-500 group-hover:scale-110 transition-transform" />
+              <div className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mt-1">Active Problems</div>
+              <div className="p-2 bg-rose-50 dark:bg-rose-500/10 rounded-xl">
+                <AlertTriangle size={16} className="text-rose-500 group-hover:scale-110 transition-transform" />
+              </div>
             </div>
             <div className="text-3xl font-bold text-primary mt-3 relative z-10">
               {metrics.active_anomalies ?? metrics.significant_deviations}

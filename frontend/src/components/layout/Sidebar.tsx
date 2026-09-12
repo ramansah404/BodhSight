@@ -73,7 +73,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
                 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all group
                 ${isActive 
                   ? 'bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' 
-                  : 'text-secondary hover:bg-surface hover:text-primary border border-transparent'}
+                  : 'text-secondary hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-700 dark:hover:text-indigo-300 border border-transparent'}
               `}
             >
               {({ isActive }) => (
