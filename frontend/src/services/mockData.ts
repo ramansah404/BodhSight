@@ -53,13 +53,15 @@ export const mockCondonationForecast = {
   at_risk_students_count: 120, estimated_condonation_revenue: 600000, breakdown_by_department: [{ department: "CSE", count: 50, amount: 250000 }], recommendations: ["Early fee collection campaign"]
 };
 export const mockStudentDrilldown = [
-  { student_id: "S101", name: "Alice", current_cgpa: 5.4, failed_courses: ["CS301"], risk_factors: ["Low Attendance"], recent_trend: "DECLINING" }
+  { student_id: "S101", roll_no: "21A91A0501", full_name: "Alice Smith", department_code: "CSE", batch_label: "2024-2028", programme_code: "B.Tech", attendance_pct: 68, cgpa: 5.4, backlog_count: 3, reason: "Failing core courses, Low Attendance", status: "AT_RISK", section_code: "A", fee_outstanding: 0 },
+  { student_id: "S102", roll_no: "21A91A0502", full_name: "Bob Jones", department_code: "CSE", batch_label: "2024-2028", programme_code: "B.Tech", attendance_pct: 82, cgpa: 5.8, backlog_count: 1, reason: "Borderline performance in EC202", status: "MONITOR", section_code: "B", fee_outstanding: 0 }
 ];
 export const mockEvidence = {
   course_code: "CS301", evidence: ["Syllabus covered late", "Tough mid-term"]
 };
 export const mockSummary = {
-  summary: "Overall performance is stable, but CS301 requires immediate attention due to a 20% drop in pass rate. Early interventions could salvage the semester."
+  summary: "Overall performance is stable, but CS301 requires immediate attention due to a 20% drop in pass rate. Early interventions could salvage the semester.",
+  dashboard_snapshot: { as_of_date: "2026-09-12" }
 };
 export const mockNotifications = [
   { id: "n1", title: "New Exception Detected", message: "CS301 pass rate dropped", type: "ALERT", is_read: false, created_at: "2026-09-12T10:00:00Z" }
