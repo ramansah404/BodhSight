@@ -52,12 +52,12 @@ def _today() -> str:
 # A. Dashboard Metrics
 # ---------------------------------------------------------------------------
 
-def compute_dashboard_metrics(db: Session) -> Dict[str, Any]:
+def compute_dashboard_metrics(db: Session, department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> Dict[str, Any]:
     """
     Compute top-level KPIs from the real database views.
     Returns a dict matching the AcademicDashboardMetrics frontend contract.
     """
-    perf_summary = queries.get_course_performance_summary(db)
+    perf_summary = queries.get_course_performance_summary(db, department, semester, programme, academic_year)
     roster_summary = queries.get_offering_roster_summary(db)
     student_summary = queries.get_student_profile_summary(db)
     open_flags_count = queries.get_open_flags_count(db)
@@ -119,12 +119,12 @@ def compute_dashboard_metrics(db: Session) -> Dict[str, Any]:
 # B. Course Performance
 # ---------------------------------------------------------------------------
 
-def compute_course_performance(db: Session) -> List[Dict[str, Any]]:
+def compute_course_performance(db: Session, department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> List[Dict[str, Any]]:
     """
     Per-course performance from assessment.v_course_performance.
     Assigns trend and priority based on deterministic thresholds.
     """
-    rows = queries.get_course_performance_all(db)
+    rows = queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.get_course_performance_all(db), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year)
     roster = queries.get_course_section_roster(db)
 
     # Build department lookup from roster
@@ -183,9 +183,9 @@ def compute_course_performance(db: Session) -> List[Dict[str, Any]]:
 # C. Department Performance
 # ---------------------------------------------------------------------------
 
-def compute_department_performance(db: Session) -> List[Dict[str, Any]]:
+def compute_department_performance(db: Session, department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> List[Dict[str, Any]]:
     """Aggregate performance per department."""
-    dept_rows = queries.get_department_performance(db)
+    dept_rows = queries.get_department_performance(db, department, semester, programme, academic_year)
     open_flags = queries.get_open_flags(db)
 
     # Count flags per course_offering → then map to department
@@ -226,13 +226,13 @@ def compute_department_performance(db: Session) -> List[Dict[str, Any]]:
 # D. Trends  (single-term data → return state + "insufficient history" flag)
 # ---------------------------------------------------------------------------
 
-def compute_trends(db: Session) -> Dict[str, Any]:
+def compute_trends(db: Session, department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> Dict[str, Any]:
     """
     Detect trends. With a single term of data, we cannot compute
     multi-term change — return what we have with a clear status flag.
     """
-    perf_rows = queries.get_course_performance_all(db)
-    perf_summary = queries.get_course_performance_summary(db)
+    perf_rows = queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.get_course_performance_all(db), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year)
+    perf_summary = queries.get_course_performance_summary(db, department, semester, programme, academic_year)
     student_summary = queries.get_student_profile_summary(db)
 
     # Improving / declining courses by pass_pct vs institutional mean
@@ -303,14 +303,14 @@ def _priority_score(severity: str, students: int, deviation: float) -> float:
     return round(min(1.0, base + student_boost + dev_boost), 3)
 
 
-def compute_anomalies(db: Session) -> List[Dict[str, Any]]:
+def compute_anomalies(db: Session, department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> List[Dict[str, Any]]:
     """
     Detect anomalies from real database views.
     Returns structured evidence for each anomaly.
     """
     anomalies: List[Dict[str, Any]] = []
     roster = queries.get_course_section_roster(db)
-    perf_summary = queries.get_course_performance_summary(db)
+    perf_summary = queries.get_course_performance_summary(db, department, semester, programme, academic_year)
     avg_pp = _f(perf_summary.get("avg_pass_pct")) or 0.0
 
     # Build department/term lookup
@@ -517,7 +517,7 @@ def compute_anomalies(db: Session) -> List[Dict[str, Any]]:
 # F. Intervention Priorities
 # ---------------------------------------------------------------------------
 
-def compute_priorities(db: Session) -> List[Dict[str, Any]]:
+def compute_priorities(db: Session, department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> List[Dict[str, Any]]:
     """
     Rank courses/flags by intervention urgency.
     Uses pass rate, student count, and deviation as the scoring signal.
@@ -594,13 +594,13 @@ def _intervention_text(anomaly: Dict[str, Any]) -> str:
 
 def get_evidence_for_course(db: Session, course_code: str) -> Dict[str, Any]:
     """Return full evidence chain for a specific course."""
-    all_perf = queries.get_course_performance_all(db)
+    all_perf = queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.get_course_performance_all(db), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year)
     course_rows = [r for r in all_perf if r.get("course_code") == course_code]
 
     if not course_rows:
         return {"error": "No data found for course", "course_code": course_code}
 
-    perf_summary = queries.get_course_performance_summary(db)
+    perf_summary = queries.get_course_performance_summary(db, department, semester, programme, academic_year)
     avg_pp = _f(perf_summary.get("avg_pass_pct")) or 0.0
 
     sections = []
@@ -632,7 +632,7 @@ def get_evidence_for_course(db: Session, course_code: str) -> Dict[str, Any]:
 # H. Recommendations
 # ---------------------------------------------------------------------------
 
-def compute_recommendations(db: Session) -> List[Dict[str, Any]]:
+def compute_recommendations(db: Session, department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> List[Dict[str, Any]]:
     """
     Generate actionable recommendations directly from detected anomalies.
     Each recommendation is traceable to a database-backed evidence source.
