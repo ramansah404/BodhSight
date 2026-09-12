@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { X, Loader2, Users, AlertTriangle } from "lucide-react";
+import { X, Loader2, Users, AlertTriangle, Edit2, Save, XCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Agent10API } from "../../services/api";
 import { useFilters } from "../../contexts/FilterContext";
@@ -18,31 +18,42 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
   const [students, setStudents] = useState<StudentProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<Partial<StudentProfile>>({});
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    let cancelled = false;
+  const loadStudents = () => {
     setLoading(true);
     setError("");
-
     Agent10API.getStudentDrilldown(context, { ...filters, course_code: courseCode })
       .then((data) => {
-        if (!cancelled) {
-          setStudents(data);
-          setLoading(false);
-        }
+        setStudents(data);
+        setLoading(false);
       })
       .catch((err) => {
-        if (!cancelled) {
-          const msg = err?.response?.data?.detail || err?.message || String(err);
-          setError(`Failed to load students: ${msg}`);
-          setLoading(false);
-        }
+        const msg = err?.response?.data?.detail || err?.message || String(err);
+        setError(`Failed to load students: ${msg}`);
+        setLoading(false);
       });
+  };
 
-    return () => { cancelled = true; };
+  useEffect(() => {
+    if (!isOpen) {
+      setEditingId(null);
+      return;
+    }
+    loadStudents();
   }, [isOpen, context, courseCode, filters]);
+
+  const handleSave = async (studentId: string) => {
+    try {
+      await Agent10API.updateStudentProfile(studentId, editForm);
+      setEditingId(null);
+      loadStudents(); // Reload to see updated persistence
+    } catch (e) {
+      console.error(e);
+      alert("Failed to save updates.");
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -112,10 +123,13 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
                         <th className="p-3 font-semibold text-xs uppercase tracking-wider">Attendance</th>
                         <th className="p-3 font-semibold text-xs uppercase tracking-wider">CGPA</th>
                         <th className="p-3 font-semibold text-xs uppercase tracking-wider">Reason / Context</th>
+                        <th className="p-3 font-semibold text-xs uppercase tracking-wider text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {students.map((s) => (
+                      {students.map((s) => {
+                        const isEditing = editingId === s.student_id;
+                        return (
                         <tr key={s.student_id} className="hover:bg-muted/30 transition-colors">
                           <td className="p-3 font-medium text-foreground whitespace-nowrap">{s.roll_no}</td>
                           <td className="p-3 text-foreground whitespace-nowrap">
@@ -124,6 +138,9 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
                           </td>
                           <td className="p-3 text-muted-foreground whitespace-nowrap">{s.programme_code}</td>
                           <td className="p-3 whitespace-nowrap">
+                            {isEditing ? (
+                               <input type="number" className="w-20 bg-surface border border-border rounded px-2 py-1 text-xs" value={editForm.attendance_pct ?? s.attendance_pct ?? 0} onChange={(e) => setEditForm({...editForm, attendance_pct: Number(e.target.value)})} />
+                            ) : (
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                               (s.attendance_pct ?? 0) < 75 
                                 ? "bg-rose-500/10 text-rose-600 dark:text-rose-400" 
@@ -131,18 +148,45 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
                             }`}>
                               {s.attendance_pct != null ? `${s.attendance_pct}%` : "N/A"}
                             </span>
+                            )}
                           </td>
                           <td className="p-3 whitespace-nowrap">
-                            <div className="text-foreground font-medium">{s.cgpa != null ? s.cgpa.toFixed(2) : "N/A"}</div>
-                            {s.backlog_count != null && s.backlog_count > 0 && (
-                              <div className="text-xs text-rose-500 font-medium">{s.backlog_count} Backlogs</div>
+                            {isEditing ? (
+                               <input type="number" step="0.01" className="w-20 bg-surface border border-border rounded px-2 py-1 text-xs mb-1" value={editForm.cgpa ?? s.cgpa ?? 0} onChange={(e) => setEditForm({...editForm, cgpa: Number(e.target.value)})} />
+                            ) : (
+                               <div className="text-foreground font-medium">{s.cgpa != null ? s.cgpa.toFixed(2) : "N/A"}</div>
+                            )}
+                            
+                            {isEditing ? (
+                               <input type="number" placeholder="Backlogs" className="w-20 bg-surface border border-border rounded px-2 py-1 text-xs" value={editForm.backlog_count ?? s.backlog_count ?? 0} onChange={(e) => setEditForm({...editForm, backlog_count: Number(e.target.value)})} />
+                            ) : (
+                              s.backlog_count != null && s.backlog_count > 0 && (
+                                <div className="text-xs text-rose-500 font-medium">{s.backlog_count} Backlogs</div>
+                              )
                             )}
                           </td>
                           <td className="p-3 text-foreground text-sm max-w-[200px] truncate" title={s.reason}>
-                            {s.reason || "N/A"}
+                            {isEditing ? (
+                               <input type="text" className="w-full bg-surface border border-border rounded px-2 py-1 text-xs" value={editForm.reason ?? s.reason ?? ""} onChange={(e) => setEditForm({...editForm, reason: e.target.value})} />
+                            ) : (
+                              s.reason || "N/A"
+                            )}
+                          </td>
+                          <td className="p-3 whitespace-nowrap text-right">
+                             {isEditing ? (
+                               <div className="flex items-center justify-end gap-2">
+                                  <button onClick={() => handleSave(s.student_id)} className="p-1.5 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 rounded-md transition-colors"><Save size={16}/></button>
+                                  <button onClick={() => setEditingId(null)} className="p-1.5 bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 rounded-md transition-colors"><XCircle size={16}/></button>
+                               </div>
+                             ) : (
+                               <button onClick={() => { setEditingId(s.student_id); setEditForm(s); }} className="p-1.5 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-md transition-colors" title="Modify Details">
+                                 <Edit2 size={16}/>
+                               </button>
+                             )}
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
