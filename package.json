@@ -7,9 +7,10 @@
     "doc": "docs"
   },
   "scripts": {
-    "dev": "npm run dev:frontend",
+    "dev": "npm run dev:all",
     "dev:frontend": "cd frontend && npm run dev",
-    "dev:backend": "cd backend && uvicorn app.main:app --reload --port 8000"
+    "dev:backend": "cd backend && .\\venv\\Scripts\\python.exe -m uvicorn app.main:app --reload --port 8000",
+    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
   },
   "repository": {
     "type": "git",
