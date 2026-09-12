@@ -78,7 +78,7 @@ export default function Layout() {
                 animate="animate"
                 exit="exit"
                 transition={pageTransition}
-                className="h-full"
+                className="min-h-full pb-8"
               >
                 <ErrorBoundary>
                   <Outlet context={{ currentRole }} />

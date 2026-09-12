@@ -38,11 +38,13 @@ export default function App() {
           <Route element={<ProtectedRoute allowedRoles={["Chairman", "Principal", "IQAC", "Dean"]} />}>
             <Route path="departments" element={<Departments />} />
           </Route>
-          <Route path="sections" element={<Sections />} />
           <Route element={<ProtectedRoute allowedRoles={["Chairman", "Principal", "IQAC", "Dean", "HOD"]} />}>
             <Route path="batches" element={<Batches />} />
           </Route>
-          <Route path="students" element={<Students />} />
+          <Route element={<ProtectedRoute allowedRoles={["Chairman", "Principal", "Dean", "HOD", "Faculty"]} />}>
+            <Route path="sections" element={<Sections />} />
+            <Route path="students" element={<Students />} />
+          </Route>
           <Route path="anomalies" element={<Problems />} />
           <Route path="recommendations" element={<Recommendations />} />
           <Route element={<ProtectedRoute allowedRoles={["Chairman", "Principal", "IQAC", "Dean", "HOD"]} />}>

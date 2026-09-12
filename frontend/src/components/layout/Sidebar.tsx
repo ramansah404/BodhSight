@@ -38,7 +38,6 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     { name: "Problems", path: "/anomalies", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: AlertTriangle },
     { name: "Recommendations", path: "/recommendations", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: Lightbulb },
     { name: "Executive Reports", path: "/reports", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: FileText },
-    { name: "Settings", path: "/settings", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: Settings },
   ];
 
   const navItems = allNavItems.filter(item => item.roles.includes(currentRole));

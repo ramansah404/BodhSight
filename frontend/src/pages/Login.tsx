@@ -371,7 +371,7 @@ export default function Login() {
               whileTap={{ scale: 0.99 }}
               type="submit"
               disabled={loading}
-              className="w-full py-3 mt-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-primary rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 mt-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSignUp ? <UserPlus size={18} /> : <ShieldCheck size={18} />}
               {loading ? "Authenticating…" : isSignUp ? `Register as ${selectedRole.display}` : `Sign In to Dashboard`}
@@ -423,8 +423,8 @@ export default function Login() {
                           required
                         />
                       </div>
-                      <button type="submit" disabled={forgotLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-primary rounded-xl text-sm font-bold transition-all cursor-pointer shadow-sm">
-                        {forgotLoading ? "Sending Code…" : "Send Reset Code"}
+                      <button type="submit" disabled={forgotLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all cursor-pointer shadow-sm">
+                        {forgotLoading ? "Sending..." : "Send Reset Link"}
                       </button>
                     </motion.form>
                   )}
@@ -442,8 +442,8 @@ export default function Login() {
                         <label className="block text-xs font-semibold text-secondary uppercase mb-2">New Password</label>
                         <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-primary focus:border-indigo-500 focus:outline-none shadow-sm" required />
                       </div>
-                      <button type="submit" disabled={forgotLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-primary rounded-xl text-sm font-bold transition-all cursor-pointer shadow-sm">
-                        {forgotLoading ? "Updating…" : "Reset Password"}
+                      <button type="submit" disabled={forgotLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all cursor-pointer shadow-sm">
+                        {forgotLoading ? "Updating..." : "Update Password"}
                       </button>
                     </motion.form>
                   )}

@@ -44,21 +44,25 @@ export default function Recommendations() {
     return () => { cancelled = true; };
   }, []);
 
-  const handleExecute = (id: string) => {
+  const handleExecute = async (id: string) => {
     if (!permissions.canExecuteRecommendation) {
       alert("Access Denied: Your current role does not have authorization to execute institutional interventions.");
       return;
     }
     setExecutingId(id);
-    setTimeout(() => {
+    try {
+      await Agent10API.executeRecommendation(id);
       setExecutingId(null);
       setSuccessId(id);
-      // Update the local status to IN_PROGRESS
+      // Update the local status to IN_PROGRESS to reflect the DB change
       setRecommendations((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: "IN_PROGRESS" } : r))
       );
       setTimeout(() => setSuccessId(null), 3000);
-    }, 1200);
+    } catch (err: any) {
+      setExecutingId(null);
+      alert(err.message || "Failed to execute recommendation. Ensure the backend is connected.");
+    }
   };
 
   const handleExportExcel = () => {
