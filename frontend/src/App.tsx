@@ -1,23 +1,29 @@
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
-import Landing from "./pages/Landing";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Trends from "./pages/Trends";
-import Courses from "./pages/Courses";
-import Departments from "./pages/Departments";
-import Sections from "./pages/Sections";
-import Batches from "./pages/Batches";
-import Students from "./pages/Students";
-import Anomalies from "./pages/Anomalies";
-import Recommendations from "./pages/Recommendations";
-import Reports from "./pages/Reports";
-import Settings from "./pages/Settings";
+import { lazy, Suspense } from "react";
+import LoadingFallback from "./components/ui/LoadingFallback";
+
+const Landing = lazy(() => import("./pages/Landing"));
+const Login = lazy(() => import("./pages/Login"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Trends = lazy(() => import("./pages/Trends"));
+const Courses = lazy(() => import("./pages/Courses"));
+const Departments = lazy(() => import("./pages/Departments"));
+const Sections = lazy(() => import("./pages/Sections"));
+const Batches = lazy(() => import("./pages/Batches"));
+const Students = lazy(() => import("./pages/Students"));
+const Problems = lazy(() => import("./pages/Problems"));
+const Recommendations = lazy(() => import("./pages/Recommendations"));
+const Reports = lazy(() => import("./pages/Reports"));
+const Settings = lazy(() => import("./pages/Settings"));
 
 export default function App() {
   return (
+    <ThemeProvider>
     <HashRouter>
+      <Suspense fallback={<LoadingFallback />}>
       <Routes>
         <Route path="/login" element={<Login />} />
         
@@ -37,7 +43,7 @@ export default function App() {
             <Route path="batches" element={<Batches />} />
           </Route>
           <Route path="students" element={<Students />} />
-          <Route path="anomalies" element={<Anomalies />} />
+          <Route path="anomalies" element={<Problems />} />
           <Route path="recommendations" element={<Recommendations />} />
           <Route element={<ProtectedRoute allowedRoles={["Chairman", "Dean"]} />}>
             <Route path="reports" element={<Reports />} />
@@ -47,6 +53,8 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+      </Suspense>
     </HashRouter>
+    </ThemeProvider>
   );
 }

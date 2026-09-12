@@ -122,7 +122,7 @@ export interface StudentRiskGroup {
   recommended_support: string;
 }
 
-// --- Anomalies / Exceptions ---
+// --- Problems / Exceptions ---
 
 export interface AcademicException {
   id: string;

@@ -85,7 +85,7 @@ export default function Students() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6" id="students-content">
-      <div className="bg-gradient-to-r from-rose-950 via-indigo-900 to-slate-900 rounded-3xl p-8 text-white shadow-xl flex justify-between items-start md:items-end flex-col md:flex-row gap-4">
+      <div className="bg-gradient-to-r from-rose-950 via-indigo-900 to-surface rounded-3xl p-8 text-primary shadow-xl flex justify-between items-start md:items-end flex-col md:flex-row gap-4">
         <div>
           <div className="inline-flex items-center gap-2 bg-rose-500/20 text-rose-200 px-3 py-1 rounded-full text-xs font-bold border border-rose-400/30 mb-2">
             <ShieldAlert size={14} /> At-Risk Intelligence
@@ -118,18 +118,18 @@ export default function Students() {
 
       {state === "error" && (
         <div className="bg-surface rounded-3xl border border-rose-500/20 shadow-sm flex flex-col items-center justify-center py-16 gap-4 px-6">
-          <AlertCircle size={40} className="text-rose-400" />
+          <AlertCircle size={40} className="text-rose-600 dark:text-rose-400" />
           <div className="text-center">
-            <p className="font-bold text-lg text-text-primary">Failed to load student data</p>
-            <p className="text-sm text-text-secondary mt-1">{errorMsg}</p>
+            <p className="font-bold text-lg text-primary">Failed to load student data</p>
+            <p className="text-sm text-secondary mt-1">{errorMsg}</p>
           </div>
         </div>
       )}
 
       {state === "empty" && (
         <div className="bg-surface rounded-3xl border border-border shadow-sm flex flex-col items-center justify-center py-16 gap-3 px-6">
-          <Info size={36} className="text-text-secondary" />
-          <p className="font-semibold text-text-secondary">No student backlog data found.</p>
+          <Info size={36} className="text-secondary" />
+          <p className="font-semibold text-secondary">No student backlog data found.</p>
         </div>
       )}
 
@@ -138,13 +138,13 @@ export default function Students() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-surface p-6 rounded-3xl border border-border shadow-sm">
               <div className="flex justify-between items-start">
-                <div className="text-xs font-bold uppercase tracking-wider text-text-secondary">Total Students</div>
+                <div className="text-xs font-bold uppercase tracking-wider text-secondary">Total Students</div>
                 <Users size={16} className="text-indigo-500" />
               </div>
-              <div className="text-3xl font-black text-text-primary mt-2">
+              <div className="text-3xl font-black text-primary mt-2">
                 {backlog.total_students.toLocaleString()}
               </div>
-              <div className="text-xs text-text-secondary font-medium mt-1">Active in institution</div>
+              <div className="text-xs text-secondary font-medium mt-1">Active in institution</div>
             </div>
 
             <div className="bg-surface p-6 rounded-3xl border border-amber-500/20 shadow-sm">
@@ -176,7 +176,7 @@ export default function Students() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-surface rounded-3xl border border-border shadow-sm p-6 flex flex-col justify-center min-h-[350px]">
-              <h2 className="text-lg font-bold text-text-primary mb-2 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-primary mb-2 flex items-center gap-2">
                 <PieChartIcon className="text-indigo-500" size={20} />
                 Risk Composition
               </h2>
@@ -208,7 +208,7 @@ export default function Students() {
             </div>
 
             <div className="bg-surface rounded-3xl border border-border shadow-sm p-6 space-y-4">
-              <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
+              <h2 className="text-lg font-bold text-primary flex items-center gap-2">
                 <ShieldAlert className="text-rose-500" size={20} />
                 Backlog Risk Classification & Intervention
               </h2>
@@ -222,10 +222,10 @@ export default function Students() {
                         <span className="px-3 py-1 bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-extrabold rounded-full border border-rose-500/20">
                           CRITICAL RISK
                         </span>
-                        <span className="text-xs font-bold text-text-secondary">≥3 active backlogs</span>
+                        <span className="text-xs font-bold text-secondary">≥3 active backlogs</span>
                       </div>
-                      <h3 className="text-base font-bold text-text-primary">Persistent High-Backlog Students</h3>
-                      <p className="text-sm text-text-secondary mt-1">
+                      <h3 className="text-base font-bold text-primary">Persistent High-Backlog Students</h3>
+                      <p className="text-sm text-secondary mt-1">
                         {backlog.students_high_backlogs} student{backlog.students_high_backlogs !== 1 ? "s" : ""} flagged
                         for persistent underperformance with 3 or more active backlogs.
                       </p>
@@ -251,10 +251,10 @@ export default function Students() {
                           <span className="px-3 py-1 bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-extrabold rounded-full border border-amber-500/20">
                             MODERATE RISK
                           </span>
-                          <span className="text-xs font-bold text-text-secondary">1–2 active backlogs</span>
+                          <span className="text-xs font-bold text-secondary">1–2 active backlogs</span>
                         </div>
-                        <h3 className="text-base font-bold text-text-primary">Students with Backlogs (1–2)</h3>
-                        <p className="text-sm text-text-secondary mt-1">
+                        <h3 className="text-base font-bold text-primary">Students with Backlogs (1–2)</h3>
+                        <p className="text-sm text-secondary mt-1">
                           {backlog.students_with_backlogs - backlog.students_high_backlogs} student
                           {backlog.students_with_backlogs - backlog.students_high_backlogs !== 1 ? "s" : ""} with 1–2 backlogs.
                           Early intervention recommended.
@@ -276,9 +276,9 @@ export default function Students() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-text-secondary font-medium px-2">
+          <div className="flex items-center gap-2 text-xs text-secondary font-medium px-2">
             <BookOpen size={14} />
-            Data sourced from <code className="bg-surface-secondary px-1 py-0.5 rounded text-text-primary border border-border">people.v_student_profile</code> via Agent 10 analytics engine.
+            Data sourced from <code className="bg-surface-secondary px-1 py-0.5 rounded text-primary border border-border">people.v_student_profile</code> via Agent 10 analytics engine.
           </div>
         </>
       )}

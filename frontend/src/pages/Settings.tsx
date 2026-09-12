@@ -26,40 +26,40 @@ export default function Settings() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-950 rounded-3xl p-8 text-white shadow-xl">
-        <div className="inline-flex items-center gap-2 bg-[#0B1120]/10 text-slate-200 px-3 py-1 rounded-full text-xs font-bold border border-white/15 mb-2">
+      <div className="bg-gradient-to-r from-surface via-indigo-950 to-slate-950 rounded-3xl p-8 text-primary shadow-xl">
+        <div className="inline-flex items-center gap-2 bg-surface/10 text-primary px-3 py-1 rounded-full text-xs font-bold border border-white/15 mb-2">
           <SettingsIcon size={14} /> System Configuration
         </div>
         <h1 className="text-3xl font-extrabold tracking-tight">System Settings & RBAC Profile</h1>
-        <p className="text-slate-300 text-sm mt-1">Manage session preferences and security guardrails.</p>
+        <p className="text-primary text-sm mt-1">Manage session preferences and security guardrails.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Session details */}
-        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm p-6 space-y-4">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <User className="text-indigo-400" size={20} />
+        <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6 space-y-4">
+          <h2 className="text-lg font-bold text-primary flex items-center gap-2">
+            <User className="text-indigo-600 dark:text-indigo-400" size={20} />
             Active Session
           </h2>
           <div className="space-y-3 text-sm">
-            <div className="flex justify-between p-3 bg-slate-900/40 rounded-xl border border-slate-800/60">
+            <div className="flex justify-between p-3 bg-surface/40 rounded-xl border border-border/60">
               <span className="font-bold text-secondary">Authenticated User</span>
-              <span className="font-bold text-white">{name}</span>
+              <span className="font-bold text-primary">{name}</span>
             </div>
-            <div className="flex justify-between p-3 bg-slate-900/40 rounded-xl border border-slate-800/60">
+            <div className="flex justify-between p-3 bg-surface/40 rounded-xl border border-border/60">
               <span className="font-bold text-secondary">Email</span>
-              <span className="font-bold text-white">{email}</span>
+              <span className="font-bold text-primary">{email}</span>
             </div>
             <div className="flex justify-between p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
-              <span className="font-bold text-indigo-400">Role Code</span>
-              <span className="font-bold text-indigo-400">{role}</span>
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">Role Code</span>
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">{role}</span>
             </div>
             <div className="flex justify-between p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
-              <span className="font-bold text-indigo-400">Display Role</span>
-              <span className="font-bold text-indigo-400">{displayRole}</span>
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">Display Role</span>
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">{displayRole}</span>
             </div>
           </div>
-          <div className="pt-2 border-t border-slate-800/60">
+          <div className="pt-2 border-t border-border/60">
             <p className="text-xs text-secondary font-medium">
               Session is stored in localStorage. No JWT tokens are used.
               Role determines RBAC permissions for all UI actions.
@@ -68,15 +68,15 @@ export default function Settings() {
         </div>
 
         {/* Backend health */}
-        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm p-6 space-y-4">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+        <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6 space-y-4">
+          <h2 className="text-lg font-bold text-primary flex items-center gap-2">
             <Server className="text-emerald-500" size={20} />
             Backend Connection
           </h2>
           <div className="space-y-3 text-sm">
-            <div className="flex justify-between p-3 bg-slate-900/40 rounded-xl border border-slate-800/60">
+            <div className="flex justify-between p-3 bg-surface/40 rounded-xl border border-border/60">
               <span className="font-bold text-secondary">API Base URL</span>
-              <span className="font-mono text-xs text-slate-300">{apiBase}</span>
+              <span className="font-mono text-xs text-primary">{apiBase}</span>
             </div>
 
             <div className={`p-4 rounded-xl border flex items-center gap-3 ${
@@ -84,14 +84,14 @@ export default function Settings() {
                 ? "bg-emerald-500/10 border-emerald-200"
                 : healthStatus === "error"
                 ? "bg-rose-500/10 border-rose-500/20"
-                : "bg-slate-900/40 border-slate-800/60"
+                : "bg-surface/40 border-border/60"
             }`}>
               {healthStatus === "loading" && <Loader2 size={18} className="text-secondary animate-spin" />}
               {healthStatus === "ok" && <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />}
               {healthStatus === "error" && <AlertCircle size={18} className="text-rose-600 shrink-0" />}
               <div>
                 <div className={`font-bold text-sm ${
-                  healthStatus === "ok" ? "text-emerald-400" : healthStatus === "error" ? "text-rose-400" : "text-secondary"
+                  healthStatus === "ok" ? "text-emerald-600 dark:text-emerald-400" : healthStatus === "error" ? "text-rose-600 dark:text-rose-400" : "text-secondary"
                 }`}>
                   {healthStatus === "loading"
                     ? "Checking connection…"
@@ -107,17 +107,17 @@ export default function Settings() {
               </div>
             </div>
 
-            <div className="flex justify-between p-3 bg-slate-900/40 rounded-xl border border-slate-800/60">
+            <div className="flex justify-between p-3 bg-surface/40 rounded-xl border border-border/60">
               <span className="font-bold text-secondary">Data Source</span>
-              <span className="font-bold text-emerald-400">PostgreSQL / Supabase (Live)</span>
+              <span className="font-bold text-emerald-600 dark:text-emerald-400">PostgreSQL / Supabase (Live)</span>
             </div>
           </div>
         </div>
 
         {/* RBAC permissions */}
-        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm p-6 space-y-4 md:col-span-2">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <ShieldCheck className="text-indigo-400" size={20} />
+        <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6 space-y-4 md:col-span-2">
+          <h2 className="text-lg font-bold text-primary flex items-center gap-2">
+            <ShieldCheck className="text-indigo-600 dark:text-indigo-400" size={20} />
             Role Permissions ({role})
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
@@ -137,15 +137,15 @@ export default function Settings() {
                   className={`p-3 rounded-xl border flex items-center gap-2 ${
                     hasPermission
                       ? "bg-emerald-500/10 border-emerald-200"
-                      : "bg-slate-900/40 border-slate-800/60 opacity-60"
+                      : "bg-surface/40 border-border/60 opacity-60"
                   }`}
                 >
                   {hasPermission ? (
                     <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
                   ) : (
-                    <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-700 shrink-0" />
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-border shrink-0" />
                   )}
-                  <span className={`font-semibold ${hasPermission ? "text-emerald-400" : "text-secondary"}`}>
+                  <span className={`font-semibold ${hasPermission ? "text-emerald-600 dark:text-emerald-400" : "text-secondary"}`}>
                     {perm.label}
                   </span>
                 </div>
@@ -155,8 +155,8 @@ export default function Settings() {
         </div>
 
         {/* Database views */}
-        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm p-6 space-y-4 md:col-span-2">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+        <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6 space-y-4 md:col-span-2">
+          <h2 className="text-lg font-bold text-primary flex items-center gap-2">
             <Database className="text-violet-600" size={20} />
             Data Sources (PostgreSQL Views)
           </h2>
@@ -167,8 +167,8 @@ export default function Settings() {
               { view: "people.v_student_profile", desc: "CGPA, backlogs, student status" },
               { view: "agentops.v_open_flags", desc: "Active risk flags, anomalies" },
             ].map((item) => (
-              <div key={item.view} className="p-3 bg-slate-900 rounded-xl border border-slate-700">
-                <div className="font-mono text-xs text-emerald-400 font-bold">{item.view}</div>
+              <div key={item.view} className="p-3 bg-surface rounded-xl border border-border">
+                <div className="font-mono text-xs text-emerald-600 dark:text-emerald-400 font-bold">{item.view}</div>
                 <div className="text-xs text-secondary mt-1 font-medium">{item.desc}</div>
               </div>
             ))}

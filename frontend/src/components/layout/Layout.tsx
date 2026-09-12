@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import GlobalFilterBar from "../filters/GlobalFilterBar";
 import { FilterProvider } from "../../contexts/FilterContext";
+import { NotificationProvider } from "../../contexts/NotificationContext";
 
 export default function Layout() {
   const currentRole = localStorage.getItem("bodhsight_role") || "Dean";
@@ -11,7 +12,8 @@ export default function Layout() {
 
   return (
     <FilterProvider>
-      <div className="flex h-screen bg-[#020817] overflow-hidden font-sans text-slate-300 selection:bg-indigo-500/30 selection:text-indigo-200">
+      <NotificationProvider>
+      <div className="flex h-screen bg-background overflow-hidden font-sans text-primary selection:bg-indigo-500/30 selection:text-indigo-200">
         <Sidebar 
           isOpen={isMobileMenuOpen} 
           setIsOpen={setIsMobileMenuOpen} 
@@ -28,6 +30,7 @@ export default function Layout() {
           </main>
         </div>
       </div>
+      </NotificationProvider>
     </FilterProvider>
   );
 }
