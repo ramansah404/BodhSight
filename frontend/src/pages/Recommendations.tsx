@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Lightbulb, CheckCircle2, Play, Sparkles, Lock , AlertCircle, Info } from "lucide-react";
+import { Lightbulb, CheckCircle2, Play, Sparkles, Lock , AlertCircle, Info, Database, Brain } from "lucide-react";
 import { Agent10API } from "../services/api";
 import { getRolePermissions } from "../utils/rbac";
 import type { RecommendationItem } from "../types/agent10";
@@ -180,21 +180,42 @@ export default function Recommendations() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <h3 className="text-base font-bold text-primary">{item.problem}</h3>
-                <div className="bg-surface/40 p-4 rounded-2xl border border-border/60 text-sm text-primary space-y-1 font-medium">
-                  <strong className="text-indigo-600 dark:text-indigo-400 block">Agent 10 Recommendation:</strong>
-                  <p className="text-indigo-950 font-semibold">{item.recommendation}</p>
-                </div>
-                {item.evidence.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {item.evidence.map((ev, idx) => (
-                      <span key={idx} className="text-xs font-mono bg-surface-secondary/50 text-secondary px-2 py-0.5 rounded border border-border/60">
-                        {ev}
-                      </span>
-                    ))}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Fact Block */}
+                <div className="bg-slate-50/80 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-5 rounded-2xl shadow-sm flex flex-col">
+                  <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">
+                    <Database size={14} /> Fact (Verified Evidence)
                   </div>
-                )}
+                  {item.evidence.length > 0 ? (
+                    <ul className="list-disc list-outside ml-4 text-sm text-primary font-medium space-y-2 flex-1">
+                      {item.evidence.map((ev, idx) => (
+                        <li key={idx} className="pl-1 leading-snug">{ev}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-secondary font-medium">No direct evidence provided.</p>
+                  )}
+                </div>
+                
+                {/* AI Interpretation Block */}
+                <div className="bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 p-5 rounded-2xl shadow-sm flex flex-col">
+                  <div className="flex items-center gap-1.5 text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest mb-3">
+                    <Brain size={14} /> AI Interpretation
+                  </div>
+                  <h3 className="text-sm text-amber-950 dark:text-amber-100 font-bold leading-snug">
+                    {item.problem}
+                  </h3>
+                </div>
+
+                {/* Recommendation Block */}
+                <div className="bg-indigo-50/80 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900/50 p-5 rounded-2xl shadow-sm flex flex-col">
+                  <div className="flex items-center gap-1.5 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-3">
+                    <Sparkles size={14} /> Recommendation
+                  </div>
+                  <p className="text-sm text-indigo-950 dark:text-indigo-100 font-bold leading-snug">
+                    {item.recommendation}
+                  </p>
+                </div>
               </div>
 
               <div className="flex items-center justify-between text-xs pt-3 border-t border-border/60 text-secondary font-semibold">

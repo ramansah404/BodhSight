@@ -51,7 +51,7 @@ export default function Students() {
     return [
       { name: "Critical Risk (≥3 backlogs)", value: backlog.students_high_backlogs, color: "#e11d48" },
       { name: "Moderate Risk (1-2 backlogs)", value: backlog.students_with_backlogs - backlog.students_high_backlogs, color: "#d97706" },
-      { name: "On Track (0 backlogs)", value: backlog.total_students - backlog.students_with_backlogs, color: "#10b981" }
+      { name: "Healthy / No Risk (0 backlogs)", value: backlog.total_students - backlog.students_with_backlogs, color: "#10b981" }
     ];
   }, [backlog]);
 
@@ -233,60 +233,73 @@ export default function Students() {
 
               <div className="space-y-3">
                 {/* High risk */}
-                <div className="bg-rose-500/10 rounded-2xl p-5 border border-rose-500/20">
-                  <div className="flex items-start justify-between gap-4">
+                <div className="bg-surface border border-rose-200 dark:border-rose-900/50 rounded-3xl overflow-hidden shadow-sm">
+                  <div className="bg-rose-50 dark:bg-rose-950/30 p-5 flex items-start justify-between gap-4 border-b border-rose-100 dark:border-rose-900/50">
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="px-3 py-1 bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-extrabold rounded-full border border-rose-500/20">
-                          CRITICAL RISK
+                        <span className="px-2.5 py-1 bg-rose-500 text-white text-[10px] font-black rounded-lg uppercase tracking-wider shadow-sm">
+                          Critical Risk
                         </span>
-                        <span className="text-xs font-bold text-secondary">≥3 active backlogs</span>
+                        <span className="text-xs font-bold text-rose-600 dark:text-rose-400">≥3 active backlogs</span>
                       </div>
-                      <h3 className="text-base font-bold text-primary">Persistent High-Backlog Students</h3>
-                      <p className="text-sm text-secondary mt-1">
-                        {backlog.students_high_backlogs} student{backlog.students_high_backlogs !== 1 ? "s" : ""} flagged
-                        for persistent underperformance with 3 or more active backlogs.
+                      <h3 className="text-base font-bold text-rose-950 dark:text-rose-100">Persistent High-Backlog Cohort</h3>
+                      <p className="text-sm text-rose-800/80 dark:text-rose-200/70 mt-1">
+                        Flagged for persistent underperformance with 3 or more active backlogs across terms.
                       </p>
                     </div>
-                    <div className="text-3xl font-black text-rose-500 shrink-0">
-                      {backlog.students_high_backlogs}
+                    <div className="flex flex-col items-end">
+                      <div className="text-4xl font-black text-rose-600 dark:text-rose-500 leading-none">
+                        {backlog.students_high_backlogs}
+                      </div>
+                      <div className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mt-1">Students</div>
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-rose-500/20">
-                    <p className="text-xs font-bold text-rose-600 dark:text-rose-400">Recommended Intervention:</p>
-                    <p className="text-sm text-rose-600 dark:text-rose-400 font-medium mt-1">
-                      Mandatory academic counselling session. Assign peer mentor. HOD review of progress within 2 weeks.
-                    </p>
+                  <div className="p-5 bg-surface">
+                    <p className="text-[10px] font-black text-secondary uppercase tracking-widest mb-2">Recommended Intervention Action</p>
+                    <div className="flex gap-3 items-start">
+                      <div className="mt-0.5 p-1.5 bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-lg">
+                        <ShieldAlert size={16} />
+                      </div>
+                      <p className="text-sm text-primary font-medium leading-relaxed">
+                        Mandatory academic counselling session. Assign peer mentor. HOD review of progress within 2 weeks.
+                      </p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Moderate risk */}
                 {(backlog.students_with_backlogs - backlog.students_high_backlogs) > 0 && (
-                  <div className="bg-amber-500/10 rounded-2xl p-5 border border-amber-500/20">
-                    <div className="flex items-start justify-between gap-4">
+                  <div className="bg-surface border border-amber-200 dark:border-amber-900/50 rounded-3xl overflow-hidden shadow-sm">
+                    <div className="bg-amber-50 dark:bg-amber-950/30 p-5 flex items-start justify-between gap-4 border-b border-amber-100 dark:border-amber-900/50">
                       <div>
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="px-3 py-1 bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-extrabold rounded-full border border-amber-500/20">
-                            MODERATE RISK
+                          <span className="px-2.5 py-1 bg-amber-500 text-white text-[10px] font-black rounded-lg uppercase tracking-wider shadow-sm">
+                            Moderate Risk
                           </span>
-                          <span className="text-xs font-bold text-secondary">1–2 active backlogs</span>
+                          <span className="text-xs font-bold text-amber-600 dark:text-amber-400">1–2 active backlogs</span>
                         </div>
-                        <h3 className="text-base font-bold text-primary">Students with Backlogs (1–2)</h3>
-                        <p className="text-sm text-secondary mt-1">
-                          {backlog.students_with_backlogs - backlog.students_high_backlogs} student
-                          {backlog.students_with_backlogs - backlog.students_high_backlogs !== 1 ? "s" : ""} with 1–2 backlogs.
-                          Early intervention recommended.
+                        <h3 className="text-base font-bold text-amber-950 dark:text-amber-100">At-Risk Cohort (Early Stage)</h3>
+                        <p className="text-sm text-amber-800/80 dark:text-amber-200/70 mt-1">
+                          Accumulating early backlogs. Early intervention recommended to prevent transition to critical risk.
                         </p>
                       </div>
-                      <div className="text-3xl font-black text-amber-500 shrink-0">
-                        {backlog.students_with_backlogs - backlog.students_high_backlogs}
+                      <div className="flex flex-col items-end">
+                        <div className="text-4xl font-black text-amber-500 leading-none">
+                          {backlog.students_with_backlogs - backlog.students_high_backlogs}
+                        </div>
+                        <div className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mt-1">Students</div>
                       </div>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-amber-500/20">
-                      <p className="text-xs font-bold text-amber-600 dark:text-amber-400">Recommended Intervention:</p>
-                      <p className="text-sm text-amber-600 dark:text-amber-400 font-medium mt-1">
-                        Enrol in supplemental tutorial sessions. Faculty advisory meeting within 1 month.
-                      </p>
+                    <div className="p-5 bg-surface">
+                      <p className="text-[10px] font-black text-secondary uppercase tracking-widest mb-2">Recommended Intervention Action</p>
+                      <div className="flex gap-3 items-start">
+                        <div className="mt-0.5 p-1.5 bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 rounded-lg">
+                          <AlertTriangle size={16} />
+                        </div>
+                        <p className="text-sm text-primary font-medium leading-relaxed">
+                          Enrol in supplemental tutorial sessions. Faculty advisory meeting within 1 month.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 )}

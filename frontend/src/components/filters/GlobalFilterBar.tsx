@@ -9,7 +9,7 @@ export default function GlobalFilterBar() {
 
   return (
     <div className="bg-surface/80 backdrop-blur-md border-b border-border/60 px-6 py-3 flex flex-wrap items-center gap-4 shadow-sm z-10 relative">
-      <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20">
+      <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 font-bold text-sm bg-indigo-50 dark:bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-500/20">
         <Filter size={16} /> Global Scope
       </div>
 
