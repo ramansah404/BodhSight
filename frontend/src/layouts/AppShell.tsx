@@ -17,7 +17,7 @@ export default function AppShell() {
             <li><Link to="/courses" className="hover:text-blue-600">Courses</Link></li>
             <li><Link to="/performance" className="hover:text-blue-600">Performance</Link></li>
             <li><Link to="/trends" className="hover:text-blue-600">Trends</Link></li>
-            <li><Link to="/anomalies" className="hover:text-blue-600">Anomalies</Link></li>
+            <li><Link to="/anomalies" className="hover:text-blue-600">Problems</Link></li>
             <li><Link to="/alerts" className="hover:text-blue-600">Alerts</Link></li>
             <li><Link to="/interventions" className="hover:text-blue-600">Interventions</Link></li>
           </ul>

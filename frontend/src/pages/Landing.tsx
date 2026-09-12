@@ -46,12 +46,12 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020817] text-slate-300 font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
+    <div className="min-h-screen bg-background text-primary font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
       
       {/* ---------------- NAVBAR ---------------- */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
         isScrolled 
-          ? "bg-[#020817]/80 backdrop-blur-xl border-slate-800/50 py-3 shadow-2xl shadow-indigo-500/5" 
+          ? "bg-background backdrop-blur-xl border-slate-800/50 py-3 shadow-2xl shadow-indigo-500/5" 
           : "bg-transparent border-transparent py-5"
       }`}>
         <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
@@ -61,13 +61,13 @@ export default function Landing() {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
-            <button onClick={() => scrollTo('features')} className="text-sm font-medium hover:text-white transition-colors">Platform</button>
-            <button onClick={() => scrollTo('intelligence')} className="text-sm font-medium hover:text-white transition-colors">Intelligence</button>
-            <button onClick={() => scrollTo('security')} className="text-sm font-medium hover:text-white transition-colors">Security</button>
+            <button onClick={() => scrollTo('features')} className="text-sm font-medium hover:text-primary transition-colors">Platform</button>
+            <button onClick={() => scrollTo('intelligence')} className="text-sm font-medium hover:text-primary transition-colors">Intelligence</button>
+            <button onClick={() => scrollTo('security')} className="text-sm font-medium hover:text-primary transition-colors">Security</button>
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <button onClick={() => navigate('/login')} className="text-sm font-medium hover:text-white transition-colors">Sign In</button>
+            <button onClick={() => navigate('/login')} className="text-sm font-medium hover:text-primary transition-colors">Sign In</button>
             <button 
               onClick={() => navigate('/login')}
               className="px-4 py-2 bg-white text-primary hover:bg-slate-200 rounded-lg text-sm font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)]"
@@ -77,7 +77,7 @@ export default function Landing() {
           </div>
 
           {/* Mobile Nav Toggle */}
-          <button className="md:hidden text-slate-300" onClick={() => setMobileMenuOpen(true)}>
+          <button className="md:hidden text-primary" onClick={() => setMobileMenuOpen(true)}>
             <Menu size={24} />
           </button>
         </div>
@@ -91,7 +91,7 @@ export default function Landing() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[60] bg-[#020817] flex flex-col p-6"
+            className="fixed inset-0 z-[60] bg-background flex flex-col p-6"
           >
             <div className="flex justify-between items-center mb-8">
               <BrandLogo />
@@ -101,9 +101,9 @@ export default function Landing() {
               <button onClick={() => scrollTo('features')} className="text-left font-medium">Platform</button>
               <button onClick={() => scrollTo('intelligence')} className="text-left font-medium">Intelligence</button>
               <button onClick={() => scrollTo('security')} className="text-left font-medium">Security</button>
-              <hr className="border-slate-800 my-2" />
+              <hr className="border-border my-2" />
               <button onClick={() => navigate('/login')} className="text-left font-medium">Sign In</button>
-              <button onClick={() => navigate('/login')} className="bg-indigo-600 text-white text-center py-3 rounded-xl font-bold">Enter BodhSight</button>
+              <button onClick={() => navigate('/login')} className="bg-indigo-600 text-primary text-center py-3 rounded-xl font-bold">Enter BodhSight</button>
             </div>
           </motion.div>
         )}
@@ -129,7 +129,7 @@ export default function Landing() {
           
           <motion.h1 
             initial="hidden" animate="visible" variants={fadeIn}
-            className="text-5xl md:text-7xl font-bold text-white tracking-tight leading-[1.1]"
+            className="text-5xl md:text-7xl font-bold text-primary tracking-tight leading-[1.1]"
           >
             Academic Intelligence,<br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">Built for Better Decisions.</span>
@@ -149,13 +149,13 @@ export default function Landing() {
           >
             <button 
               onClick={() => navigate('/login')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all shadow-[0_0_30px_rgba(79,70,229,0.3)] hover:shadow-[0_0_40px_rgba(79,70,229,0.5)] flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-primary rounded-xl text-sm font-bold transition-all shadow-[0_0_30px_rgba(79,70,229,0.3)] hover:shadow-[0_0_40px_rgba(79,70,229,0.5)] flex items-center justify-center gap-2"
             >
               Enter Dashboard <MoveRight size={16} />
             </button>
             <button 
               onClick={() => scrollTo('features')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-slate-600 text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-3.5 bg-surface-secondary/50 hover:bg-surface-secondary border border-border/50 hover:border-slate-600 text-primary rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
             >
               Explore BodhSight
             </button>
@@ -169,44 +169,44 @@ export default function Landing() {
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="relative z-20 mt-20 max-w-6xl w-full px-6"
         >
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-900/50 backdrop-blur-sm p-2 shadow-2xl overflow-hidden ring-1 ring-white/10">
-            <div className="rounded-xl overflow-hidden border border-slate-800 relative bg-[#0B1120]">
+          <div className="rounded-2xl border border-slate-800/80 bg-surface/50 backdrop-blur-sm p-2 shadow-2xl overflow-hidden ring-1 ring-white/10">
+            <div className="rounded-xl overflow-hidden border border-border relative bg-surface">
               {/* Fake Dashboard Header */}
-              <div className="h-12 border-b border-slate-800 flex items-center px-4 gap-2 bg-slate-900/80">
+              <div className="h-12 border-b border-border flex items-center px-4 gap-2 bg-surface/80">
                 <div className="flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-slate-700" />
                   <div className="w-3 h-3 rounded-full bg-slate-700" />
                   <div className="w-3 h-3 rounded-full bg-slate-700" />
                 </div>
-                <div className="ml-4 w-64 h-6 rounded-md bg-slate-800" />
+                <div className="ml-4 w-64 h-6 rounded-md bg-surface-secondary" />
               </div>
               {/* Fake Dashboard Content */}
               <div className="p-6 grid grid-cols-4 gap-4 opacity-70">
                 <div className="col-span-1 space-y-4 hidden md:block">
                   <div className="h-8 rounded bg-indigo-500/20 w-full" />
-                  <div className="h-8 rounded bg-slate-800 w-5/6" />
-                  <div className="h-8 rounded bg-slate-800 w-4/6" />
+                  <div className="h-8 rounded bg-surface-secondary w-5/6" />
+                  <div className="h-8 rounded bg-surface-secondary w-4/6" />
                 </div>
                 <div className="col-span-4 md:col-span-3 space-y-4">
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="h-24 rounded-xl bg-slate-800 border border-slate-700/50" />
-                    <div className="h-24 rounded-xl bg-slate-800 border border-slate-700/50" />
+                    <div className="h-24 rounded-xl bg-surface-secondary border border-border/50" />
+                    <div className="h-24 rounded-xl bg-surface-secondary border border-border/50" />
                     <div className="h-24 rounded-xl bg-indigo-900/40 border border-indigo-500/20" />
                   </div>
-                  <div className="h-64 rounded-xl bg-slate-800/50 border border-slate-700/50" />
+                  <div className="h-64 rounded-xl bg-surface-secondary/50 border border-border/50" />
                 </div>
               </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-[#020817] via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
             </div>
           </div>
         </motion.div>
       </div>
 
       {/* ---------------- FEATURES ---------------- */}
-      <section id="features" className="py-24 relative z-10 border-t border-slate-800/50 bg-slate-950/50">
+      <section id="features" className="py-24 relative z-10 border-t border-slate-800/50 bg-background/50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">A complete view of your institution.</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">A complete view of your institution.</h2>
             <p className="text-secondary">BodhSight connects the dots between isolated database silos, bringing clarity to assessment patterns, faculty distribution, and student risk.</p>
           </div>
 
@@ -218,7 +218,7 @@ export default function Landing() {
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {[
-              { icon: <Activity />, title: "Performance Analytics", desc: "Real-time insights into pass rates, GPAs, and assessment marks across all departments." },
+              { icon: <Activity />, title: "Performance", desc: "Real-time insights into pass rates, GPAs, and assessment marks across all departments." },
               { icon: <BrainCircuit />, title: "Anomaly Detection", desc: "Agent 10 continuously scans PostgreSQL views to flag statistical deviations automatically." },
               { icon: <Search />, title: "Student Risk Detection", desc: "Identify at-risk cohorts with high backlogs before they fail out of the program." },
               { icon: <LineChart />, title: "Trend Analysis", desc: "Compare historical term data against the current institutional mean baseline." },
@@ -227,12 +227,12 @@ export default function Landing() {
             ].map((feature, i) => (
               <motion.div 
                 key={i} variants={fadeIn}
-                className="bg-slate-900/50 border border-slate-800/60 p-6 rounded-2xl hover:bg-slate-800/50 transition-colors group"
+                className="bg-surface/50 border border-border/60 p-6 rounded-2xl hover:bg-surface-secondary/50 transition-colors group"
               >
-                <div className="w-12 h-12 bg-indigo-500/10 text-indigo-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   {feature.icon}
                 </div>
-                <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
+                <h3 className="text-lg font-bold text-primary mb-2">{feature.title}</h3>
                 <p className="text-sm text-secondary leading-relaxed">{feature.desc}</p>
               </motion.div>
             ))}
@@ -253,7 +253,7 @@ export default function Landing() {
               <div className="inline-flex items-center gap-2 bg-violet-500/10 text-violet-400 px-3 py-1 rounded-full text-xs font-bold border border-violet-500/20">
                 Workflow
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-white">How Agent 10 Works</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-primary">How Agent 10 Works</h2>
               <p className="text-secondary text-lg">BodhSight doesn't just show charts. It actively hunts for problems.</p>
               
               <div className="space-y-8 pt-4">
@@ -266,7 +266,7 @@ export default function Landing() {
                   <div key={i} className="flex gap-4">
                     <div className="text-indigo-500 font-mono font-bold text-sm pt-1">{step.num}</div>
                     <div>
-                      <h4 className="text-white font-bold mb-1">{step.title}</h4>
+                      <h4 className="text-primary font-bold mb-1">{step.title}</h4>
                       <p className="text-sm text-secondary">{step.desc}</p>
                     </div>
                   </div>
@@ -281,17 +281,17 @@ export default function Landing() {
               className="relative"
             >
               <div className="absolute inset-0 bg-violet-600/20 blur-[100px] rounded-full" />
-              <div className="relative bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-800">
+              <div className="relative bg-surface border border-border rounded-2xl p-6 shadow-2xl">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
                   <BrainCircuit className="text-violet-400" />
-                  <span className="font-bold text-white">Agent 10 Detection Log</span>
+                  <span className="font-bold text-primary">Agent 10 Detection Log</span>
                 </div>
                 <div className="space-y-4 font-mono text-xs">
-                  <div className="p-3 bg-slate-950 rounded-lg text-secondary">
-                    <span className="text-emerald-400">SUCCESS</span> Connected to people.v_student_profile
+                  <div className="p-3 bg-background rounded-lg text-secondary">
+                    <span className="text-emerald-600 dark:text-emerald-400">SUCCESS</span> Connected to people.v_student_profile
                   </div>
-                  <div className="p-3 bg-slate-950 rounded-lg text-secondary">
-                    <span className="text-indigo-400">ANALYZING</span> Course performance deviation matrix...
+                  <div className="p-3 bg-background rounded-lg text-secondary">
+                    <span className="text-indigo-600 dark:text-indigo-400">ANALYZING</span> Course performance deviation matrix...
                   </div>
                   <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-300">
                     <span className="font-bold">CRITICAL FLAG</span> CS301 Sec-B pass rate (61.2%) dropped &gt; 2σ below mean.
@@ -307,12 +307,12 @@ export default function Landing() {
       </section>
 
       {/* ---------------- SECURITY / RBAC ---------------- */}
-      <section id="security" className="py-24 relative z-10 border-y border-slate-800/50 bg-[#0B1120]">
+      <section id="security" className="py-24 relative z-10 border-y border-slate-800/50 bg-surface">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-400 mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-6">
             <Lock size={32} />
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Enterprise-Grade Governance</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">Enterprise-Grade Governance</h2>
           <p className="text-secondary max-w-2xl mx-auto mb-12">
             BodhSight respects institutional hierarchy. Information access and action authority are strictly gated by the user's role.
           </p>
@@ -324,9 +324,9 @@ export default function Landing() {
               { role: "IQAC Officer", access: "Quality Reports", icon: <LineChart /> },
               { role: "Faculty", access: "Assigned Courses Only", icon: <Search /> }
             ].map((item, i) => (
-              <div key={i} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl text-left">
-                <div className="text-emerald-400 mb-3">{item.icon}</div>
-                <div className="font-bold text-white mb-1">{item.role}</div>
+              <div key={i} className="bg-surface border border-border p-6 rounded-2xl text-left">
+                <div className="text-emerald-600 dark:text-emerald-400 mb-3">{item.icon}</div>
+                <div className="font-bold text-primary mb-1">{item.role}</div>
                 <div className="text-xs text-secondary">{item.access}</div>
               </div>
             ))}
@@ -338,7 +338,7 @@ export default function Landing() {
       <section className="py-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-indigo-600/10 blur-[100px]" />
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center space-y-8">
-          <h2 className="text-4xl md:text-5xl font-bold text-white">Turn Academic Data Into<br/>Institutional Intelligence.</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-primary">Turn Academic Data Into<br/>Institutional Intelligence.</h2>
           <p className="text-secondary text-lg">Stop guessing. Start acting.</p>
           <button 
             onClick={() => navigate('/login')}
@@ -350,7 +350,7 @@ export default function Landing() {
       </section>
 
       {/* ---------------- FOOTER ---------------- */}
-      <footer className="py-10 border-t border-slate-800/50 bg-[#020817] text-center">
+      <footer className="py-10 border-t border-slate-800/50 bg-background text-center">
         <div className="flex justify-center mb-4 opacity-60 hover:opacity-100 transition-opacity grayscale hover:grayscale-0">
           <BrandLogo />
         </div>

@@ -8,7 +8,7 @@ import { exportToExcel } from "../utils/exportUtils";
 
 type LoadState = "loading" | "success" | "error" | "empty";
 
-export default function Anomalies() {
+export default function Problems() {
   const rawRole =
     localStorage.getItem("bodhsight_display_role") ||
     localStorage.getItem("bodhsight_role") ||
@@ -69,7 +69,7 @@ export default function Anomalies() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <div className="bg-gradient-to-r from-rose-950 via-indigo-900 to-violet-950 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-gradient-to-r from-rose-950 via-indigo-900 to-violet-950 rounded-3xl p-8 text-primary shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="inline-flex items-center gap-2 bg-rose-500/20 text-rose-200 px-3 py-1 rounded-full text-xs font-bold border border-rose-400/30 mb-2">
             <AlertTriangle size={14} /> Agent 10 Detection Engine ({rawRole} View)
@@ -84,7 +84,7 @@ export default function Anomalies() {
           {permissions.canTriggerSystemAudit && (
             <button
               onClick={handleTriggerAudit}
-              className="px-5 py-2.5 bg-surface-secondary text-text-primary hover:bg-surface-hover rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer border border-border"
+              className="px-5 py-2.5 bg-surface-secondary text-primary hover:bg-surface-hover rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer border border-border"
             >
               {auditTriggered ? "Audit Running…" : "Trigger Ingestion Audit Check"}
             </button>
@@ -98,7 +98,7 @@ export default function Anomalies() {
       </div>
 
       {auditTriggered && (
-        <div className="bg-emerald-500/10 border border-emerald-200 text-emerald-400 p-4 rounded-2xl flex items-center gap-2 text-sm font-semibold">
+        <div className="bg-emerald-500/10 border border-emerald-200 text-emerald-600 dark:text-emerald-400 p-4 rounded-2xl flex items-center gap-2 text-sm font-semibold">
           <ShieldCheck size={18} className="text-emerald-500" />
           Ingestion integrity audit completed. All Z-score baselines verified against PostgreSQL views.
         </div>
@@ -106,10 +106,10 @@ export default function Anomalies() {
 
       {/* Loading */}
         {state === "loading" && (
-          <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm p-6 space-y-4">
+          <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6 space-y-4">
           <div className="flex gap-4 mb-6">
-            <div className="h-10 w-1/4 bg-slate-800/50 rounded-xl animate-pulse" />
-            <div className="h-10 w-1/4 bg-slate-800/50 rounded-xl animate-pulse" />
+            <div className="h-10 w-1/4 bg-surface-secondary/50 rounded-xl animate-pulse" />
+            <div className="h-10 w-1/4 bg-surface-secondary/50 rounded-xl animate-pulse" />
           </div>
           {[...Array(5)].map((_, i) => (
             <div key={i} className="h-16 w-full bg-slate-800/30 rounded-xl animate-pulse" />
@@ -119,10 +119,10 @@ export default function Anomalies() {
 
       {/* Error */}
       {state === "error" && (
-        <div className="bg-[#0B1120] rounded-3xl border border-rose-500/20 shadow-sm flex flex-col items-center justify-center py-16 gap-4 px-6">
-          <AlertCircle size={40} className="text-rose-400" />
+        <div className="bg-surface rounded-3xl border border-rose-500/20 shadow-sm flex flex-col items-center justify-center py-16 gap-4 px-6">
+          <AlertCircle size={40} className="text-rose-600 dark:text-rose-400" />
           <div className="text-center">
-            <p className="font-bold text-lg text-white">Failed to load anomalies</p>
+            <p className="font-bold text-lg text-primary">Failed to load anomalies</p>
             <p className="text-sm text-secondary mt-1">{errorMsg}</p>
           </div>
         </div>
@@ -130,9 +130,9 @@ export default function Anomalies() {
 
       {/* Empty */}
       {state === "empty" && (
-        <div className="bg-[#0B1120] rounded-3xl border border-emerald-200 shadow-sm flex flex-col items-center justify-center py-16 gap-3 text-emerald-500 px-6">
-          <ShieldCheck size={40} className="text-emerald-400" />
-          <p className="font-bold text-lg text-white">No anomalies detected</p>
+        <div className="bg-surface rounded-3xl border border-emerald-200 shadow-sm flex flex-col items-center justify-center py-16 gap-3 text-emerald-500 px-6">
+          <ShieldCheck size={40} className="text-emerald-600 dark:text-emerald-400" />
+          <p className="font-bold text-lg text-primary">No anomalies detected</p>
           <p className="text-sm text-center text-secondary">
             All courses are performing within expected parameters. No statistical deviations flagged.
           </p>
@@ -145,29 +145,29 @@ export default function Anomalies() {
           {anomalies.map((item) => (
             <div
               key={item.id}
-              className="bg-[#0B1120] rounded-3xl border border-rose-500/20 shadow-sm overflow-hidden flex flex-col md:flex-row"
+              className="bg-surface rounded-3xl border border-rose-500/20 shadow-sm overflow-hidden flex flex-col md:flex-row"
             >
               <div className="bg-rose-500/10/50 md:w-1/3 p-6 border-b md:border-b-0 md:border-r border-rose-500/20 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <ShieldAlert size={20} className="text-rose-400" />
+                    <ShieldAlert size={20} className="text-rose-600 dark:text-rose-400" />
                     <span className={`px-3 py-1 text-xs font-extrabold rounded-full uppercase border ${
                       item.severity === "CRITICAL"
-                        ? "bg-rose-500/20 text-rose-400 border-rose-500/20"
+                        ? "bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/20"
                         : item.severity === "HIGH"
-                        ? "bg-amber-500/20 text-amber-400 border-amber-200"
+                        ? "bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-200"
                         : item.severity === "MEDIUM"
                         ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                        : "bg-slate-800/50 text-slate-300 border-slate-800/60"
+                        : "bg-surface-secondary/50 text-primary border-border/60"
                     }`}>
                       {item.severity} SEVERITY
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-white">{item.title}</h3>
+                  <h3 className="text-lg font-bold text-primary">{item.title}</h3>
                   <div className="mt-4 space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-secondary">Course:</span>
-                      <span className="font-bold text-white">
+                      <span className="font-bold text-primary">
                         {item.course_code !== "—" ? item.course_code : "—"}
                         {item.department !== "—" ? ` (${item.department})` : ""}
                       </span>
@@ -180,16 +180,16 @@ export default function Anomalies() {
                     )}
                     <div className="flex justify-between">
                       <span className="text-secondary">Affected:</span>
-                      <span className="font-bold text-white">{item.affected_students} students</span>
+                      <span className="font-bold text-primary">{item.affected_students} students</span>
                     </div>
                     {item.detected_date && (
                       <div className="flex justify-between">
                         <span className="text-secondary">Detected:</span>
-                        <span className="font-bold text-white">{item.detected_date}</span>
+                        <span className="font-bold text-primary">{item.detected_date}</span>
                       </div>
                     )}
                     {item.is_overdue && (
-                      <div className="mt-2 px-2 py-1 bg-rose-500/20 text-rose-400 text-xs font-bold rounded-lg border border-rose-500/20">
+                      <div className="mt-2 px-2 py-1 bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-lg border border-rose-500/20">
                         ⚠ OVERDUE — Immediate action required
                       </div>
                     )}
@@ -202,21 +202,21 @@ export default function Anomalies() {
                   <h4 className="text-xs font-bold uppercase tracking-wider text-secondary">
                     Agent 10 Explanation & Attribution
                   </h4>
-                  <p className="text-sm text-slate-300 leading-relaxed bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60/60 font-medium">
+                  <p className="text-sm text-primary leading-relaxed bg-surface/40 p-4 rounded-2xl border border-border/60/60 font-medium">
                     {item.explanation || item.title}
                   </p>
                   {item.recommended_action && (
                     <div className="bg-indigo-500/10 p-3 rounded-xl border border-indigo-500/20 text-xs text-indigo-800 font-semibold">
-                      <strong className="block text-indigo-400 mb-1">Recommended Action:</strong>
+                      <strong className="block text-indigo-600 dark:text-indigo-400 mb-1">What to Do:</strong>
                       {item.recommended_action}
                     </div>
                   )}
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-slate-800/60 flex items-center justify-between">
+                <div className="mt-6 pt-4 border-t border-border/60 flex items-center justify-between">
                   <button
                     onClick={() => setSelectedAnomaly(item)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-xl text-sm font-bold transition-all shadow-sm border border-indigo-200 cursor-pointer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-sm font-bold transition-all shadow-sm border border-indigo-200 cursor-pointer"
                   >
                     <FileSearch size={16} /> View Evidence Explorer →
                   </button>
@@ -235,13 +235,13 @@ export default function Anomalies() {
       {/* Evidence Explorer Modal */}
       {selectedAnomaly && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0B1120] rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-800/60 animate-in zoom-in-95">
-            <div className="px-6 py-4 border-b border-slate-800/60 flex justify-between items-center bg-gradient-to-r from-indigo-900 to-violet-900 text-white">
+          <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border/60 animate-in zoom-in-95">
+            <div className="px-6 py-4 border-b border-border/60 flex justify-between items-center bg-gradient-to-r from-indigo-900 to-violet-900 text-primary">
               <div className="flex items-center gap-2">
                 <Sparkles size={20} className="text-indigo-300" />
                 <h3 className="font-bold text-lg">Evidence Explorer</h3>
               </div>
-              <button onClick={() => setSelectedAnomaly(null)} className="text-white/80 hover:text-white cursor-pointer">
+              <button onClick={() => setSelectedAnomaly(null)} className="text-primary/80 hover:text-primary cursor-pointer">
                 <X size={20} />
               </button>
             </div>
@@ -250,27 +250,27 @@ export default function Anomalies() {
               <div>
                 <span className={`text-xs font-bold px-3 py-1 rounded-lg border ${
                   selectedAnomaly.severity === "CRITICAL"
-                    ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                    : "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
+                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
                 }`}>
                   {selectedAnomaly.anomaly_type
                     ? selectedAnomaly.anomaly_type.replace(/_/g, " ")
                     : selectedAnomaly.severity + " ANOMALY"}
                 </span>
-                <h4 className="text-xl font-bold text-white mt-2">{selectedAnomaly.title}</h4>
+                <h4 className="text-xl font-bold text-primary mt-2">{selectedAnomaly.title}</h4>
               </div>
 
               {(selectedAnomaly.current_value !== 0 || selectedAnomaly.baseline_value !== 0) && (
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60">
+                  <div className="bg-surface/40 p-4 rounded-2xl border border-border/60">
                     <div className="text-xs font-bold text-secondary uppercase">Current Value</div>
                     <div className="text-2xl font-black text-rose-600 mt-1">
                       {selectedAnomaly.current_value.toFixed(1)}
                     </div>
                   </div>
-                  <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60">
+                  <div className="bg-surface/40 p-4 rounded-2xl border border-border/60">
                     <div className="text-xs font-bold text-secondary uppercase">Baseline / Reference</div>
-                    <div className="text-2xl font-black text-white mt-1">
+                    <div className="text-2xl font-black text-primary mt-1">
                       {selectedAnomaly.baseline_value.toFixed(1)}
                     </div>
                   </div>
@@ -279,12 +279,12 @@ export default function Anomalies() {
 
               <div className="space-y-3">
                 <h5 className="text-xs font-bold uppercase tracking-wider text-secondary flex items-center gap-1.5">
-                  <Database size={14} className="text-indigo-400" /> Evidence Sources (PostgreSQL Views)
+                  <Database size={14} className="text-indigo-600 dark:text-indigo-400" /> Evidence Sources (PostgreSQL Views)
                 </h5>
-                <div className="bg-slate-900 text-slate-200 p-4 rounded-2xl font-mono text-xs space-y-1 shadow-inner">
-                  <div className="text-emerald-400">-- Evidence lineage from Agent 10</div>
+                <div className="bg-surface text-primary p-4 rounded-2xl font-mono text-xs space-y-1 shadow-inner">
+                  <div className="text-emerald-600 dark:text-emerald-400">-- Evidence lineage from Agent 10</div>
                   {selectedAnomaly.evidence.map((ev, idx) => (
-                    <div key={idx} className="text-slate-300">SELECT * FROM {ev};</div>
+                    <div key={idx} className="text-primary">SELECT * FROM {ev};</div>
                   ))}
                   {selectedAnomaly.course_code && selectedAnomaly.course_code !== "—" && (
                     <div className="text-secondary mt-1">
@@ -299,7 +299,7 @@ export default function Anomalies() {
                   <h5 className="text-xs font-bold uppercase tracking-wider text-secondary">Verified Evidence</h5>
                   <ul className="space-y-2">
                     {selectedAnomaly.evidence.map((ev, idx) => (
-                      <li key={idx} className="flex items-center gap-2.5 text-sm bg-slate-900/40 p-3 rounded-xl border border-slate-800/60 text-slate-300 font-medium">
+                      <li key={idx} className="flex items-center gap-2.5 text-sm bg-surface/40 p-3 rounded-xl border border-border/60 text-primary font-medium">
                         <CheckCircle size={16} className="text-emerald-500 shrink-0" />
                         <span>{ev}</span>
                       </li>
@@ -308,10 +308,10 @@ export default function Anomalies() {
                 </div>
               )}
 
-              <div className="pt-4 border-t border-slate-800/60 flex justify-end">
+              <div className="pt-4 border-t border-border/60 flex justify-end">
                 <button
                   onClick={() => setSelectedAnomaly(null)}
-                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-colors shadow-sm cursor-pointer"
+                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-primary rounded-xl text-sm font-bold transition-colors shadow-sm cursor-pointer"
                 >
                   Close Evidence Explorer
                 </button>

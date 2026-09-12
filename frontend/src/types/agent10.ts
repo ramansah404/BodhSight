@@ -122,7 +122,7 @@ export interface StudentRiskGroup {
   recommended_support: string;
 }
 
-// --- Anomalies / Exceptions ---
+// --- Problems / Exceptions ---
 
 export interface AcademicException {
   id: string;
@@ -325,4 +325,29 @@ export function mapBackendCourse(c: Record<string, unknown>): CoursePerformance 
     internal_external_corr:
       c.internal_external_corr != null ? Number(c.internal_external_corr) : null,
   };
+}
+
+// --- Condonation Forecaster ---
+export interface CondonationForecastMetrics {
+  at_risk_students: number;
+  requiring_condonation: number;
+  expected_revenue: number;
+  academic_impact: number;
+}
+
+// --- Student Drilldown ---
+export interface StudentProfile {
+  student_id: string;
+  roll_no: string;
+  full_name: string;
+  status: string;
+  programme_code: string;
+  department_code: string;
+  batch_label: string;
+  section_code: string;
+  cgpa: number | null;
+  backlog_count: number | null;
+  attendance_pct: number | null;
+  fee_outstanding: number | null;
+  reason?: string;
 }

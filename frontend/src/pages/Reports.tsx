@@ -36,21 +36,21 @@ export default function Reports() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6" id="reports-content">
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-violet-950 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="bg-gradient-to-r from-surface via-indigo-950 to-violet-950 rounded-3xl p-8 text-primary shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 bg-[#0B1120]/10 text-indigo-200 px-3 py-1 rounded-full text-xs font-bold border border-white/15">
+          <div className="inline-flex items-center gap-2 bg-surface/10 text-indigo-200 px-3 py-1 rounded-full text-xs font-bold border border-white/15">
             <FileText size={14} /> Executive Reporting Suite ({rawRole} View)
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">Academic Performance Reports</h1>
-          <p className="text-slate-300 text-sm">
+          <p className="text-primary text-sm">
             {permissions.canExportOfficialReports 
               ? "Generate, export, and review consolidated institutional reports for management and accreditation bodies."
               : "Your current role is restricted from exporting institutional master reports."}
           </p>
         </div>
-        <div className="bg-[#0B1120]/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-right">
+        <div className="bg-surface/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-right">
           <div className="text-xs text-indigo-200 font-semibold uppercase">Compliance Status</div>
-          <div className="text-xl font-black text-emerald-400 mt-0.5 flex items-center gap-1.5 justify-end">
+          <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center gap-1.5 justify-end">
             <ShieldCheck size={18} /> 100% Verified
           </div>
         </div>
@@ -58,7 +58,7 @@ export default function Reports() {
 
       <div className="bg-surface rounded-3xl border border-border shadow-sm p-6 space-y-6">
         <div className="flex items-center justify-between border-b border-border pb-4">
-          <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
+          <h2 className="text-lg font-bold text-primary flex items-center gap-2">
             <Printer className="text-indigo-500" size={20} /> Available Institutional Exports
           </h2>
           <span className={`text-xs font-bold px-3 py-1 rounded-full ${permissions.canExportOfficialReports ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"}`}>
@@ -74,10 +74,10 @@ export default function Reports() {
                   <span className="px-2.5 py-0.5 bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 text-xs font-extrabold rounded-md uppercase border border-indigo-500/20">
                     {rep.type}
                   </span>
-                  <span className="text-xs font-bold text-text-secondary">{rep.category} • {rep.size}</span>
+                  <span className="text-xs font-bold text-secondary">{rep.category} • {rep.size}</span>
                 </div>
-                <h3 className="font-bold text-text-primary text-base">{rep.title}</h3>
-                <p className="text-xs text-text-secondary">Generated with complete Agent 10 telemetry lineage.</p>
+                <h3 className="font-bold text-primary text-base">{rep.title}</h3>
+                <p className="text-xs text-secondary">Generated with complete Agent 10 telemetry lineage.</p>
               </div>
 
               <div className="flex items-center gap-3">
@@ -88,7 +88,7 @@ export default function Reports() {
                     onExportWord={() => handleExportWord(rep.title)}
                   />
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-text-secondary bg-surface px-4 py-2.5 rounded-xl border border-border">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-secondary bg-surface px-4 py-2.5 rounded-xl border border-border">
                     <Lock size={14} /> Restricted Role
                   </span>
                 )}

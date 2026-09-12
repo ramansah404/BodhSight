@@ -5,12 +5,16 @@ import {
   BookOpen, ChevronRight, Activity, Building2, Award, Loader2
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { useFilters } from "../contexts/FilterContext";
 import { Agent10API } from "../services/api";
 import type { AcademicDashboardMetrics, DepartmentPerformance } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
+import CondonationWidget from "../components/dashboard/CondonationWidget";
+import StudentDrilldownModal from "../components/ui/StudentDrilldownModal";
 
 export default function Dashboard() {
+  const { filters } = useFilters();
   const { currentRole } = useOutletContext<{ currentRole: string }>();
   const navigate = useNavigate();
 
@@ -18,6 +22,13 @@ export default function Dashboard() {
   const [departments, setDepartments] = useState<DepartmentPerformance[]>([]);
   const [metricsLoading, setMetricsLoading] = useState(true);
   const [metricsError, setMetricsError] = useState("");
+  
+  // Drill-down state
+  const [drilldown, setDrilldown] = useState<{ isOpen: boolean; context: string; title: string }>({
+    isOpen: false,
+    context: "",
+    title: "",
+  });
 
   const displayRole = localStorage.getItem("bodhsight_display_role") || currentRole;
   const displayName = localStorage.getItem("bodhsight_name") || `${currentRole} User`;
@@ -28,8 +39,8 @@ export default function Dashboard() {
     setMetricsError("");
 
     Promise.allSettled([
-      Agent10API.getDashboard(),
-      Agent10API.getDepartments(),
+      Agent10API.getDashboard(filters),
+      Agent10API.getDepartments(filters),
     ]).then(([metricsResult, deptsResult]) => {
       if (cancelled) return;
 
@@ -46,10 +57,15 @@ export default function Dashboard() {
       }
 
       setMetricsLoading(false);
+
+      // Silently warm the cache for adjacent tabs after dashboard renders
+      if (!cancelled) {
+        Agent10API.prefetchDashboardData(filters);
+      }
     });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [filters]);
 
   const deptChartData = departments.map((d) => ({
     name: d.department_code,
@@ -72,7 +88,7 @@ export default function Dashboard() {
       "Metric": "Average Marks",
       "Value": metrics?.average_marks || 0
     }, {
-      "Metric": "Active Anomalies",
+      "Metric": "Active Problems",
       "Value": metrics?.active_anomalies || metrics?.significant_deviations || 0
     }];
     
@@ -96,7 +112,7 @@ export default function Dashboard() {
       `Students Evaluated: ${metrics?.students_evaluated || 0} (out of ${metrics?.total_students || 0})`,
       `Institutional Pass Rate: ${metrics?.pass_rate?.toFixed(1) || 0}%`,
       `Average Marks: ${metrics?.average_marks?.toFixed(1) || 0}`,
-      `Active Anomalies Requiring Attention: ${metrics?.active_anomalies || metrics?.significant_deviations || 0}`
+      `Active Problems Requiring Attention: ${metrics?.active_anomalies || metrics?.significant_deviations || 0}`
     ];
     
     const tableData = [
@@ -111,9 +127,9 @@ export default function Dashboard() {
     <div className="max-w-7xl mx-auto space-y-6" id="dashboard-content">
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-[#0B1120] p-6 rounded-3xl border border-slate-800/60 shadow-lg">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-surface p-6 rounded-3xl border border-border/60 shadow-lg">
         <div>
-          <div className="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-400 px-3 py-1 rounded-full text-xs font-bold border border-indigo-500/20 mb-3">
+          <div className="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-bold border border-indigo-500/20 mb-3">
             {displayRole === "Principal" || displayRole === "Management" ? (
               <Award size={14} />
             ) : currentRole === "HOD" ? (
@@ -123,7 +139,7 @@ export default function Dashboard() {
             )}
             Authenticated as {displayName}
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-3xl font-bold text-primary tracking-tight">
             {currentRole === "Dean"
               ? "Institutional Macro Governance"
               : currentRole === "HOD"
@@ -165,52 +181,55 @@ export default function Dashboard() {
       {metricsLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-[#0B1120] p-6 rounded-3xl border border-slate-800/60 shadow-sm animate-pulse">
-              <div className="h-3 bg-slate-800 rounded w-3/4 mb-4" />
-              <div className="h-8 bg-slate-800 rounded w-1/2 mb-2" />
-              <div className="h-3 bg-slate-800/50 rounded w-2/3" />
+            <div key={i} className="bg-surface p-6 rounded-3xl border border-border/60 shadow-sm animate-pulse">
+              <div className="h-3 bg-surface-secondary rounded w-3/4 mb-4" />
+              <div className="h-8 bg-surface-secondary rounded w-1/2 mb-2" />
+              <div className="h-3 bg-surface-secondary/50 rounded w-2/3" />
             </div>
           ))}
         </div>
       ) : metricsError ? (
-        <div className="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4 text-rose-400 font-medium text-sm">
+        <div className="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4 text-rose-600 dark:text-rose-400 font-medium text-sm">
           ⚠ {metricsError} — Check backend connection at{" "}
           {import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}
         </div>
       ) : metrics ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-[#0B1120] hover:bg-slate-900/80 transition-colors p-6 rounded-3xl border border-slate-800/60 shadow-sm">
+          <div 
+            onClick={() => setDrilldown({ isOpen: true, context: "evaluated", title: "Students Evaluated" })}
+            className="bg-surface hover:bg-surface/80 transition-colors p-6 rounded-3xl border border-border/60 shadow-sm cursor-pointer group"
+          >
             <div className="flex justify-between items-start">
-              <div className="text-xs font-bold uppercase tracking-wider text-secondary">Students Evaluated</div>
-              <Users size={16} className="text-indigo-400" />
+              <div className="text-xs font-bold uppercase tracking-wider text-secondary group-hover:text-primary transition-colors">Students Evaluated</div>
+              <Users size={16} className="text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
             </div>
-            <div className="text-3xl font-bold text-text-primary mt-3">
+            <div className="text-3xl font-bold text-primary mt-3">
               {metrics.students_evaluated.toLocaleString()}
             </div>
-            <div className="text-xs text-secondary font-medium mt-1">
+            <div className="text-xs text-secondary font-medium mt-1 group-hover:text-foreground transition-colors">
               {metrics.total_students
                 ? `of ${metrics.total_students.toLocaleString()} registered`
                 : "Institutional active scope"}
             </div>
           </div>
 
-          <div className="bg-[#0B1120] hover:bg-slate-900/80 transition-colors p-6 rounded-3xl border border-slate-800/60 shadow-sm">
+          <div className="bg-surface hover:bg-surface/80 transition-colors p-6 rounded-3xl border border-border/60 shadow-sm">
             <div className="flex justify-between items-start">
               <div className="text-xs font-bold uppercase tracking-wider text-secondary">Pass Rate</div>
-              <Activity size={16} className="text-emerald-400" />
+              <Activity size={16} className="text-emerald-600 dark:text-emerald-400" />
             </div>
-            <div className="text-3xl font-bold text-text-primary mt-3">{metrics.pass_rate.toFixed(1)}%</div>
+            <div className="text-3xl font-bold text-primary mt-3">{metrics.pass_rate.toFixed(1)}%</div>
             <div className="text-xs text-secondary font-medium mt-1">
               Failure rate: {metrics.failure_rate.toFixed(1)}%
             </div>
           </div>
 
-          <div className="bg-[#0B1120] hover:bg-slate-900/80 transition-colors p-6 rounded-3xl border border-slate-800/60 shadow-sm">
+          <div className="bg-surface hover:bg-surface/80 transition-colors p-6 rounded-3xl border border-border/60 shadow-sm">
             <div className="flex justify-between items-start">
               <div className="text-xs font-bold uppercase tracking-wider text-secondary">Average Marks</div>
-              <BookOpen size={16} className="text-blue-400" />
+              <BookOpen size={16} className="text-blue-600 dark:text-blue-400" />
             </div>
-            <div className="text-3xl font-bold text-text-primary mt-3">
+            <div className="text-3xl font-bold text-primary mt-3">
               {metrics.average_marks.toFixed(1)}
             </div>
             <div className="text-xs text-secondary font-medium mt-1">
@@ -220,28 +239,45 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-[#0B1120] to-slate-900/80 p-6 rounded-3xl border border-rose-500/20 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-full blur-xl pointer-events-none" />
+          <div 
+            onClick={() => setDrilldown({ isOpen: true, context: "problems", title: "Active Problems" })}
+            className="bg-gradient-to-br from-surface to-surface/80 hover:to-rose-500/5 transition-colors p-6 rounded-3xl border border-rose-500/20 shadow-sm relative overflow-hidden cursor-pointer group"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-full blur-xl pointer-events-none group-hover:bg-rose-500/20 transition-colors" />
             <div className="flex justify-between items-start relative z-10">
-              <div className="text-xs font-bold uppercase tracking-wider text-rose-400">Active Anomalies</div>
-              <AlertTriangle size={16} className="text-rose-500" />
+              <div className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Active Problems</div>
+              <AlertTriangle size={16} className="text-rose-500 group-hover:scale-110 transition-transform" />
             </div>
-            <div className="text-3xl font-bold text-text-primary mt-3 relative z-10">
+            <div className="text-3xl font-bold text-primary mt-3 relative z-10">
               {metrics.active_anomalies ?? metrics.significant_deviations}
             </div>
-            <div className="text-xs text-rose-400 font-medium mt-1 relative z-10">
+            <div className="text-xs text-rose-600 dark:text-rose-400 font-medium mt-1 relative z-10 group-hover:text-rose-500 transition-colors">
               Requires administrative attention
             </div>
           </div>
         </div>
       ) : null}
 
+      <StudentDrilldownModal
+        isOpen={drilldown.isOpen}
+        onClose={() => setDrilldown({ ...drilldown, isOpen: false })}
+        context={drilldown.context}
+        title={drilldown.title}
+      />
+
+      {/* Condonation Forecaster (Chairman & Principal Only) */}
+      {(currentRole === "Chairman" || currentRole === "Principal") && (
+        <div className="mt-4 h-32">
+          <CondonationWidget />
+        </div>
+      )}
+
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Pass rate gauge card */}
-        <div className="lg:col-span-2 bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm p-6">
-          <h2 className="text-lg font-bold text-white mb-6">Department Pass Rate Comparison</h2>
+        <div className="lg:col-span-2 bg-surface rounded-3xl border border-border/60 shadow-sm p-6">
+          <h2 className="text-lg font-bold text-primary mb-6">Department Pass Rate Comparison</h2>
           {deptChartData.length > 0 ? (
             <div style={{ width: "100%", height: 288 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -288,29 +324,29 @@ export default function Dashboard() {
         </div>
 
         {/* Courses analyzed sidebar */}
-        <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm p-6">
-          <h2 className="text-lg font-bold text-white mb-4">
-            {currentRole === "HOD" ? "Department Summary" : "Institutional Scope"}
+        <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6">
+          <h2 className="text-lg font-bold text-primary mb-4">
+            {currentRole === "HOD" ? "Department Summary" : "College Overview"}
           </h2>
           {metrics ? (
             <div className="space-y-4">
-              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+              <div className="p-4 rounded-2xl bg-surface border border-border">
                 <div className="text-xs font-bold text-secondary uppercase mb-1">Courses Analyzed</div>
-                <div className="text-2xl font-bold text-indigo-400">{metrics.courses_analyzed ?? "—"}</div>
+                <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{metrics.courses_analyzed ?? "—"}</div>
               </div>
-              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+              <div className="p-4 rounded-2xl bg-surface border border-border">
                 <div className="text-xs font-bold text-secondary uppercase mb-1">Data Source</div>
-                <div className="text-sm font-bold text-slate-300 capitalize">
+                <div className="text-sm font-bold text-primary capitalize">
                   {metrics.data_source === "database" ? "✅ Live Database" : metrics.data_source}
                 </div>
               </div>
               <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
                 <div className="text-xs font-bold text-emerald-500 uppercase mb-1">Trust Score</div>
-                <div className="text-2xl font-bold text-emerald-400">{metrics.data_trust_score}%</div>
+                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{metrics.data_trust_score}%</div>
                 <div className="text-xs text-emerald-500/70 font-medium mt-1">Verified from PostgreSQL views</div>
               </div>
               {departments.length > 0 && (
-                <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800">
+                <div className="p-4 rounded-2xl bg-surface border border-border">
                   <div className="text-xs font-bold text-secondary uppercase mb-3">Departments Active</div>
                   <div className="flex flex-wrap gap-2">
                     {departments.map((d) => (
@@ -318,10 +354,10 @@ export default function Dashboard() {
                         key={d.department_code}
                         className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${
                           d.status === "INTERVENTION_REQUIRED"
-                            ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                            ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
                             : d.status === "MONITORING"
-                            ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                            : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                            : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
                         }`}
                       >
                         {d.department_code}
@@ -334,7 +370,7 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-20 bg-slate-800/50 rounded-2xl animate-pulse" />
+                <div key={i} className="h-20 bg-surface-secondary/50 rounded-2xl animate-pulse" />
               ))}
             </div>
           )}
@@ -342,21 +378,21 @@ export default function Dashboard() {
       </div>
 
       {/* Agent 10 Quick Actions */}
-      <div className="bg-gradient-to-r from-indigo-900/40 via-indigo-950/40 to-[#0B1120] rounded-3xl p-6 border border-slate-800/60 shadow-lg relative overflow-hidden">
+      <div className="bg-gradient-to-r from-indigo-900/40 via-indigo-950/40 to-surface rounded-3xl p-6 border border-border/60 shadow-lg relative overflow-hidden">
         <div className="absolute top-0 left-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
-        <h2 className="text-lg font-bold flex items-center gap-2 mb-4 text-white relative z-10">
-          <Sparkles className="text-indigo-400" size={20} />
+        <h2 className="text-lg font-bold flex items-center gap-2 mb-4 text-primary relative z-10">
+          <Sparkles className="text-indigo-600 dark:text-indigo-400" size={20} />
           Agent 10 Quick Navigation ({displayRole} Scope)
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
           <div
             onClick={() => navigate("/anomalies")}
-            className="bg-slate-900/60 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 cursor-pointer transition-all group"
+            className="bg-surface/60 hover:bg-surface-secondary border border-border hover:border-border rounded-2xl p-4 cursor-pointer transition-all group"
           >
             <div className="flex items-start gap-3">
-              <AlertTriangle className="text-rose-400 shrink-0 mt-0.5" size={18} />
+              <AlertTriangle className="text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" size={18} />
               <div>
-                <p className="text-sm font-semibold text-white group-hover:text-rose-300 transition-colors">
+                <p className="text-sm font-semibold text-primary group-hover:text-rose-300 transition-colors">
                   View Anomaly Center
                 </p>
                 <p className="text-xs text-secondary mt-1">
@@ -369,12 +405,12 @@ export default function Dashboard() {
           </div>
           <div
             onClick={() => navigate("/recommendations")}
-            className="bg-slate-900/60 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 cursor-pointer transition-all group"
+            className="bg-surface/60 hover:bg-surface-secondary border border-border hover:border-border rounded-2xl p-4 cursor-pointer transition-all group"
           >
             <div className="flex items-start gap-3">
-              <ShieldCheck className="text-emerald-400 shrink-0 mt-0.5" size={18} />
+              <ShieldCheck className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" size={18} />
               <div>
-                <p className="text-sm font-semibold text-white group-hover:text-emerald-300 transition-colors">
+                <p className="text-sm font-semibold text-primary group-hover:text-emerald-300 transition-colors">
                   Intervention Recommendations
                 </p>
                 <p className="text-xs text-secondary mt-1">Deploy prioritized remediation actions</p>
@@ -383,12 +419,12 @@ export default function Dashboard() {
           </div>
           <div
             onClick={() => navigate("/courses")}
-            className="bg-slate-900/60 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 cursor-pointer transition-all group flex items-center justify-between"
+            className="bg-surface/60 hover:bg-surface-secondary border border-border hover:border-border rounded-2xl p-4 cursor-pointer transition-all group flex items-center justify-between"
           >
             <div className="flex items-start gap-3">
-              <Activity className="text-amber-400 shrink-0 mt-0.5" size={18} />
+              <Activity className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" size={18} />
               <div>
-                <p className="text-sm font-semibold text-white group-hover:text-amber-300 transition-colors">
+                <p className="text-sm font-semibold text-primary group-hover:text-amber-300 transition-colors">
                   Course Performance Audit
                 </p>
                 <p className="text-xs text-secondary mt-1">
@@ -398,7 +434,7 @@ export default function Dashboard() {
                 </p>
               </div>
             </div>
-            <ChevronRight className="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" size={20} />
+            <ChevronRight className="text-indigo-600 dark:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" size={20} />
           </div>
         </div>
       </div>
