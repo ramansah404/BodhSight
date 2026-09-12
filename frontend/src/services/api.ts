@@ -37,7 +37,7 @@ apiClient.interceptors.request.use((config) => {
   const role = localStorage.getItem("bodhsight_role") || "Dean";
   const name = localStorage.getItem("bodhsight_name") || "User";
   config.headers["X-User-Role"] = role;
-  config.headers["X-User-Name"] = name;
+  config.headers["X-User-Name"] = encodeURIComponent(name);
   return config;
 });
 
@@ -141,6 +141,11 @@ export const Agent10API = {
   /** Backend health check */
   getHealth(): Promise<{ status: string; service: string; environment: string; agent: string }> {
     return get("/health");
+  },
+
+  /** Simulate data change for real-time demo */
+  simulateChange(action: string, target: string, amount: number): Promise<any> {
+    return apiClient.post("/agent10/simulate", { action, target, amount });
   },
 };
 

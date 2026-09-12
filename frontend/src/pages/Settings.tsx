@@ -174,6 +174,40 @@ export default function Settings() {
             ))}
           </div>
         </div>
+        {/* Real-Time Demo Controls */}
+        <div className="bg-[#0B1120] rounded-3xl border border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.2)] p-6 space-y-4 md:col-span-2">
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <AlertCircle className="text-indigo-400" size={20} />
+                Real-Time Simulation Controls
+              </h2>
+              <p className="text-sm text-secondary mt-1">
+                Use these buttons to update the mock database in real-time. Open a second window to see changes reflect instantly!
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
+            <button
+              onClick={() => {
+                Agent10API.simulateChange("pass_rate", "CS101", 5);
+                alert("Simulated: Increased CS101 Pass Rate by 5%");
+              }}
+              className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md active:scale-95 text-sm"
+            >
+              ⬆️ Grade CS101 (+5% Pass)
+            </button>
+            <button
+              onClick={() => {
+                Agent10API.simulateChange("pass_rate", "CS101", -15);
+                alert("Simulated: Mass failure in CS101 (-15% Pass)");
+              }}
+              className="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md active:scale-95 text-sm"
+            >
+              ⬇️ Fail CS101 (-15% Pass)
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

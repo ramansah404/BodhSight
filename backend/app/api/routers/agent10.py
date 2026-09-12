@@ -264,3 +264,19 @@ def get_executive_summary(db: Session = Depends(get_db)):
         "llm_used": agent10.llm_status()["llm_available"],
         "data_source": "database",
     }
+
+from pydantic import BaseModel
+from app.core.config import settings
+
+class SimulateRequest(BaseModel):
+    action: str
+    target: str
+    amount: float
+
+@router.post("/simulate")
+def simulate_demo_change(req: SimulateRequest):
+    """Update stateful mock DB for real-time demonstration."""
+    if settings.DATA_SOURCE == "demo":
+        from app.db.mock_queries import simulate_change
+        simulate_change(req.action, req.target, req.amount)
+    return {"status": "success", "action": req.action, "target": req.target, "amount": req.amount}
