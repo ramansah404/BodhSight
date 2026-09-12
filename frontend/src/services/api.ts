@@ -94,7 +94,46 @@ async function get<T>(path: string, forceFresh = false): Promise<T> {
         return depts as T;
     }
     
-    if (path.includes("/agent10/trends")) return mockData.mockTrends as T;
+    if (path.includes("/agent10/trends")) {
+        let trends = JSON.parse(JSON.stringify(mockData.mockTrends));
+        const overridesStr = localStorage.getItem("bodhsight_student_overrides");
+        
+        if (overridesStr) {
+            try {
+                const overrides = JSON.parse(overridesStr);
+                let highDiff = 0;
+                let anyDiff = 0;
+                
+                // Compare original students with overrides to find the delta
+                mockData.mockStudentDrilldown.forEach(s => {
+                    const over = overrides[s.student_id];
+                    if (over && over.backlog_count !== undefined && over.backlog_count !== s.backlog_count) {
+                        const origHigh = s.backlog_count >= 3;
+                        const newHigh = over.backlog_count >= 3;
+                        if (origHigh && !newHigh) highDiff--;
+                        if (!origHigh && newHigh) highDiff++;
+                        
+                        const origAny = s.backlog_count > 0;
+                        const newAny = over.backlog_count > 0;
+                        if (origAny && !newAny) anyDiff--;
+                        if (!origAny && newAny) anyDiff++;
+                    }
+                });
+                
+                if (trends.student_backlog_trend) {
+                    trends.student_backlog_trend.students_high_backlogs += highDiff;
+                    trends.student_backlog_trend.students_with_backlogs += anyDiff;
+                    
+                    // Prevent counts from dropping below zero due to mock anomalies
+                    trends.student_backlog_trend.students_high_backlogs = Math.max(0, trends.student_backlog_trend.students_high_backlogs);
+                    trends.student_backlog_trend.students_with_backlogs = Math.max(0, trends.student_backlog_trend.students_with_backlogs);
+                }
+            } catch (e) {
+                console.error("Failed to parse student overrides for trends calculation", e);
+            }
+        }
+        return trends as T;
+    }
     
     if (path.includes("/agent10/exceptions")) {
         let exc = mockData.mockExceptions;
