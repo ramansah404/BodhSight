@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Lenis from "lenis";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import ErrorBoundary from "../ui/ErrorBoundary";
 import GlobalFilterBar from "../filters/GlobalFilterBar";
 import { FilterProvider } from "../../contexts/FilterContext";
 import { NotificationProvider } from "../../contexts/NotificationContext";
@@ -79,7 +80,9 @@ export default function Layout() {
                 transition={pageTransition}
                 className="h-full"
               >
-                <Outlet context={{ currentRole }} />
+                <ErrorBoundary>
+                  <Outlet context={{ currentRole }} />
+                </ErrorBoundary>
               </motion.div>
             </AnimatePresence>
           </main>

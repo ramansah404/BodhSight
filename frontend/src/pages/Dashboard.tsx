@@ -326,7 +326,7 @@ export default function Dashboard() {
         {/* Courses analyzed sidebar */}
         <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6">
           <h2 className="text-lg font-bold text-primary mb-4">
-            {currentRole === "HOD" ? "Department Summary" : "College Overview"}
+            {currentRole === "Faculty" ? "My Sections Summary" : currentRole === "HOD" ? "Department Summary" : "College Overview"}
           </h2>
           {metrics ? (
             <div className="space-y-4">
