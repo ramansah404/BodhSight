@@ -30,9 +30,11 @@ export default function Courses() {
           setState("success");
         }
       })
-      .catch((err) => {
+      .catch((err: any) => {
         if (cancelled) return;
-        setErrorMsg(err?.message ?? "Failed to load course data from backend.");
+        console.error("Failed to fetch courses:", err);
+        const msg = err?.response?.data?.detail || err?.message || String(err);
+        setErrorMsg(msg);
         setState("error");
       });
 

@@ -36,7 +36,9 @@ export default function Dashboard() {
       if (metricsResult.status === "fulfilled") {
         setMetrics(metricsResult.value);
       } else {
-        setMetricsError("Failed to load dashboard metrics from backend.");
+        const err = metricsResult.reason;
+        const msg = err?.response?.data?.detail || err?.message || String(err);
+        setMetricsError(`Failed to load dashboard metrics from backend: ${msg}`);
       }
 
       if (deptsResult.status === "fulfilled" && deptsResult.value.length > 0) {
