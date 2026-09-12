@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useFilters } from "../contexts/FilterContext";
 import { Agent10API } from "../services/api";
 import type { DepartmentPerformance } from "../types/agent10";
 import { Building2, AlertCircle, CheckCircle2, Lightbulb } from "lucide-react";
@@ -7,15 +8,16 @@ import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 
 export default function Departments() {
+  const { filters } = useFilters();
   const [departments, setDepartments] = useState<DepartmentPerformance[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Agent10API.getDepartments().then(data => {
+    Agent10API.getDepartments(filters).then(data => {
       setDepartments(data || []);
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, []);
+  }, [filters]);
 
   const insight = useMemo(() => {
     if (departments.length === 0) return null;
@@ -66,7 +68,7 @@ export default function Departments() {
   if (loading) return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
       {[...Array(4)].map((_, i) => (
-        <div key={i} className="bg-[#0B1120] rounded-2xl border border-border p-6 flex flex-col justify-between h-48 animate-pulse">
+        <div key={i} className="bg-surface rounded-2xl border border-border p-6 flex flex-col justify-between h-48 animate-pulse">
           <div className="h-6 w-1/3 bg-surface-secondary rounded mb-4"></div>
           <div className="h-4 w-1/2 bg-surface-secondary rounded mb-2"></div>
           <div className="h-20 w-full bg-surface-secondary rounded-2xl"></div>
@@ -79,7 +81,7 @@ export default function Departments() {
     <div className="max-w-7xl mx-auto space-y-6" id="departments-content">
       
       {/* Header */}
-      <div className="bg-gradient-to-r from-violet-900 via-indigo-900 to-blue-900 rounded-3xl p-8 text-white shadow-xl flex justify-between items-start md:items-end flex-col md:flex-row gap-4">
+      <div className="bg-gradient-to-r from-violet-900 via-indigo-900 to-blue-900 rounded-3xl p-8 text-primary shadow-xl flex justify-between items-start md:items-end flex-col md:flex-row gap-4">
         <div>
           <div className="flex items-center gap-2 text-violet-300 text-xs font-bold uppercase tracking-wider mb-2">
             <Building2 size={14} /> Institutional Structure
@@ -100,7 +102,7 @@ export default function Departments() {
         <div className="space-y-6">
           {/* Chart Section */}
           <div className="bg-surface rounded-3xl border border-border shadow-sm p-6">
-            <h2 className="text-lg font-bold text-text-primary mb-6">Department Comparison (Pass Rate vs GPA)</h2>
+            <h2 className="text-lg font-bold text-primary mb-6">Department Comparison (Pass Rate vs GPA)</h2>
             <div style={{ width: "100%", height: 350 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={departments} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
@@ -132,7 +134,7 @@ export default function Departments() {
               </div>
               <div>
                 <h3 className="font-bold text-indigo-700 dark:text-indigo-400 mb-1">Key Insight</h3>
-                <p className="text-text-secondary text-sm leading-relaxed">{insight.text}</p>
+                <p className="text-secondary text-sm leading-relaxed">{insight.text}</p>
               </div>
             </div>
           )}
@@ -140,12 +142,12 @@ export default function Departments() {
           {/* Data Table */}
           <div className="bg-surface rounded-3xl border border-border shadow-sm overflow-hidden">
             <div className="p-6 border-b border-border bg-surface-secondary">
-              <h2 className="text-lg font-bold text-text-primary">Department Details</h2>
+              <h2 className="text-lg font-bold text-primary">Department Details</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-surface text-text-secondary text-xs uppercase tracking-wider">
+                  <tr className="bg-surface text-secondary text-xs uppercase tracking-wider">
                     <th className="px-6 py-4 font-bold">Department</th>
                     <th className="px-6 py-4 font-bold">Students</th>
                     <th className="px-6 py-4 font-bold">Pass Rate</th>
@@ -159,24 +161,24 @@ export default function Departments() {
                     <tr key={dept.department_code} className="hover:bg-surface-hover transition-colors group">
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="font-bold text-text-primary">{dept.department_code}</span>
-                          <span className="text-xs text-text-secondary">{dept.department_name}</span>
+                          <span className="font-bold text-primary">{dept.department_code}</span>
+                          <span className="text-xs text-secondary">{dept.department_name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-medium text-text-primary">{dept.total_students.toLocaleString()}</td>
+                      <td className="px-6 py-4 font-medium text-primary">{dept.total_students.toLocaleString()}</td>
                       <td className="px-6 py-4">
                         <span className={`font-extrabold ${dept.pass_rate && dept.pass_rate < 50 ? 'text-rose-500' : 'text-emerald-500'}`}>
                           {dept.pass_rate}%
                         </span>
                       </td>
-                      <td className="px-6 py-4 font-medium text-text-primary">{dept.avg_gpa}</td>
+                      <td className="px-6 py-4 font-medium text-primary">{dept.avg_gpa}</td>
                       <td className="px-6 py-4">
                         {dept.active_exceptions > 0 ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20">
                             <AlertCircle size={12} /> {dept.active_exceptions}
                           </span>
                         ) : (
-                          <span className="text-text-secondary text-sm">None</span>
+                          <span className="text-secondary text-sm">None</span>
                         )}
                       </td>
                       <td className="px-6 py-4">

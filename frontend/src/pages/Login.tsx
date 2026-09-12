@@ -117,7 +117,7 @@ export default function Login() {
 
       <button
         onClick={() => navigate("/")}
-        className="absolute top-8 left-8 flex items-center gap-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors cursor-pointer z-20 group"
+        className="absolute top-8 left-8 flex items-center gap-2 text-sm font-medium text-secondary hover:text-primary transition-colors cursor-pointer z-20 group"
       >
         <MoveLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
         Back to BodhSight
@@ -138,15 +138,15 @@ export default function Login() {
               <Sparkles size={14} className="text-indigo-600 dark:text-indigo-400" /> Secure Gateway
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-text-primary mb-2">Welcome to<br/>BodhSight.</h1>
-              <p className="text-text-secondary text-sm leading-relaxed font-medium">
+              <h1 className="text-3xl font-bold tracking-tight text-primary mb-2">Welcome to<br/>BodhSight.</h1>
+              <p className="text-secondary text-sm leading-relaxed font-medium">
                 Authenticate your institutional credentials to access secure academic telemetry and Agent 10 analytics.
               </p>
             </div>
           </div>
 
           <div className="space-y-3 pt-10 relative z-10">
-            <div className="text-xs font-bold uppercase tracking-widest text-text-secondary">Quick Access (Demo)</div>
+            <div className="text-xs font-bold uppercase tracking-widest text-secondary">Quick Access (Demo)</div>
             <div className="space-y-2">
               {[
                 { code: "Chairman", label: "Chairman / Board",    name: "Dr. K. Vignan", desc: "Login as Chairman" },
@@ -159,10 +159,10 @@ export default function Login() {
                   whileTap={{ scale: 0.98 }}
                   key={demo.code}
                   onClick={() => handleQuickDemo(demo.code, demo.label, demo.name)}
-                  className="w-full text-left px-4 py-3 bg-background hover:bg-indigo-500/5 dark:hover:bg-indigo-500/10 border border-border hover:border-indigo-500/30 rounded-xl text-xs font-medium text-text-primary transition-all flex items-center justify-between cursor-pointer group shadow-sm"
+                  className="w-full text-left px-4 py-3 bg-background hover:bg-indigo-500/5 dark:hover:bg-indigo-500/10 border border-border hover:border-indigo-500/30 rounded-xl text-xs font-medium text-primary transition-all flex items-center justify-between cursor-pointer group shadow-sm"
                 >
                   <span className="flex items-center gap-2">
-                    <Fingerprint size={14} className="text-text-secondary group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors" />
+                    <Fingerprint size={14} className="text-secondary group-hover:text-indigo-500 dark:group-hover:text-indigo-600 dark:text-indigo-400 transition-colors" />
                     {demo.desc}
                   </span>
                   <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:-translate-x-1 transition-all text-indigo-500 dark:text-indigo-400" />
@@ -171,7 +171,7 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="text-[11px] text-text-secondary font-medium pt-8 mt-4 border-t border-border">
+          <div className="text-[11px] text-secondary font-medium pt-8 mt-4 border-t border-border">
             Encrypted RBAC Session • Powered by PostgreSQL
           </div>
         </div>
@@ -180,10 +180,10 @@ export default function Login() {
         <div className="md:col-span-7 p-8 md:p-12 flex flex-col justify-center bg-surface">
           <div className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-text-primary tracking-tight">
+              <h2 className="text-2xl font-bold text-primary tracking-tight">
                 {isSignUp ? "Create Account" : "Sign In"}
               </h2>
-              <p className="text-sm text-text-secondary mt-1">
+              <p className="text-sm text-secondary mt-1">
                 {isSignUp
                   ? "Register your credentials."
                   : "Enter your details to proceed."}
@@ -216,18 +216,18 @@ export default function Login() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {/* Custom Role Dropdown */}
               <div className="relative" ref={dropdownRef}>
-                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
                   Access Level
                 </label>
                 <div 
                   onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-text-primary flex items-center justify-between cursor-pointer hover:border-indigo-500 transition-colors shadow-sm"
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-primary flex items-center justify-between cursor-pointer hover:border-indigo-500 transition-colors shadow-sm"
                 >
                   <div className="flex items-center gap-2">
                     {selectedRole.icon && <selectedRole.icon size={16} className="text-indigo-500" />}
                     {selectedRole.display}
                   </div>
-                  <ChevronDown size={16} className={`text-text-secondary transition-transform duration-200 ${isRoleDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={16} className={`text-secondary transition-transform duration-200 ${isRoleDropdownOpen ? 'rotate-180' : ''}`} />
                 </div>
                 
                 <AnimatePresence>
@@ -253,10 +253,10 @@ export default function Login() {
                           }}
                           className={`px-4 py-3 cursor-pointer flex items-center gap-3 transition-colors ${roleCode === r.code ? 'bg-indigo-500/10' : 'hover:bg-surface-secondary'}`}
                         >
-                          <r.icon size={16} className={roleCode === r.code ? 'text-indigo-500' : 'text-text-secondary'} />
+                          <r.icon size={16} className={roleCode === r.code ? 'text-indigo-500' : 'text-secondary'} />
                           <div>
-                            <div className={`text-sm font-semibold ${roleCode === r.code ? 'text-indigo-600 dark:text-indigo-400' : 'text-text-primary'}`}>{r.display}</div>
-                            <div className="text-[10px] text-text-secondary">{r.desc}</div>
+                            <div className={`text-sm font-semibold ${roleCode === r.code ? 'text-indigo-600 dark:text-indigo-400' : 'text-primary'}`}>{r.display}</div>
+                            <div className="text-[10px] text-secondary">{r.desc}</div>
                           </div>
                         </div>
                       ))}
@@ -267,16 +267,16 @@ export default function Login() {
 
               {/* Name */}
               <div>
-                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-3 text-text-secondary" size={16} />
+                  <User className="absolute left-3.5 top-3 text-secondary" size={16} />
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm"
+                    className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-primary placeholder:text-secondary/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm"
                     required
                   />
                 </div>
@@ -285,16 +285,16 @@ export default function Login() {
 
             {/* Email */}
             <div>
-              <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
                 Institutional Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-3 text-text-secondary" size={16} />
+                <Mail className="absolute left-3.5 top-3 text-secondary" size={16} />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm"
+                  className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-primary placeholder:text-secondary/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm"
                   required
                 />
               </div>
@@ -302,17 +302,17 @@ export default function Login() {
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">
+              <label className="block text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-3 text-text-secondary" size={16} />
+                <Lock className="absolute left-3.5 top-3 text-secondary" size={16} />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm"
+                  className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-primary placeholder:text-secondary/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm"
                   required
                 />
               </div>
@@ -321,7 +321,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => { setForgotEmail(email); setForgotStep(1); setNewPassword(""); setShowForgotModal(true); }}
-                    className="text-xs font-medium text-text-secondary hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                    className="text-xs font-medium text-secondary hover:text-indigo-600 dark:hover:text-indigo-600 dark:text-indigo-400 transition-colors cursor-pointer"
                   >
                     Forgot Password?
                   </button>
@@ -337,17 +337,17 @@ export default function Login() {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                 >
-                  <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 mt-1">
+                  <label className="block text-xs font-semibold text-secondary uppercase tracking-wider mb-2 mt-1">
                     Confirm Password
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 text-text-secondary" size={16} />
+                    <Lock className="absolute left-3.5 top-3 text-secondary" size={16} />
                     <input
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-text-primary placeholder:text-text-secondary/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm"
+                      className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-primary placeholder:text-secondary/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm"
                       required={isSignUp}
                     />
                   </div>
@@ -360,7 +360,7 @@ export default function Login() {
               whileTap={{ scale: 0.99 }}
               type="submit"
               disabled={loading}
-              className="w-full py-3 mt-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 mt-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-primary rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSignUp ? <UserPlus size={18} /> : <ShieldCheck size={18} />}
               {loading ? "Authenticating…" : isSignUp ? `Register as ${selectedRole.display}` : `Sign In to Dashboard`}
@@ -376,7 +376,7 @@ export default function Login() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-background/80 backdrop-blur-md flex items-center justify-center z-50 p-4"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -385,13 +385,13 @@ export default function Login() {
               className="bg-surface rounded-3xl shadow-2xl w-full max-w-md border border-border overflow-hidden"
             >
               <div className="px-6 py-5 border-b border-border flex justify-between items-center bg-surface-secondary">
-                <div className="flex items-center gap-3 text-text-primary font-semibold">
+                <div className="flex items-center gap-3 text-primary font-semibold">
                   <div className="p-2 bg-indigo-500/10 rounded-lg">
                     <KeyRound size={16} className="text-indigo-600 dark:text-indigo-400" />
                   </div>
                   Account Recovery
                 </div>
-                <button onClick={() => setShowForgotModal(false)} className="text-text-secondary hover:text-text-primary transition-colors">
+                <button onClick={() => setShowForgotModal(false)} className="text-secondary hover:text-primary transition-colors">
                   <X size={20} />
                 </button>
               </div>
@@ -400,19 +400,19 @@ export default function Login() {
                 <AnimatePresence mode="wait">
                   {forgotStep === 1 && (
                     <motion.form key="s1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleSendResetLink} className="space-y-5">
-                      <p className="text-sm text-text-secondary">Enter your registered institutional email address to receive a secure reset code.</p>
+                      <p className="text-sm text-secondary">Enter your registered institutional email address to receive a secure reset code.</p>
                       <div>
-                        <label className="block text-xs font-semibold text-text-secondary uppercase mb-2">Registered Email</label>
+                        <label className="block text-xs font-semibold text-secondary uppercase mb-2">Registered Email</label>
                         <input
                           type="email"
                           value={forgotEmail}
                           onChange={(e) => setForgotEmail(e.target.value)}
                           placeholder="dean@vignan.ac.in"
-                          className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-text-primary focus:border-indigo-500 focus:outline-none shadow-sm"
+                          className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-primary focus:border-indigo-500 focus:outline-none shadow-sm"
                           required
                         />
                       </div>
-                      <button type="submit" disabled={forgotLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all cursor-pointer shadow-sm">
+                      <button type="submit" disabled={forgotLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-primary rounded-xl text-sm font-bold transition-all cursor-pointer shadow-sm">
                         {forgotLoading ? "Sending Code…" : "Send Reset Code"}
                       </button>
                     </motion.form>
@@ -424,14 +424,14 @@ export default function Login() {
                         Code sent to <strong>{forgotEmail}</strong>.<br/>(Demo code: <strong>4892</strong>)
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-text-secondary uppercase mb-2">Security Code</label>
-                        <input type="text" defaultValue="4892" className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-base font-bold tracking-[0.2em] text-center text-text-primary focus:border-indigo-500 focus:outline-none shadow-sm" required />
+                        <label className="block text-xs font-semibold text-secondary uppercase mb-2">Security Code</label>
+                        <input type="text" defaultValue="4892" className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-base font-bold tracking-[0.2em] text-center text-primary focus:border-indigo-500 focus:outline-none shadow-sm" required />
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold text-text-secondary uppercase mb-2">New Password</label>
-                        <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-text-primary focus:border-indigo-500 focus:outline-none shadow-sm" required />
+                        <label className="block text-xs font-semibold text-secondary uppercase mb-2">New Password</label>
+                        <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="••••••••" className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm text-primary focus:border-indigo-500 focus:outline-none shadow-sm" required />
                       </div>
-                      <button type="submit" disabled={forgotLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all cursor-pointer shadow-sm">
+                      <button type="submit" disabled={forgotLoading} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-primary rounded-xl text-sm font-bold transition-all cursor-pointer shadow-sm">
                         {forgotLoading ? "Updating…" : "Reset Password"}
                       </button>
                     </motion.form>
@@ -443,10 +443,10 @@ export default function Login() {
                         <CheckCircle2 size={32} />
                       </div>
                       <div>
-                        <h4 className="font-bold text-xl text-text-primary mb-1">Password Updated</h4>
-                        <p className="text-sm text-text-secondary">Your institutional credentials have been successfully securely updated.</p>
+                        <h4 className="font-bold text-xl text-primary mb-1">Password Updated</h4>
+                        <p className="text-sm text-secondary">Your institutional credentials have been successfully securely updated.</p>
                       </div>
-                      <button onClick={() => setShowForgotModal(false)} className="w-full py-2.5 bg-surface-secondary text-text-primary hover:bg-surface-hover rounded-xl text-sm font-bold transition-colors cursor-pointer mt-4">
+                      <button onClick={() => setShowForgotModal(false)} className="w-full py-2.5 bg-surface-secondary text-primary hover:bg-surface-hover rounded-xl text-sm font-bold transition-colors cursor-pointer mt-4">
                         Return to Sign In
                       </button>
                     </motion.div>

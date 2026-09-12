@@ -20,7 +20,7 @@ export default function Courses() {
     setState("loading");
     setErrorMsg("");
 
-    Agent10API.getCourses()
+    Agent10API.getCourses(filters)
       .then((data) => {
         if (cancelled) return;
         if (!data || data.length === 0) {
@@ -39,7 +39,7 @@ export default function Courses() {
       });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [filters]);
 
   // Apply department filter from GlobalFilterBar
   const visible = filters.department
@@ -83,7 +83,7 @@ export default function Courses() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6" id="courses-content">
-      <div className="bg-gradient-to-r from-violet-950 via-indigo-900 to-slate-900 rounded-3xl p-8 text-white shadow-xl">
+      <div className="bg-gradient-to-r from-violet-950 via-indigo-900 to-surface rounded-3xl p-8 text-primary shadow-xl">
         <div className="inline-flex items-center gap-2 bg-violet-500/20 text-violet-200 px-3 py-1 rounded-full text-xs font-bold border border-violet-400/30 mb-2">
           <BookOpen size={14} /> Course Intelligence
         </div>
@@ -93,9 +93,9 @@ export default function Courses() {
         </p>
       </div>
 
-      <div className="bg-[#0B1120] rounded-3xl border border-slate-800/60 shadow-sm overflow-hidden">
+      <div className="bg-surface rounded-3xl border border-border/60 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
+          <h2 className="text-lg font-bold text-primary flex items-center gap-2">
             <BarChart2 className="text-violet-500" size={20} />
             {state === "success"
               ? `Active Semester Courses (${visible.length}${filters.department ? ` in ${filters.department}` : ""})`
@@ -119,8 +119,8 @@ export default function Courses() {
         {state === "loading" && (
           <div className="p-6 space-y-4">
             <div className="flex gap-4 mb-6">
-              <div className="h-10 w-1/4 bg-slate-800/50 rounded-xl animate-pulse" />
-              <div className="h-10 w-1/4 bg-slate-800/50 rounded-xl animate-pulse" />
+              <div className="h-10 w-1/4 bg-surface-secondary/50 rounded-xl animate-pulse" />
+              <div className="h-10 w-1/4 bg-surface-secondary/50 rounded-xl animate-pulse" />
             </div>
             {[...Array(5)].map((_, i) => (
               <div key={i} className="h-16 w-full bg-slate-800/30 rounded-xl animate-pulse" />
@@ -131,9 +131,9 @@ export default function Courses() {
         {/* Error */}
         {state === "error" && (
           <div className="flex flex-col items-center justify-center py-16 gap-4 text-rose-600 px-6">
-            <AlertCircle size={40} className="text-rose-400" />
+            <AlertCircle size={40} className="text-rose-600 dark:text-rose-400" />
             <div className="text-center">
-              <p className="font-bold text-lg text-white">Failed to load courses</p>
+              <p className="font-bold text-lg text-primary">Failed to load courses</p>
               <p className="text-sm text-secondary mt-1">{errorMsg}</p>
               <p className="text-xs text-secondary mt-2">Verify the backend is running at {import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}</p>
             </div>
@@ -159,7 +159,7 @@ export default function Courses() {
             ) : (
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-900/40 text-secondary text-xs uppercase tracking-wider border-b border-slate-800/60">
+                  <tr className="bg-surface/40 text-secondary text-xs uppercase tracking-wider border-b border-border/60">
                     <th className="py-4 px-6 font-bold">Course Code & Title</th>
                     <th className="py-4 px-6 font-bold">Dept</th>
                     <th className="py-4 px-6 font-bold">Students</th>
@@ -171,15 +171,15 @@ export default function Courses() {
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 text-sm">
                   {visible.map((c) => (
-                    <tr key={`${c.course_code}-${c.semester}`} className="hover:bg-slate-900/40/80 transition-colors">
+                    <tr key={`${c.course_code}-${c.semester}`} className="hover:bg-surface/40/80 transition-colors">
                       <td className="py-4 px-6">
-                        <div className="font-bold text-white">{c.course_name || c.course_code}</div>
-                        <div className="text-xs text-indigo-400 font-semibold">
+                        <div className="font-bold text-primary">{c.course_name || c.course_code}</div>
+                        <div className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">
                           {c.course_code}
                           {c.semester && c.semester !== "—" ? ` • ${c.semester}` : ""}
                         </div>
                       </td>
-                      <td className="py-4 px-6 font-semibold text-slate-300">{c.department}</td>
+                      <td className="py-4 px-6 font-semibold text-primary">{c.department}</td>
                       <td className="py-4 px-6 font-medium text-secondary">{c.students_appeared}</td>
                       <td className="py-4 px-6">
                         <span className={`font-extrabold ${c.pass_rate < 70 ? "text-rose-600" : "text-emerald-500"}`}>
@@ -192,12 +192,12 @@ export default function Courses() {
                       <td className="py-4 px-6">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold inline-block ${
                           c.priority === "CRITICAL"
-                            ? "bg-rose-500/20 text-rose-400 border border-rose-500/20"
+                            ? "bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20"
                             : c.priority === "HIGH"
-                            ? "bg-amber-500/20 text-amber-400 border border-amber-200"
+                            ? "bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200"
                             : c.priority === "MEDIUM"
                             ? "bg-yellow-100 text-yellow-800 border border-yellow-200"
-                            : "bg-emerald-500/20 text-emerald-400 border border-emerald-200"
+                            : "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200"
                         }`}>
                           {c.priority} RISK
                         </span>
@@ -205,7 +205,7 @@ export default function Courses() {
                       <td className="py-4 px-6 text-right">
                         <button
                           onClick={() => setSelectedCourse(c)}
-                          className="px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-xl font-bold text-xs transition-colors border border-indigo-200"
+                          className="px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl font-bold text-xs transition-colors border border-indigo-200"
                         >
                           View Context →
                         </button>
@@ -222,20 +222,20 @@ export default function Courses() {
       {/* Course Detail Modal */}
       {selectedCourse && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0B1120] rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-800/60 animate-in zoom-in-95">
-            <div className="px-6 py-4 bg-gradient-to-r from-violet-950 to-indigo-900 text-white flex justify-between items-center">
+          <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border/60 animate-in zoom-in-95">
+            <div className="px-6 py-4 bg-gradient-to-r from-violet-950 to-indigo-900 text-primary flex justify-between items-center">
               <div>
                 <span className="text-xs font-bold text-violet-300 uppercase">{selectedCourse.course_code} Intelligence Detail</span>
                 <h3 className="text-lg font-bold">{selectedCourse.course_name || selectedCourse.course_code}</h3>
               </div>
-              <button onClick={() => setSelectedCourse(null)} className="text-white/80 hover:text-white cursor-pointer">
+              <button onClick={() => setSelectedCourse(null)} className="text-primary/80 hover:text-primary cursor-pointer">
                 <X size={20} />
               </button>
             </div>
 
             <div className="p-6 space-y-5">
               {/* KPI grid */}
-              <div className="grid grid-cols-3 gap-4 bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 text-center">
+              <div className="grid grid-cols-3 gap-4 bg-surface/40 p-4 rounded-2xl border border-border/60 text-center">
                 <div>
                   <div className="text-[11px] font-bold text-secondary uppercase">Pass Rate</div>
                   <div className={`text-xl font-black mt-1 ${selectedCourse.pass_rate < 70 ? "text-rose-600" : "text-emerald-500"}`}>
@@ -244,37 +244,37 @@ export default function Courses() {
                 </div>
                 <div>
                   <div className="text-[11px] font-bold text-secondary uppercase">Avg Marks</div>
-                  <div className="text-xl font-black text-white mt-1">
+                  <div className="text-xl font-black text-primary mt-1">
                     {selectedCourse.avg_marks > 0 ? selectedCourse.avg_marks.toFixed(1) : "—"}
                   </div>
                 </div>
                 <div>
                   <div className="text-[11px] font-bold text-secondary uppercase">Students</div>
-                  <div className="text-xl font-black text-indigo-400 mt-1">{selectedCourse.students_appeared}</div>
+                  <div className="text-xl font-black text-indigo-600 dark:text-indigo-400 mt-1">{selectedCourse.students_appeared}</div>
                 </div>
               </div>
 
               {/* Additional analytics */}
-              <div className="space-y-2 bg-slate-900 text-slate-100 p-5 rounded-2xl border border-slate-800">
-                <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider">
+              <div className="space-y-2 bg-surface text-slate-100 p-5 rounded-2xl border border-border">
+                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-xs uppercase tracking-wider">
                   <ShieldCheck size={16} /> Statistical Evidence (Agent 10)
                 </div>
                 <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
                   <div>
                     <span className="text-secondary block">Internal Avg:</span>
-                    <strong className="text-white text-sm">
+                    <strong className="text-primary text-sm">
                       {selectedCourse.avg_internal != null ? selectedCourse.avg_internal.toFixed(1) : "N/A"}
                     </strong>
                   </div>
                   <div>
                     <span className="text-secondary block">External Avg:</span>
-                    <strong className="text-white text-sm">
+                    <strong className="text-primary text-sm">
                       {selectedCourse.avg_external != null ? selectedCourse.avg_external.toFixed(1) : "N/A"}
                     </strong>
                   </div>
                   <div>
                     <span className="text-secondary block">External SD:</span>
-                    <strong className="text-white text-sm">
+                    <strong className="text-primary text-sm">
                       {selectedCourse.sd_external != null ? selectedCourse.sd_external.toFixed(2) : "N/A"}
                     </strong>
                   </div>
@@ -282,8 +282,8 @@ export default function Courses() {
                     <span className="text-secondary block">Int-Ext Corr:</span>
                     <strong className={`text-sm ${
                       selectedCourse.internal_external_corr != null && selectedCourse.internal_external_corr < 0.2
-                        ? "text-rose-400"
-                        : "text-white"
+                        ? "text-rose-600 dark:text-rose-400"
+                        : "text-primary"
                     }`}>
                       {selectedCourse.internal_external_corr != null
                         ? selectedCourse.internal_external_corr.toFixed(3)
@@ -299,10 +299,10 @@ export default function Courses() {
                 )}
               </div>
 
-              <div className="pt-4 border-t border-slate-800/60 flex justify-end">
+              <div className="pt-4 border-t border-border/60 flex justify-end">
                 <button
                   onClick={() => setSelectedCourse(null)}
-                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-colors"
+                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-primary rounded-xl text-sm font-bold transition-colors"
                 >
                   Close Detail
                 </button>

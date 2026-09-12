@@ -1,3 +1,4 @@
+import type { FilterState } from "../contexts/FilterContext";
 /**
  * BodhSight — Agent 10 API Client
  *
@@ -9,6 +10,7 @@
  */
 import axios from "axios";
 import type {
+
   AcademicDashboardMetrics,
   DepartmentPerformance,
   TrendsResponse,
@@ -82,50 +84,62 @@ async function get<T>(path: string, forceFresh = false): Promise<T> {
 // Agent 10 API methods — all backed by real database
 // ---------------------------------------------------------------------------
 
+
+function buildQuery(path: string, filters?: Partial<FilterState>): string {
+  if (!filters) return path;
+  const params = new URLSearchParams();
+  if (filters.department) params.append("department", filters.department);
+  if (filters.semester) params.append("semester", filters.semester);
+  if (filters.programme) params.append("programme", filters.programme);
+  
+  const q = params.toString();
+  return q ? `${path}?${q}` : path;
+}
+
 export const Agent10API = {
   /** Dashboard KPIs — assessment + roster + student profile views */
-  getDashboard(): Promise<AcademicDashboardMetrics> {
-    return get<AcademicDashboardMetrics>("/agent10/dashboard");
+  getDashboard(filters?: Partial<FilterState>): Promise<AcademicDashboardMetrics> {
+    return get<AcademicDashboardMetrics>(buildQuery("/agent10/dashboard", filters));
   },
 
   /** Course-level performance — assessment.v_course_performance */
-  async getCourses(): Promise<CoursePerformance[]> {
-    const raw = await get<Record<string, unknown>[]>("/agent10/performance/courses");
+  async getCourses(filters?: Partial<FilterState>): Promise<CoursePerformance[]> {
+    const raw = await get<Record<string, unknown>[]>(buildQuery("/agent10/performance/courses", filters));
     return raw.map(_mapCourse);
   },
 
   /** Department-level performance */
-  getDepartments(): Promise<DepartmentPerformance[]> {
-    return get<DepartmentPerformance[]>("/agent10/performance/departments");
+  getDepartments(filters?: Partial<FilterState>): Promise<DepartmentPerformance[]> {
+    return get<DepartmentPerformance[]>(buildQuery("/agent10/performance/departments", filters));
   },
 
   /**
    * Trends — returns a SINGLE OBJECT (not an array).
    * historical_data_available is false when only 1 term in DB.
    */
-  getTrends(): Promise<TrendsResponse> {
-    return get<TrendsResponse>("/agent10/trends");
+  getTrends(filters?: Partial<FilterState>): Promise<TrendsResponse> {
+    return get<TrendsResponse>(buildQuery("/agent10/trends", filters));
   },
 
-  /** Anomalies / exceptions sorted by priority score */
-  getAnomalies(): Promise<AcademicException[]> {
-    return get<AcademicException[]>("/agent10/exceptions");
+  /** Problems / exceptions sorted by priority score */
+  getAnomalies(filters?: Partial<FilterState>): Promise<AcademicException[]> {
+    return get<AcademicException[]>(buildQuery("/agent10/exceptions", filters));
   },
 
   /** Recommendations derived from detected anomalies */
-  async getRecommendations(): Promise<RecommendationItem[]> {
-    const raw = await get<BackendRecommendation[]>("/agent10/recommendations");
+  async getRecommendations(filters?: Partial<FilterState>): Promise<RecommendationItem[]> {
+    const raw = await get<BackendRecommendation[]>(buildQuery("/agent10/recommendations", filters));
     return raw.map(_mapRec);
   },
 
   /** Section-level comparison with disparity flags */
-  getSections(): Promise<SectionComparison[]> {
-    return get<SectionComparison[]>("/agent10/sections");
+  getSections(filters?: Partial<FilterState>): Promise<SectionComparison[]> {
+    return get<SectionComparison[]>(buildQuery("/agent10/sections", filters));
   },
 
   /** Ranked intervention priorities */
-  getPriorities(): Promise<InterventionPriorityItem[]> {
-    return get<InterventionPriorityItem[]>("/agent10/priorities");
+  getPriorities(filters?: Partial<FilterState>): Promise<InterventionPriorityItem[]> {
+    return get<InterventionPriorityItem[]>(buildQuery("/agent10/priorities", filters));
   },
 
   /** Full evidence chain for one course */
@@ -134,8 +148,8 @@ export const Agent10API = {
   },
 
   /** Executive summary (uses LLM if available) */
-  getSummary(): Promise<Record<string, unknown>> {
-    return get<Record<string, unknown>>("/agent10/summary");
+  getSummary(filters?: Partial<FilterState>): Promise<Record<string, unknown>> {
+    return get<Record<string, unknown>>(buildQuery("/agent10/summary", filters));
   },
 
   /** Backend health check */
@@ -145,3 +159,33 @@ export const Agent10API = {
 };
 
 // end of file
+
+
+// ---------------------------------------------------------------------------
+// Notification API
+// ---------------------------------------------------------------------------
+
+export interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  link?: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export const NotificationAPI = {
+  getNotifications(): Promise<NotificationItem[]> {
+    return get<NotificationItem[]>("/notifications", true); // always fresh
+  },
+  getUnreadCount(): Promise<{ count: number }> {
+    return get<{ count: number }>("/notifications/unread-count", true);
+  },
+  markRead(id: string): Promise<{ success: boolean }> {
+    return apiClient.put(`/notifications/${id}/read`).then(r => r.data);
+  },
+  markAllRead(): Promise<{ success: boolean }> {
+    return apiClient.put("/notifications/read-all").then(r => r.data);
+  }
+};

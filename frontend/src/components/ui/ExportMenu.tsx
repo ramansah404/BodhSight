@@ -58,12 +58,12 @@ export default function ExportMenu({ onExportExcel, onExportPDF, onExportWord, c
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={`flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-surface hover:bg-surface-hover border border-border rounded-xl text-sm font-semibold transition-all shadow-sm ${
-          disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer text-text-primary"
+          disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer text-primary"
         }`}
       >
-        <Download size={16} className="text-text-secondary" />
+        <Download size={16} className="text-secondary" />
         <span className="hidden sm:inline">Export</span>
-        <ChevronDown size={14} className={`text-text-secondary transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown size={14} className={`text-secondary transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       <AnimatePresence>
@@ -81,7 +81,7 @@ export default function ExportMenu({ onExportExcel, onExportPDF, onExportWord, c
                 onClick={() => handleExport("excel", onExportExcel)}
                 disabled={exportState === "loading"}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left w-full
-                  ${activeExport === "excel" ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" : "hover:bg-surface-secondary text-text-primary"}
+                  ${activeExport === "excel" ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" : "hover:bg-surface-secondary text-primary"}
                   ${exportState === "loading" ? "cursor-wait opacity-70" : "cursor-pointer"}
                 `}
               >
@@ -104,7 +104,7 @@ export default function ExportMenu({ onExportExcel, onExportPDF, onExportWord, c
                 onClick={() => handleExport("pdf", onExportPDF)}
                 disabled={exportState === "loading"}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left w-full
-                  ${activeExport === "pdf" ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" : "hover:bg-surface-secondary text-text-primary"}
+                  ${activeExport === "pdf" ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" : "hover:bg-surface-secondary text-primary"}
                   ${exportState === "loading" ? "cursor-wait opacity-70" : "cursor-pointer"}
                 `}
               >
@@ -127,7 +127,7 @@ export default function ExportMenu({ onExportExcel, onExportPDF, onExportWord, c
                 onClick={() => handleExport("word", onExportWord)}
                 disabled={exportState === "loading"}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left w-full
-                  ${activeExport === "word" ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" : "hover:bg-surface-secondary text-text-primary"}
+                  ${activeExport === "word" ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" : "hover:bg-surface-secondary text-primary"}
                   ${exportState === "loading" ? "cursor-wait opacity-70" : "cursor-pointer"}
                 `}
               >
