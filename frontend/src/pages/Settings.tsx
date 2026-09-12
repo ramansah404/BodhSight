@@ -26,11 +26,11 @@ export default function Settings() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <div className="bg-gradient-to-r from-surface via-indigo-950 to-slate-950 rounded-3xl p-8 text-primary shadow-xl">
-        <div className="inline-flex items-center gap-2 bg-surface/10 text-primary px-3 py-1 rounded-full text-xs font-bold border border-white/15 mb-2">
-          <SettingsIcon size={14} /> System Configuration
+      <div className="bg-gradient-to-r from-surface via-indigo-950 to-slate-950 rounded-3xl p-8 text-white shadow-xl">
+        <div className="inline-flex items-center gap-2 bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-xs font-bold border border-indigo-400/30 mb-3">
+          <SettingsIcon size={14} /> Agent Configuration
         </div>
-        <h1 className="text-3xl font-extrabold tracking-tight">System Settings & RBAC Profile</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight text-white">System Settings & RBAC Profile</h1>
         <p className="text-primary text-sm mt-1">Manage session preferences and security guardrails.</p>
       </div>
 

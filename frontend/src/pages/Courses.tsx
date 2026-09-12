@@ -83,11 +83,11 @@ export default function Courses() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6" id="courses-content">
-      <div className="bg-gradient-to-r from-violet-950 via-indigo-900 to-surface rounded-3xl p-8 text-primary shadow-xl">
+      <div className="bg-gradient-to-r from-violet-950 via-indigo-900 to-surface rounded-3xl p-8 text-white shadow-xl">
         <div className="inline-flex items-center gap-2 bg-violet-500/20 text-violet-200 px-3 py-1 rounded-full text-xs font-bold border border-violet-400/30 mb-2">
           <BookOpen size={14} /> Course Intelligence
         </div>
-        <h1 className="text-3xl font-extrabold tracking-tight">Course-wise Performance & Risk Audit</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight text-white">Course-wise Performance & Risk Audit</h1>
         <p className="text-violet-100 text-sm mt-1">
           Identifying courses requiring attention based on statistical deviation from institutional baseline.
         </p>
@@ -223,10 +223,10 @@ export default function Courses() {
       {selectedCourse && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border/60 animate-in zoom-in-95">
-            <div className="px-6 py-4 bg-gradient-to-r from-violet-950 to-indigo-900 text-primary flex justify-between items-center">
+            <div className="px-6 py-4 bg-gradient-to-r from-violet-950 to-indigo-900 text-white flex justify-between items-center">
               <div>
                 <span className="text-xs font-bold text-violet-300 uppercase">{selectedCourse.course_code} Intelligence Detail</span>
-                <h3 className="text-lg font-bold">{selectedCourse.course_name || selectedCourse.course_code}</h3>
+                <h3 className="text-lg font-bold text-white">{selectedCourse.course_name || selectedCourse.course_code}</h3>
               </div>
               <button onClick={() => setSelectedCourse(null)} className="text-primary/80 hover:text-primary cursor-pointer">
                 <X size={20} />

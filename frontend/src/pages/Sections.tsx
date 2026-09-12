@@ -60,12 +60,12 @@ export default function Sections() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <div className="bg-gradient-to-r from-blue-950 via-indigo-900 to-surface rounded-3xl p-8 text-primary shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-gradient-to-r from-blue-950 via-indigo-900 to-surface rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="inline-flex items-center gap-2 bg-blue-500/20 text-blue-200 px-3 py-1 rounded-full text-xs font-bold border border-blue-400/30 mb-2">
             <Layers size={14} /> Section Intelligence
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Section-Level Disparity Telemetry</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-white">Section-Level Disparity Telemetry</h1>
           <p className="text-blue-100 text-sm mt-1">
             Comparing section performance across identical course offerings to surface pedagogical disparities.
           </p>
