@@ -9,7 +9,6 @@ import {
   ChevronRight, MoveRight, Database, Lock, Search, Users,
   Menu, X
 } from "lucide-react";
-import ThemeToggle from "../components/ui/ThemeToggle";
 
 const fadeIn: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -69,19 +68,11 @@ export default function Landing() {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-<<<<<<< HEAD
             <ThemeToggle showLabel />
             <button onClick={() => navigate('/login')} className="text-sm font-medium hover:text-primary transition-colors">Sign In</button>
             <button 
               onClick={() => navigate('/login')}
-              className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm font-bold transition-all shadow-[0_0_20px_rgba(79,70,229,0.2)] hover:shadow-[0_0_25px_rgba(79,70,229,0.4)]"
-=======
-            <ThemeToggle />
-            <button onClick={() => navigate('/login')} className="text-sm font-medium hover:text-primary transition-colors">Sign In</button>
-            <button 
-              onClick={() => navigate('/login')}
               className="px-5 py-2.5 bg-indigo-600 text-white hover:bg-indigo-500 rounded-full text-sm font-bold transition-all duration-300 hover:scale-[1.03] shadow-lg shadow-indigo-600/25"
->>>>>>> 0d27828 (merge latest main with UI improvements)
             >
               Enter BodhSight
             </button>
@@ -109,14 +100,7 @@ export default function Landing() {
               <button onClick={() => setMobileMenuOpen(false)}><X size={24} /></button>
             </div>
             <div className="flex flex-col gap-6 text-lg">
-<<<<<<< HEAD
               <ThemeToggle showLabel />
-=======
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-secondary">Appearance</span>
-                <ThemeToggle />
-              </div>
->>>>>>> 0d27828 (merge latest main with UI improvements)
               <button onClick={() => scrollTo('features')} className="text-left font-medium">Platform</button>
               <button onClick={() => scrollTo('intelligence')} className="text-left font-medium">Intelligence</button>
               <button onClick={() => scrollTo('security')} className="text-left font-medium">Security</button>

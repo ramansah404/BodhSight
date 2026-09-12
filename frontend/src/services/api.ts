@@ -25,7 +25,6 @@ import {
   mapBackendRecommendation as _mapRec,
   type CoursePerformance,
 } from "../types/agent10";
-import * as mockData from "./mockData";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
 
