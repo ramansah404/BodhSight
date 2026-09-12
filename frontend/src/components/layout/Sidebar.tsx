@@ -47,7 +47,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     const collapsed = !isMobile && isDesktopCollapsed;
     
     return (
-      <div className={`${collapsed ? 'w-20' : 'w-64'} bg-background border-r border-border/60 flex flex-col h-full text-primary transition-all duration-300`}>
+      <div className={`${collapsed ? 'w-20' : 'w-64'} bg-surface/50 dark:bg-background backdrop-blur-xl border-r border-border/60 flex flex-col h-full text-primary transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.02)] dark:shadow-none`}>
         <div className={`p-6 border-b border-border/60 flex items-center ${collapsed ? 'justify-center' : 'justify-between'} h-16 md:h-20 shrink-0`}>
           <BrandLogo isCollapsed={collapsed} />
         {/* Mobile close button inside sidebar */}

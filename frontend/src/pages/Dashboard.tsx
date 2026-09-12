@@ -305,6 +305,8 @@ export default function Dashboard() {
                     radius={[0, 4, 4, 0]}
                     barSize={24}
                     name="Pass Rate %"
+                    isAnimationActive={true}
+                    animationDuration={1500}
                   >
                     {deptChartData.map((entry, index) => (
                       <Cell 
