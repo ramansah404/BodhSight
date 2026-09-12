@@ -9,6 +9,7 @@ frontend/src/types/agent10.ts. Preserve field names exactly.
 """
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 from typing import List
 import logging
@@ -68,7 +69,7 @@ def _safe(fn, db, *args, **kwargs):
 # ---------------------------------------------------------------------------
 
 @router.get("/dashboard", response_model=DashboardMetrics)
-def get_dashboard_metrics(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_dashboard_metrics(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """
     Dashboard KPIs from real Supabase database views.
     All values are deterministically computed from official university schema.
@@ -78,7 +79,7 @@ def get_dashboard_metrics(department: str = None, semester: str = None, programm
     if cached:
         return cached
 
-    metrics = _safe(agent10.compute_dashboard_metrics, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
+    metrics = await run_in_threadpool(_safe, agent10.compute_dashboard_metrics, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
     resp = DashboardMetrics(
         as_of_date=metrics["as_of_date"],
         students_evaluated=metrics["students_evaluated"],
@@ -102,7 +103,7 @@ def get_dashboard_metrics(department: str = None, semester: str = None, programm
 # ---------------------------------------------------------------------------
 
 @router.get("/exceptions", response_model=List[AcademicException])
-def get_exceptions(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_exceptions(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """
     Academic anomalies and exceptions backed by database evidence.
     Sorted by priority score (most critical first).
@@ -112,7 +113,7 @@ def get_exceptions(department: str = None, semester: str = None, programme: str 
     if cached:
         return cached
 
-    anomalies = _safe(agent10.compute_anomalies, db)
+    anomalies = await run_in_threadpool(_safe, agent10.compute_anomalies, db)
 
     results = []
     for a in anomalies:
@@ -144,7 +145,7 @@ def get_exceptions(department: str = None, semester: str = None, programme: str 
 # ---------------------------------------------------------------------------
 
 @router.get("/priorities", response_model=List[InterventionPriority])
-def get_priorities(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_priorities(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """
     Ranked intervention priority list from deterministic priority scoring.
     """
@@ -153,7 +154,7 @@ def get_priorities(department: str = None, semester: str = None, programme: str 
     if cached:
         return cached
 
-    priorities = _safe(agent10.compute_priorities, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
+    priorities = await run_in_threadpool(_safe, agent10.compute_priorities, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
 
     results = []
     for p in priorities:
@@ -179,13 +180,13 @@ def get_priorities(department: str = None, semester: str = None, programme: str 
 # ---------------------------------------------------------------------------
 
 @router.get("/performance/courses")
-def get_course_performance(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_course_performance(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """Course-level performance from assessment.v_course_performance."""
     cache_key = f"courses_{department}_{semester}_{programme}_{academic_year}"
     cached = course_perf_cache.get(cache_key)
     if cached:
         return cached
-    resp = _safe(agent10.compute_course_performance, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
+    resp = await run_in_threadpool(_safe, agent10.compute_course_performance, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
     course_perf_cache.set(cache_key, resp)
     return resp
 
@@ -195,13 +196,13 @@ def get_course_performance(department: str = None, semester: str = None, program
 # ---------------------------------------------------------------------------
 
 @router.get("/performance/departments", response_model=List[DepartmentPerformanceItem])
-def get_department_performance(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_department_performance(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """Department-level aggregation."""
     cache_key = f"departments_{department}_{semester}_{programme}_{academic_year}"
     cached = dept_perf_cache.get(cache_key)
     if cached:
         return cached
-    resp = _safe(agent10.compute_department_performance, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
+    resp = await run_in_threadpool(_safe, agent10.compute_department_performance, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
     dept_perf_cache.set(cache_key, resp)
     return resp
 
@@ -211,12 +212,12 @@ def get_department_performance(department: str = None, semester: str = None, pro
 # ---------------------------------------------------------------------------
 
 @router.get("/trends")
-def get_trends(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_trends(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """
     Academic trends. Returns current-term data with honest state notation
     when multi-term historical data is insufficient.
     """
-    return _safe(agent10.compute_trends, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
+    return await run_in_threadpool(_safe, agent10.compute_trends, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
 
 
 # ---------------------------------------------------------------------------
@@ -224,9 +225,9 @@ def get_trends(department: str = None, semester: str = None, programme: str = No
 # ---------------------------------------------------------------------------
 
 @router.get("/recommendations")
-def get_recommendations(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_recommendations(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """Actionable recommendations derived from detected anomalies."""
-    return _safe(agent10.compute_recommendations, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
+    return await run_in_threadpool(_safe, agent10.compute_recommendations, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
 
 
 # ---------------------------------------------------------------------------
@@ -234,9 +235,9 @@ def get_recommendations(department: str = None, semester: str = None, programme:
 # ---------------------------------------------------------------------------
 
 @router.get("/evidence/{course_code}")
-def get_evidence(course_code: str, db: Session = Depends(get_db)):
+async def get_evidence(course_code: str, db: Session = Depends(get_db)):
     """Full evidence chain for a specific course."""
-    return _safe(agent10.get_evidence_for_course, db, course_code)
+    return await run_in_threadpool(_safe, agent10.get_evidence_for_course, db, course_code)
 
 
 # ---------------------------------------------------------------------------
@@ -244,7 +245,7 @@ def get_evidence(course_code: str, db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/sections")
-def get_section_comparison(db: Session = Depends(get_db)):
+async def get_section_comparison(db: Session = Depends(get_db)):
     """Section-level performance comparison — detects inter-section disparities."""
     from app.db import queries
     sections = queries.get_section_comparison(db)

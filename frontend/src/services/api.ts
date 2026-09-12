@@ -54,7 +54,7 @@ interface CacheEntry {
 
 const cache = new Map<string, CacheEntry>();
 const inFlight = new Map<string, Promise<any>>();
-const CACHE_TTL = 30000; // 30 seconds
+const CACHE_TTL = 300000; // 5 minutes — matches backend SimpleTTLCache
 
 async function get<T>(path: string, forceFresh = false): Promise<T> {
   if (!forceFresh) {
@@ -155,6 +155,19 @@ export const Agent10API = {
   /** Backend health check */
   getHealth(): Promise<{ status: string; service: string; environment: string; agent: string }> {
     return get("/health");
+  },
+
+  /**
+   * Prefetch adjacent dashboard data silently after 1.5s.
+   * Call this once the Dashboard has rendered to warm the cache
+   * for Courses and Problems so those tabs open instantly.
+   */
+  prefetchDashboardData(filters?: Partial<FilterState>) {
+    setTimeout(() => {
+      Agent10API.getCourses(filters).catch(() => {});
+      Agent10API.getAnomalies(filters).catch(() => {});
+      Agent10API.getDepartments(filters).catch(() => {});
+    }, 1500);
   },
 };
 
