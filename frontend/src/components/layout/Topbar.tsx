@@ -50,7 +50,7 @@ export default function Topbar({ currentRole, onMenuToggle }: TopbarProps) {
         <ThemeToggle />
         <button 
           onClick={() => setIsNotifOpen(true)}
-          className="relative p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors text-primary" 
+          className="relative p-2 rounded-xl bg-surface-secondary/50 hover:bg-surface-secondary transition-colors text-primary" 
           aria-label="Notifications"
         >
           <Bell size={18} />
@@ -62,14 +62,14 @@ export default function Topbar({ currentRole, onMenuToggle }: TopbarProps) {
         </button>
 
         <div className="flex items-center gap-3 pl-3 md:pl-4 border-l border-border">
-          <div className="h-8 w-8 md:h-9 md:w-9 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center text-xs md:text-sm font-bold text-primary shadow-sm tracking-widest">
+          <div className="h-8 w-8 md:h-9 md:w-9 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center text-xs md:text-sm font-bold text-white shadow-sm tracking-widest">
             {getInitials(displayName)}
           </div>
           <div className="hidden lg:flex flex-col text-xs">
             <span className="font-bold text-primary tracking-wide">
               {displayName}
             </span>
-            <span className="text-indigo-200">{displayRole} Scope Active</span>
+            <span className="text-indigo-600 dark:text-indigo-400 font-medium">Academic Scope: {displayRole}</span>
           </div>
         </div>
 
