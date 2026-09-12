@@ -69,13 +69,13 @@ export default function Problems() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <div className="bg-amber-50/50 dark:bg-amber-950/20 backdrop-blur-sm border border-amber-100 dark:border-amber-900/50 rounded-3xl p-8 text-primary shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-surface/80 backdrop-blur-sm border border-border/60 rounded-3xl p-8 text-primary shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 px-3 py-1 rounded-full text-xs font-bold border border-amber-200 dark:border-amber-500/20 mb-2">
+          <div className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-bold border border-indigo-200 dark:border-indigo-500/20 mb-2">
             <AlertTriangle size={14} /> Agent 10 Detection Engine ({rawRole} View)
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-amber-950 dark:text-amber-100">Anomaly Center & Evidence Explorer</h1>
-          <p className="text-amber-800/80 dark:text-amber-200/70 text-sm mt-1">
+          <h1 className="text-3xl font-extrabold tracking-tight text-primary">Anomaly Center & Evidence Explorer</h1>
+          <p className="text-secondary text-sm mt-1">
             Statistical deviation detection across courses with transparent, evidence-backed attribution.
           </p>
         </div>
