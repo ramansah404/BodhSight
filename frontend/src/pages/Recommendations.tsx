@@ -76,12 +76,12 @@ export default function Recommendations() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <div className="bg-gradient-to-r from-purple-950 via-indigo-900 to-surface rounded-3xl p-8 text-white shadow-xl">
-        <div className="inline-flex items-center gap-2 bg-purple-500/20 text-purple-200 px-3 py-1 rounded-full text-xs font-bold border border-purple-400/30 mb-2">
+      <div className="bg-surface/80 backdrop-blur-sm border border-border/60 rounded-3xl p-8 text-primary shadow-sm">
+        <div className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-bold border border-indigo-200 dark:border-indigo-500/20 mb-2">
           <Lightbulb size={14} /> Actionable Intelligence ({rawRole} Scope)
         </div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-white">Recommendation & Priority Center</h1>
-        <p className="text-purple-100 text-sm mt-1">
+        <h1 className="text-3xl font-extrabold tracking-tight text-primary">Recommendation & Priority Center</h1>
+        <p className="text-secondary text-sm mt-1">
           {permissions.canExecuteRecommendation
             ? "Execute and authorize prioritized institutional interventions based on Agent 10 anomaly detections."
             : "Review recommended pedagogical support and remediation workflows for your assigned courses."}

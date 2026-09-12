@@ -384,7 +384,7 @@ export default function Dashboard() {
       </div>
 
       {/* Agent 10 Quick Actions */}
-      <div className="bg-gradient-to-r from-indigo-900/40 via-indigo-950/40 to-surface rounded-3xl p-6 border border-border/60 shadow-lg relative overflow-hidden">
+      <div className="bg-indigo-50/30 dark:bg-indigo-950/20 rounded-3xl p-6 border border-indigo-100 dark:border-indigo-900/50 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
         <h2 className="text-lg font-bold flex items-center gap-2 mb-4 text-primary relative z-10">
           <Sparkles className="text-indigo-600 dark:text-indigo-400" size={20} />
