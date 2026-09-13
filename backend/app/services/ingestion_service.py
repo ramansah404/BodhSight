@@ -17,6 +17,40 @@ from app.schemas.ingestion import ValidationError
 from app.services.file_parsers import FileParseError, ParsedTable, parse_file
 
 
+COMPONENT_MAX_MARKS = {
+    "q1a_marks": 15.0,
+    "q2a_marks": 15.0,
+}
+
+
+def validate_mark_rows(rows: Dict[int, Dict[str, Any]], max_marks: float) -> List[ValidationError]:
+    errors: List[ValidationError] = []
+    seen = set()
+    for row_no, row in rows.items():
+        roll = str(row.get("student_roll_no", "")).strip()
+        if not roll:
+            errors.append(ValidationError(code="REQUIRED_FIELD", message="student_roll_no is required", row_no=row_no, field_name="student_roll_no"))
+            continue
+        if roll in seen:
+            errors.append(ValidationError(code="DUPLICATE_STUDENT", message=f"Student {roll} appears more than once", row_no=row_no, field_name="student_roll_no"))
+        seen.add(roll)
+        for key, value in row.items():
+            if key in {"student_roll_no", "student_name", "absent_flag", "remarks"} or value == "":
+                continue
+            if key == "total_marks" or key.endswith("_marks") or key.startswith("mid") or key.startswith("assignment"):
+                if str(value).strip().upper() == "ABSENT":
+                    continue
+                try:
+                    numeric = float(value)
+                except (TypeError, ValueError):
+                    errors.append(ValidationError(code="NON_NUMERIC_MARK", message=f"{key} must be numeric or ABSENT", row_no=row_no, field_name=key))
+                    continue
+                maximum = COMPONENT_MAX_MARKS.get(key, float(max_marks))
+                if numeric < 0 or numeric > maximum:
+                    errors.append(ValidationError(code="OUT_OF_RANGE", message=f"{key} must be between 0 and {maximum}", row_no=row_no, field_name=key))
+    return errors
+
+
 @dataclass
 class UploadContext:
     upload_id: str
@@ -65,6 +99,39 @@ class IngestionService:
             rows.append(row)
         return rows
 
+    def _record_validation_anomalies(self, upload_id: str, job_id: str, course_offering_id: Optional[str], rows: List[Dict[str, Any]], max_marks: float) -> None:
+        row_map = {index: row for index, row in enumerate(rows, start=1)}
+        validation_errors = validate_mark_rows(row_map, max_marks)
+        anomaly_types = {"OUT_OF_RANGE": "OUT_OF_RANGE", "DUPLICATE_STUDENT": "DUPLICATE"}
+        for error in validation_errors:
+            anomaly_type = anomaly_types.get(error.code)
+            if not anomaly_type:
+                continue
+            row = row_map.get(error.row_no or 0, {})
+            detail = {
+                "upload_id": upload_id,
+                "extraction_job_id": job_id,
+                "row_no": error.row_no,
+                "field_name": error.field_name,
+                "raw_value": row.get(error.field_name or ""),
+                "message": error.message,
+            }
+            exists = self.db.execute(text("""
+                SELECT 1 FROM assessment.mark_anomaly
+                WHERE anomaly_type = :anomaly_type
+                  AND detail->>'upload_id' = :upload_id
+                  AND detail->>'extraction_job_id' = :job_id
+                  AND detail->>'row_no' = :row_no
+                  AND detail->>'field_name' = :field_name
+                LIMIT 1
+            """), {"anomaly_type": anomaly_type, "upload_id": upload_id, "job_id": job_id, "row_no": str(error.row_no or ""), "field_name": error.field_name or ""}).scalar_one_or_none()
+            if exists:
+                continue
+            self.db.execute(text("""
+                INSERT INTO assessment.mark_anomaly(course_offering_id, anomaly_type, detail, severity, detected_by_agent)
+                VALUES (:course_offering_id, :anomaly_type, CAST(:detail AS jsonb), 'CRITICAL', 'AGENT10_INGESTION')
+            """), {"course_offering_id": course_offering_id, "anomaly_type": anomaly_type, "detail": json.dumps(detail)})
+
     def create_upload(self, files: List[Tuple[str, Optional[str], bytes]], course_offering_id: Optional[str], max_marks: float, formula_version: str, actor_user_id: Optional[str]) -> UploadContext:
         if not files or len(files) > 5:
             raise HTTPException(400, "An upload must contain between 1 and 5 files.")
@@ -88,7 +155,7 @@ class IngestionService:
                 self.db.execute(text("""
                     INSERT INTO knowledge.document(document_id, institution_id, title, document_class, mime_type, storage_uri, content_hash)
                     VALUES (:document_id, :institution_id, :title, 'MARKS_CARD', :mime_type, :storage_uri, :content_hash)
-                """), {"document_id": document_id, "institution_id": institution_id, "title": filename, "mime_type": content_type, "storage_uri": f"ingestion://{upload_id}/{content_hash}"})
+                """), {"document_id": document_id, "institution_id": institution_id, "title": filename, "mime_type": content_type, "storage_uri": f"ingestion://{upload_id}/{content_hash}", "content_hash": content_hash})
                 extraction_status = "NEEDS_REVIEW" if table.metadata.get("needs_review") else "COMPLETED"
                 extraction_method = "TABLE" if table.source_type != "PDF" else "HYBRID"
                 self.db.execute(text("""
@@ -101,6 +168,7 @@ class IngestionService:
                             INSERT INTO knowledge.extracted_field(extraction_job_id, field_name, raw_value, normalised_value, confidence, verification_status)
                             VALUES (:job_id, :field_name, :raw_value, :normalised_value, :confidence, :verification_status)
                         """), {"job_id": job_id, "field_name": f"row_{index}.{field_name}", "raw_value": str(value), "normalised_value": str(value), "confidence": 0.5 if extraction_status == "NEEDS_REVIEW" else 1.0, "verification_status": "NEEDS_REVIEW" if extraction_status == "NEEDS_REVIEW" else "AUTO"})
+                self._record_validation_anomalies(upload_id, job_id, course_offering_id, self._normalise_table(table), max_marks)
                 results.append({"file_id": str(uuid.uuid4()), "filename": filename, "document_id": document_id, "extraction_job_id": job_id, "status": extraction_status, "content_hash": content_hash, "course_offering_id": course_offering_id, "max_marks": max_marks, "formula_version": formula_version, "actor_user_id": actor_user_id})
             self.db.commit()
         except Exception:
@@ -115,26 +183,11 @@ class IngestionService:
         for file in context.files:
             rows = self._field_payload(file["extraction_job_id"])
             total_rows += len(rows)
-            seen = set()
+            errors.extend(validate_mark_rows(rows, float(file["max_marks"])))
             for row_no, row in rows.items():
-                roll = row.get("student_roll_no", "").strip()
+                roll = str(row.get("student_roll_no", "")).strip()
                 if not roll:
-                    errors.append(ValidationError(code="REQUIRED_FIELD", message="student_roll_no is required", row_no=row_no, field_name="student_roll_no"))
                     continue
-                if roll in seen:
-                    errors.append(ValidationError(code="DUPLICATE_STUDENT", message=f"Student {roll} appears more than once", row_no=row_no, field_name="student_roll_no"))
-                seen.add(roll)
-                for key, value in row.items():
-                    if key in {"student_roll_no", "student_name", "absent_flag"} or value == "":
-                        continue
-                    if key.endswith("marks") or key.startswith("mid") or key.startswith("assignment"):
-                        try:
-                            numeric = float(value)
-                        except (TypeError, ValueError):
-                            errors.append(ValidationError(code="NON_NUMERIC_MARK", message=f"{key} must be numeric", row_no=row_no, field_name=key))
-                            continue
-                        if numeric < 0 or numeric > float(file["max_marks"]):
-                            errors.append(ValidationError(code="MARK_OUT_OF_RANGE", message=f"{key} must be between 0 and {file['max_marks']}", row_no=row_no, field_name=key))
                 if file.get("course_offering_id"):
                     registered = self.db.execute(text("""
                         SELECT 1 FROM academics.student_registration sr
@@ -173,8 +226,13 @@ class IngestionService:
                     raise HTTPException(403, "You are not authorized for this course offering.")
                 for row_no, row in self._field_payload(file["extraction_job_id"]).items():
                     student = self.db.execute(text("SELECT student_id FROM people.student WHERE roll_no = :roll"), {"roll": row["student_roll_no"]}).scalar_one_or_none()
-                    components = {key: float(value) for key, value in row.items() if key not in {"student_roll_no", "student_name", "total_marks", "absent_flag"} and value != ""}
-                    computed = float(row.get("total_marks") or sum(components.values()))
+                    components = {}
+                    for key, value in row.items():
+                        if key in {"student_roll_no", "student_name", "total_marks", "absent_flag"} or value == "":
+                            continue
+                        components[key] = value if str(value).strip().upper() == "ABSENT" else float(value)
+                    total_value = row.get("total_marks")
+                    computed = float(total_value) if total_value and str(total_value).strip().upper() != "ABSENT" else sum(value for value in components.values() if isinstance(value, (int, float)))
                     existing = self.db.execute(text("SELECT internal_mark_id, components, computed_marks FROM assessment.internal_mark WHERE course_offering_id = :offering AND student_id = :student"), {"offering": file["course_offering_id"], "student": student}).mappings().first()
                     self.db.execute(text("""
                         INSERT INTO assessment.internal_mark(course_offering_id, student_id, components, formula_version, computed_marks, max_marks, is_provisional)

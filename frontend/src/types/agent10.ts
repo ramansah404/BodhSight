@@ -28,6 +28,18 @@ export interface AcademicDashboardMetrics {
   };
 }
 
+export interface MarkAnomaly {
+  id: string;
+  anomaly_type: string;
+  detail: Record<string, unknown>;
+  severity: "INFO" | "WARNING" | "CRITICAL" | string;
+  course_code?: string | null;
+  section?: string | null;
+  student_roll_no?: string | null;
+  detected_at: string;
+  status: string;
+}
+
 // --- Courses ---
 
 export interface CoursePerformance {

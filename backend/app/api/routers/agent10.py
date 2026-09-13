@@ -10,6 +10,7 @@ frontend/src/types/agent10.ts. Preserve field names exactly.
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.concurrency import run_in_threadpool
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from typing import List
 import logging
@@ -50,9 +51,29 @@ from app.schemas.agent10 import (
     ExecutiveSummary, LLMStatus, TrendSummary, RecommendationItem,
     CoursePerformanceItem, DepartmentPerformanceItem, SectionComparison,
 )
+from app.schemas.ingestion import MarkAnomaly
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+@router.get("/mark-anomalies", response_model=List[MarkAnomaly])
+def get_mark_anomalies(db: Session = Depends(get_db)):
+    """Return persisted ingestion anomalies from the official mark anomaly table."""
+    rows = db.execute(text("""
+        SELECT ma.mark_anomaly_id, ma.anomaly_type, ma.detail, ma.severity,
+               ma.detected_at, ma.status, cv.course_code, sec.code AS section_code,
+               s.roll_no AS student_roll_no
+        FROM assessment.mark_anomaly ma
+        LEFT JOIN academics.course_offering co ON co.course_offering_id = ma.course_offering_id
+        LEFT JOIN curriculum.course_version cv ON cv.course_version_id = co.course_version_id
+        LEFT JOIN curriculum.section sec ON sec.section_id = co.section_id
+        LEFT JOIN people.student s ON s.student_id = (ma.detail->>'student_id')::uuid
+        WHERE ma.detected_by_agent = 'AGENT10_INGESTION'
+        ORDER BY ma.detected_at DESC
+        LIMIT 100
+    """)).mappings().all()
+    return [MarkAnomaly(id=str(row["mark_anomaly_id"]), anomaly_type=row["anomaly_type"], detail=row["detail"] or {}, severity=row["severity"] or "WARNING", course_code=row["course_code"], section=row["section_code"], student_roll_no=row["student_roll_no"], detected_at=row["detected_at"].isoformat(), status=row["status"]) for row in rows]
 
 
 def _safe(fn, db, *args, **kwargs):

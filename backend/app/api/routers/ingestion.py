@@ -30,11 +30,11 @@ def _file_result(file: dict) -> UploadFileResult:
 
 
 @router.post("/upload", response_model=UploadResponse, status_code=201)
-async def upload_files(files: List[UploadFile] = File(...), course_offering_id: Optional[str] = Form(default=None), max_marks: float = Form(default=50), formula_version: str = Form(default="phase2-v1"), db: Session = Depends(get_db), _role: str = Depends(require_upload_role), actor_id: str = Depends(require_actor)):
+async def upload_files(files: List[UploadFile] = File(...), course_offering_id: Optional[str] = Form(default=None), max_marks: float = Form(default=50), formula_version: str = Form(default="phase2-v1"), db: Session = Depends(get_db), _role: str = Depends(require_upload_role)):
     payload = []
     for upload in files:
         payload.append((upload.filename or "", upload.content_type, await upload.read()))
-    context = IngestionService(db).create_upload(payload, course_offering_id, max_marks, formula_version, actor_id)
+    context = IngestionService(db).create_upload(payload, course_offering_id, max_marks, formula_version, None)
     status = "NEEDS_REVIEW" if any(file["status"] == "NEEDS_REVIEW" for file in context.files) else "COMPLETED"
     return UploadResponse(upload_id=context.upload_id, status=status, files=[_file_result(file) for file in context.files])
 

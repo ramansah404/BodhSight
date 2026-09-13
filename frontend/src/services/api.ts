@@ -19,6 +19,7 @@ import type {
   RecommendationItem,
   InterventionPriorityItem,
   SectionComparison,
+  MarkAnomaly,
 } from "../types/agent10";
 import {
   mapBackendCourse as _mapCourse,
@@ -129,6 +130,11 @@ export const Agent10API = {
   /** Problems / exceptions sorted by priority score */
   getAnomalies(filters?: Partial<FilterState>): Promise<AcademicException[]> {
     return get<AcademicException[]>(buildQuery("/agent10/exceptions", filters));
+  },
+
+  /** Persisted ingestion anomalies from assessment.mark_anomaly */
+  getMarkAnomalies(): Promise<MarkAnomaly[]> {
+    return get<MarkAnomaly[]>("/agent10/mark-anomalies", true);
   },
 
   /** Recommendations derived from detected anomalies */

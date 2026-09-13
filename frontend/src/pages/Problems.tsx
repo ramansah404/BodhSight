@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, FileSearch, Sparkles, Database, CheckCircle, X, ShieldAlert, ShieldCheck , AlertCircle } from "lucide-react";
+import { AlertTriangle, FileSearch, Sparkles, Database, CheckCircle, X, ShieldAlert, ShieldCheck , AlertCircle, Activity, Clock3 } from "lucide-react";
 import { Agent10API } from "../services/api";
 import { getRolePermissions } from "../utils/rbac";
-import type { AcademicException } from "../types/agent10";
+import type { AcademicException, MarkAnomaly } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel } from "../utils/exportUtils";
 
@@ -20,6 +20,8 @@ export default function Problems() {
   const [errorMsg, setErrorMsg] = useState("");
   const [selectedAnomaly, setSelectedAnomaly] = useState<AcademicException | null>(null);
   const [auditTriggered, setAuditTriggered] = useState(false);
+  const [markAnomalies, setMarkAnomalies] = useState<MarkAnomaly[]>([]);
+  const [markAnomalyState, setMarkAnomalyState] = useState<LoadState>("loading");
 
   useEffect(() => {
     let cancelled = false;
@@ -42,6 +44,22 @@ export default function Problems() {
         setState("error");
       });
 
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setMarkAnomalyState("loading");
+    Agent10API.getMarkAnomalies()
+      .then((data) => {
+        if (cancelled) return;
+        const safeData = Array.isArray(data) ? data : [];
+        setMarkAnomalies(safeData);
+        setMarkAnomalyState(safeData.length ? "success" : "empty");
+      })
+      .catch(() => {
+        if (!cancelled) setMarkAnomalyState("error");
+      });
     return () => { cancelled = true; };
   }, []);
 
@@ -109,6 +127,33 @@ export default function Problems() {
           Ingestion integrity audit completed. All Z-score baselines verified against PostgreSQL views.
         </div>
       )}
+
+      <section className="overflow-hidden rounded-3xl border border-cyan-500/20 bg-slate-950 text-slate-100 shadow-2xl shadow-cyan-950/10">
+        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 md:px-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300"><Activity size={18} /></div>
+            <div>
+              <h2 className="font-bold tracking-tight">Anomaly Catching Feed</h2>
+              <p className="text-xs text-slate-400">Live persisted findings from the marks pipeline</p>
+            </div>
+          </div>
+          <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-cyan-300"><span className="h-2 w-2 animate-pulse rounded-full bg-cyan-300" /> Agent 10</span>
+        </div>
+        {markAnomalyState === "loading" && <div className="space-y-3 p-5">{[1, 2].map((item) => <div key={item} className="h-16 animate-pulse rounded-2xl bg-white/5" />)}</div>}
+        {markAnomalyState === "error" && <div className="p-6 text-sm text-rose-300">The persisted anomaly feed could not be loaded.</div>}
+        {markAnomalyState === "empty" && <div className="p-6 text-sm text-slate-400">No ingestion anomalies have been persisted.</div>}
+        {markAnomalyState === "success" && <div className="max-h-80 space-y-3 overflow-y-auto p-5">{markAnomalies.map((anomaly) => {
+          const detail = anomaly.detail || {};
+          return <article key={anomaly.id} className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 transition-colors hover:border-cyan-300/30">
+            <div className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${anomaly.severity === "CRITICAL" ? "bg-rose-400 shadow-[0_0_12px_rgba(251,113,133,0.8)]" : "bg-amber-300"}`} />
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2"><span className="text-xs font-black tracking-widest text-cyan-200">{anomaly.anomaly_type.replace(/_/g, " ")}</span><span className="rounded-full border border-rose-300/20 bg-rose-300/10 px-2 py-0.5 text-[10px] font-bold text-rose-200">{anomaly.severity}</span></div>
+              <p className="mt-1 text-sm font-semibold text-white">{String(detail.message || "Mark validation anomaly detected")}</p>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400"><span>{anomaly.course_code || "Course unresolved"}{anomaly.section ? ` · Section ${anomaly.section}` : ""}</span>{anomaly.student_roll_no && <span>Student {anomaly.student_roll_no}</span>}<span className="inline-flex items-center gap-1"><Clock3 size={12} />{new Date(anomaly.detected_at).toLocaleString()}</span><span>{anomaly.status}</span></div>
+            </div>
+          </article>;
+        })}</div>}
+      </section>
 
       {/* Loading */}
         {state === "loading" && (

@@ -75,3 +75,15 @@ class CommitResponse(BaseModel):
     committed_count: int
     audit_count: int
     errors: List[ValidationError] = Field(default_factory=list)
+
+
+class MarkAnomaly(BaseModel):
+    id: str
+    anomaly_type: str
+    detail: Dict[str, Any] = Field(default_factory=dict)
+    severity: str
+    course_code: Optional[str] = None
+    section: Optional[str] = None
+    student_roll_no: Optional[str] = None
+    detected_at: str
+    status: str
