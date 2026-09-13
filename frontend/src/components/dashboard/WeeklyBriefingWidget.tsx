@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Sparkles, Calendar, AlertTriangle, ArrowRight, X, BarChart3, Target } from "lucide-react";
+import { Sparkles, Calendar, AlertTriangle, X, BarChart3, Target } from "lucide-react";
 import { Agent10API } from "../../services/api";
 import type { WeeklyBriefing } from "../../types/agent10";
 import { useFilters } from "../../contexts/FilterContext";

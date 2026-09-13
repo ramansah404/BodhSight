@@ -106,6 +106,27 @@ function buildQuery(path: string, filters?: Partial<FilterState>): string {
 }
 
 export const Agent10API = {
+  async sendChatMessage(message: string, filters?: Partial<FilterState>): Promise<{ reply: string }> {
+    const payload = {
+      message,
+      department: filters?.department || null,
+      semester: filters?.semester || null,
+      programme: filters?.programme || null,
+    };
+    const res = await apiClient.post("/agent10/chat", payload);
+    return res.data;
+  },
+
+  async uploadDocument(file: File, type: string): Promise<{ success: boolean; message: string; status: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("document_type", type);
+    const res = await apiClient.post("/agent10/ingestion/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  },
+
   /** Dashboard KPIs — assessment + roster + student profile views */
   getDashboard(filters?: Partial<FilterState>): Promise<AcademicDashboardMetrics> {
     return get<AcademicDashboardMetrics>(buildQuery("/agent10/dashboard", filters));
@@ -259,5 +280,53 @@ export const NotificationAPI = {
   },
   markAllRead(): Promise<{ success: boolean }> {
     return apiClient.put("/notifications/read-all").then(r => r.data);
+  }
+};
+
+
+// ---------------------------------------------------------------------------
+// Auth API
+// ---------------------------------------------------------------------------
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  role?: string;
+  full_name?: string;
+  email?: string;
+  department?: string;
+}
+
+export const AuthAPI = {
+  async signup(payload: any): Promise<AuthResponse> {
+    const res = await apiClient.post<AuthResponse>('/auth/signup', payload);
+    return res.data;
+  },
+  async login(payload: any): Promise<AuthResponse> {
+    const res = await apiClient.post<AuthResponse>('/auth/login', payload);
+    return res.data;
+  }
+};
+
+// ---------------------------------------------------------------------------
+// CRUD Data API
+// ---------------------------------------------------------------------------
+export interface StudentDataResponse {
+  student_id: string;
+  roll_no: string;
+  full_name: string;
+  section_code: string;
+  attendance_pct: number;
+  cgpa: number;
+}
+
+export const CrudDataAPI = {
+  getSections(): Promise<string[]> {
+    return apiClient.get<string[]>('/crud_data/sections').then(r => r.data);
+  },
+  getStudentsBySection(sectionCode: string): Promise<StudentDataResponse[]> {
+    return apiClient.get<StudentDataResponse[]>(`/crud_data/students/${sectionCode}`).then(r => r.data);
+  },
+  updateStudentData(studentId: string, data: any): Promise<{ status: string }> {
+    return apiClient.put(`/crud_data/students/${studentId}`, data).then(r => r.data);
   }
 };

@@ -1,5 +1,4 @@
 import BrandLogo from "../components/ui/BrandLogo";
-import ThemeToggle from "../components/ui/ThemeToggle";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
@@ -9,6 +8,7 @@ import {
   ChevronRight, MoveRight, Database, Lock, Search, Users,
   Menu, X
 } from "lucide-react";
+import ThemeToggle from "../components/ui/ThemeToggle";
 
 const fadeIn: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -38,6 +38,14 @@ export default function Landing() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Auto-redirect already logged-in users to their dashboard
+  useEffect(() => {
+    if (localStorage.getItem("bodhsight_role")) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate]);
+
+
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
@@ -47,13 +55,13 @@ export default function Landing() {
   };
 
   return (
-    <div className="public-page min-h-screen overflow-x-hidden bg-background text-primary font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
+    <div className="min-h-screen bg-background text-primary font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
       
       {/* ---------------- NAVBAR ---------------- */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-500 border-b ${
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
         isScrolled 
-          ? "bg-background/80 backdrop-blur-2xl border-border/80 py-3 shadow-2xl shadow-indigo-500/5" 
-          : "bg-background/20 backdrop-blur-sm border-transparent py-5"
+          ? "bg-background backdrop-blur-xl border-slate-800/50 py-3 shadow-2xl shadow-indigo-500/5" 
+          : "bg-transparent border-transparent py-5"
       }`}>
         <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
           <div onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
@@ -72,7 +80,7 @@ export default function Landing() {
             <button onClick={() => navigate('/login')} className="text-sm font-medium hover:text-primary transition-colors">Sign In</button>
             <button 
               onClick={() => navigate('/login')}
-              className="px-5 py-2.5 bg-indigo-600 text-white hover:bg-indigo-500 rounded-full text-sm font-bold transition-all duration-300 hover:scale-[1.03] shadow-lg shadow-indigo-600/25"
+              className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm font-bold transition-all shadow-[0_0_20px_rgba(79,70,229,0.2)] hover:shadow-[0_0_25px_rgba(79,70,229,0.4)]"
             >
               Enter BodhSight
             </button>
@@ -106,16 +114,16 @@ export default function Landing() {
               <button onClick={() => scrollTo('security')} className="text-left font-medium">Security</button>
               <hr className="border-border my-2" />
               <button onClick={() => navigate('/login')} className="text-left font-medium">Sign In</button>
-              <button onClick={() => navigate('/login')} className="bg-indigo-600 text-primary text-center py-3 rounded-xl font-bold">Enter BodhSight</button>
+              <button onClick={() => navigate('/login')} className="bg-indigo-600 text-white text-center py-3 rounded-xl font-bold">Enter BodhSight</button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* ---------------- HERO ---------------- */}
-      <div className="relative pt-32 pb-20 lg:pt-44 lg:pb-28 overflow-hidden flex flex-col items-center">
+      <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden flex flex-col items-center">
         {/* Glow Effects */}
-        <div className="absolute top-[8%] left-1/2 -translate-x-1/2 w-[720px] h-[360px] bg-gradient-to-b from-indigo-500/20 via-cyan-400/10 to-transparent rounded-full blur-[110px] pointer-events-none" />
+        <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
         
         <motion.div 
           style={{ y: heroY, opacity: heroOpacity }}
@@ -125,17 +133,17 @@ export default function Landing() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-indigo-500/30 bg-gradient-to-r from-indigo-500/10 via-cyan-500/10 to-indigo-500/10 backdrop-blur-xl text-cyan-300 text-xs font-bold uppercase tracking-widest shadow-lg shadow-indigo-500/10"
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-bold uppercase tracking-widest"
           >
             <Sparkles size={14} /> Agent 10 is Live
           </motion.div>
           
           <motion.h1 
             initial="hidden" animate="visible" variants={fadeIn}
-            className="text-5xl md:text-7xl lg:text-8xl font-bold text-primary tracking-tight leading-[1.05]"
+            className="text-5xl md:text-7xl font-bold text-primary tracking-tight leading-[1.1]"
           >
             Academic Intelligence,<br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400">Built for Better Decisions.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">Built for Better Decisions.</span>
           </motion.h1>
           
           <motion.p 
@@ -152,13 +160,13 @@ export default function Landing() {
           >
             <button 
               onClick={() => navigate('/login')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-sm font-bold transition-all duration-300 hover:scale-[1.03] shadow-xl shadow-indigo-600/25 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all shadow-[0_0_30px_rgba(79,70,229,0.3)] hover:shadow-[0_0_40px_rgba(79,70,229,0.5)] flex items-center justify-center gap-2"
             >
               Enter Dashboard <MoveRight size={16} />
             </button>
             <button 
               onClick={() => scrollTo('features')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-surface/60 hover:bg-surface-secondary border border-border hover:border-indigo-500/40 text-primary rounded-full text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-3.5 bg-surface-secondary/50 hover:bg-surface-secondary border border-border/50 hover:border-slate-600 text-primary rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
             >
               Explore BodhSight
             </button>
@@ -172,7 +180,7 @@ export default function Landing() {
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
           className="relative z-20 mt-20 max-w-6xl w-full px-6"
         >
-          <div className="rounded-[2rem] border border-border/80 bg-surface/60 backdrop-blur-2xl p-2 shadow-2xl shadow-indigo-950/20 overflow-hidden ring-1 ring-white/10">
+          <div className="rounded-2xl border border-slate-800/80 bg-surface/50 backdrop-blur-sm p-2 shadow-2xl overflow-hidden ring-1 ring-white/10">
             <div className="rounded-xl overflow-hidden border border-border relative bg-surface">
               {/* Fake Dashboard Header */}
               <div className="h-12 border-b border-border flex items-center px-4 gap-2 bg-surface/80">
@@ -183,20 +191,54 @@ export default function Landing() {
                 </div>
                 <div className="ml-4 w-64 h-6 rounded-md bg-surface-secondary" />
               </div>
-              {/* Fake Dashboard Content */}
-              <div className="p-6 grid grid-cols-4 gap-4 opacity-70">
-                <div className="col-span-1 space-y-4 hidden md:block">
-                  <div className="h-8 rounded bg-indigo-500/20 w-full" />
-                  <div className="h-8 rounded bg-surface-secondary w-5/6" />
-                  <div className="h-8 rounded bg-surface-secondary w-4/6" />
-                </div>
-                <div className="col-span-4 md:col-span-3 space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="h-24 rounded-xl bg-surface-secondary border border-border/50" />
-                    <div className="h-24 rounded-xl bg-surface-secondary border border-border/50" />
-                    <div className="h-24 rounded-xl bg-indigo-900/40 border border-indigo-500/20" />
+              {/* Fake Dashboard Content - Polished Mockup */}
+              <div className="p-6 flex flex-col md:flex-row gap-6 opacity-90">
+                {/* Mock Sidebar */}
+                <div className="w-48 space-y-2 hidden md:block">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-indigo-500/10 text-indigo-500 rounded-lg">
+                    <Activity size={16} /> <span className="text-sm font-semibold">Dashboard</span>
                   </div>
-                  <div className="h-64 rounded-xl bg-surface-secondary/50 border border-border/50" />
+                  <div className="flex items-center gap-2 px-3 py-2 text-secondary hover:text-primary transition-colors">
+                    <BrainCircuit size={16} /> <span className="text-sm font-medium">Anomalies</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-2 text-secondary hover:text-primary transition-colors">
+                    <Search size={16} /> <span className="text-sm font-medium">Students</span>
+                  </div>
+                </div>
+                
+                {/* Mock Main Content */}
+                <div className="flex-1 space-y-6">
+                  {/* Top Stats */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="h-24 rounded-xl bg-surface-secondary border border-border/50 p-4 flex flex-col justify-between">
+                      <div className="text-xs text-secondary font-bold uppercase tracking-wider">Avg Pass Rate</div>
+                      <div className="text-2xl font-black text-primary">87.4%</div>
+                      <div className="w-full h-1 bg-emerald-500/20 rounded-full overflow-hidden"><div className="h-full w-[87%] bg-emerald-500"></div></div>
+                    </div>
+                    <div className="h-24 rounded-xl bg-surface-secondary border border-border/50 p-4 flex flex-col justify-between">
+                      <div className="text-xs text-secondary font-bold uppercase tracking-wider">At-Risk Cohort</div>
+                      <div className="text-2xl font-black text-primary">42 <span className="text-xs text-rose-500 font-normal">Students</span></div>
+                      <div className="w-full h-1 bg-rose-500/20 rounded-full overflow-hidden"><div className="h-full w-[15%] bg-rose-500"></div></div>
+                    </div>
+                    <div className="h-24 rounded-xl bg-indigo-900/40 border border-indigo-500/30 p-4 flex flex-col justify-between relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-4 text-indigo-400 opacity-50"><Sparkles size={24} /></div>
+                      <div className="text-xs text-indigo-300 font-bold uppercase tracking-wider z-10">Agent 10 Status</div>
+                      <div className="text-lg font-bold text-indigo-100 z-10 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Monitoring</div>
+                      <div className="text-xs text-indigo-200/70 z-10">All systems operational</div>
+                    </div>
+                  </div>
+                  
+                  {/* Mock Chart Area */}
+                  <div className="h-64 rounded-xl bg-surface-secondary/50 border border-border/50 p-6 flex flex-col">
+                    <div className="text-sm font-bold text-primary mb-6">Historical Performance Trend</div>
+                    <div className="flex-1 flex items-end gap-2 justify-between px-4 pb-2">
+                      {[40, 60, 45, 80, 65, 90, 75, 85, 95, 70, 88].map((h, i) => (
+                        <div key={i} className="w-full bg-indigo-500/20 rounded-t-md hover:bg-indigo-500/40 transition-colors" style={{ height: `${h}%` }}>
+                          <div className="w-full bg-indigo-500 rounded-t-md opacity-80" style={{ height: '4px' }} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
@@ -206,7 +248,7 @@ export default function Landing() {
       </div>
 
       {/* ---------------- FEATURES ---------------- */}
-      <section id="features" className="py-24 relative z-10 border-t border-border/70 bg-background/50">
+      <section id="features" className="py-24 relative z-10 border-t border-slate-800/50 bg-background/50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">A complete view of your institution.</h2>
@@ -230,7 +272,7 @@ export default function Landing() {
             ].map((feature, i) => (
               <motion.div 
                 key={i} variants={fadeIn}
-                className="bg-surface/70 backdrop-blur-xl border border-border/70 p-7 rounded-[2rem] hover:bg-surface-secondary/60 hover:border-indigo-500/40 transition-all duration-500 group shadow-xl shadow-slate-950/5"
+                className="bg-surface/50 border border-border/60 p-6 rounded-2xl hover:bg-surface-secondary/50 transition-colors group"
               >
                 <div className="w-12 h-12 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   {feature.icon}
@@ -244,7 +286,7 @@ export default function Landing() {
       </section>
 
       {/* ---------------- HOW IT WORKS ---------------- */}
-      <section id="intelligence" className="py-24 relative z-10 border-t border-border/70">
+      <section id="intelligence" className="py-24 relative z-10 border-t border-slate-800/50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div 
@@ -284,7 +326,7 @@ export default function Landing() {
               className="relative"
             >
               <div className="absolute inset-0 bg-violet-600/20 blur-[100px] rounded-full" />
-              <div className="relative bg-surface/80 backdrop-blur-2xl border border-border rounded-[2rem] p-6 shadow-2xl shadow-indigo-950/20">
+              <div className="relative bg-surface border border-border rounded-2xl p-6 shadow-2xl">
                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
                   <BrainCircuit className="text-violet-400" />
                   <span className="font-bold text-primary">Agent 10 Detection Log</span>
@@ -310,7 +352,7 @@ export default function Landing() {
       </section>
 
       {/* ---------------- SECURITY / RBAC ---------------- */}
-      <section id="security" className="py-24 relative z-10 border-y border-border/70 bg-surface/60">
+      <section id="security" className="py-24 relative z-10 border-y border-slate-800/50 bg-surface">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-6">
             <Lock size={32} />
@@ -327,7 +369,7 @@ export default function Landing() {
               { role: "IQAC Officer", access: "Quality Reports", icon: <LineChart /> },
               { role: "Faculty", access: "Assigned Courses Only", icon: <Search /> }
             ].map((item, i) => (
-              <div key={i} className="bg-background/60 backdrop-blur-xl border border-border p-6 rounded-[1.5rem] text-left hover:border-emerald-500/40 transition-colors">
+              <div key={i} className="bg-surface border border-border p-6 rounded-2xl text-left">
                 <div className="text-emerald-600 dark:text-emerald-400 mb-3">{item.icon}</div>
                 <div className="font-bold text-primary mb-1">{item.role}</div>
                 <div className="text-xs text-secondary">{item.access}</div>
@@ -353,7 +395,7 @@ export default function Landing() {
       </section>
 
       {/* ---------------- FOOTER ---------------- */}
-      <footer className="py-10 border-t border-border/70 bg-background text-center">
+      <footer className="py-10 border-t border-slate-800/50 bg-background text-center">
         <div className="flex justify-center mb-4 opacity-60 hover:opacity-100 transition-opacity grayscale hover:grayscale-0">
           <BrandLogo />
         </div>

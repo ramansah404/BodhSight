@@ -8,6 +8,7 @@ export interface PermissionMatrix {
   canCalibrateCourseDifficulty: boolean;
   canExecuteRecommendation: boolean;
   canSubmitFacultyFeedback: boolean;
+  canOverrideStudentData?: boolean;
 }
 
 export const getRolePermissions = (roleString: string): PermissionMatrix => {
@@ -86,3 +87,4 @@ export const getRolePermissions = (roleString: string): PermissionMatrix => {
       };
   }
 };
+export const dummy = 1;

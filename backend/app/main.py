@@ -51,13 +51,21 @@ def health_check_v1():
     }
 
 from app.api.v1.routes import dashboard, performance, trends, anomalies, insights, alerts, recommendations
-from app.api.routers import agent10, notifications, ingestion
+from app.api.routers import agent10, notifications, ingestion, crud_data, auth, chat
 from app.core.authorization import require_leadership_identity
 
+# Agent 10 Chat (Groq AI) — added from main
+app.include_router(chat.router, prefix=f"{settings.API_V1_STR}", tags=["Agent 10 Chat"])
+# Core Agent 10 endpoints (mark-anomalies, autotutor, weekly-briefing)
 app.include_router(agent10.router, prefix=f"{settings.API_V1_STR}/agent10", tags=["Agent 10"])
-app.include_router(ingestion.router, prefix=f"{settings.API_V1_STR}/agent10/ingestion", tags=["Agent 10 Ingestion"])
+# Authentication — added from main (bcrypt login, rate limiting)
+app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
+# CRUD Data — added from main
+app.include_router(crud_data.router, prefix=f"{settings.API_V1_STR}/crud_data", tags=["CRUD"])
 app.include_router(notifications.router, prefix=f"{settings.API_V1_STR}/notifications", tags=["Notifications"])
-# Placeholders for future routers
+# Ingestion: keep phase-2 prefix /agent10/ingestion (tests depend on this)
+app.include_router(ingestion.router, prefix=f"{settings.API_V1_STR}/agent10/ingestion", tags=["Agent 10 Ingestion"])
+# Legacy placeholder routes with leadership guard
 legacy_read_dependencies = [Depends(require_leadership_identity)]
 app.include_router(dashboard.router, prefix=f"{settings.API_V1_STR}/dashboard", tags=["Dashboard"], dependencies=legacy_read_dependencies)
 app.include_router(performance.router, prefix=f"{settings.API_V1_STR}/performance", tags=["Performance"], dependencies=legacy_read_dependencies)
