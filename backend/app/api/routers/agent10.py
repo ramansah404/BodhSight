@@ -15,34 +15,6 @@ from typing import List
 import logging
 import time
 
-class SimpleTTLCache:
-    def __init__(self, ttl_seconds=60):
-        self.cache = {}
-        self.ttl = ttl_seconds
-
-    def get(self, key):
-        if key in self.cache:
-            val, timestamp = self.cache[key]
-            if time.time() - timestamp < self.ttl:
-                return val
-            else:
-                del self.cache[key]
-        return None
-
-    def set(self, key, value):
-        self.cache[key] = (value, time.time())
-
-# Global cache instances (5 minutes TTL)
-dashboard_cache = SimpleTTLCache(300)
-exceptions_cache = SimpleTTLCache(300)
-priorities_cache = SimpleTTLCache(300)
-course_perf_cache = SimpleTTLCache(300)
-dept_perf_cache = SimpleTTLCache(300)
-trends_cache = SimpleTTLCache(300)
-summary_cache = SimpleTTLCache(300)
-sections_cache = SimpleTTLCache(300)
-recommendations_cache = SimpleTTLCache(300)
-
 from app.db.session import get_db
 import app.agents.agent10 as agent10
 from app.schemas.agent10 import (
@@ -84,11 +56,6 @@ def get_dashboard_metrics(department: str = Depends(get_rbac_department), semest
     Dashboard KPIs from real Supabase database views.
     All values are deterministically computed from official university schema.
     """
-    cache_key = f"dashboard_{department}_{semester}_{programme}_{academic_year}"
-    cached = dashboard_cache.get(cache_key)
-    if cached:
-        return cached
-
     metrics = _safe(agent10.compute_dashboard_metrics, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
     resp = DashboardMetrics(
         as_of_date=metrics["as_of_date"],
@@ -104,7 +71,6 @@ def get_dashboard_metrics(department: str = Depends(get_rbac_department), semest
         active_anomalies=metrics.get("active_anomalies", 0),
         data_source=metrics.get("data_source", "database"),
     )
-    dashboard_cache.set(cache_key, resp)
     return resp
 
 
@@ -118,12 +84,7 @@ def get_exceptions(department: str = Depends(get_rbac_department), semester: str
     Academic anomalies and exceptions backed by database evidence.
     Sorted by priority score (most critical first).
     """
-    cache_key = f"exceptions_{department}_{semester}_{programme}_{academic_year}"
-    cached = exceptions_cache.get(cache_key)
-    if cached:
-        return cached
-
-    anomalies = _safe(agent10.compute_anomalies, db)
+    anomalies = _safe(agent10.compute_anomalies, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
 
     results = []
     for a in anomalies:
@@ -146,7 +107,6 @@ def get_exceptions(department: str = Depends(get_rbac_department), semester: str
             course_title=a.get("course_title"),
             is_overdue=a.get("is_overdue", False),
         ))
-    exceptions_cache.set(cache_key, results)
     return results
 
 
@@ -159,11 +119,6 @@ def get_priorities(department: str = Depends(get_rbac_department), semester: str
     """
     Ranked intervention priority list from deterministic priority scoring.
     """
-    cache_key = f"priorities_{department}_{semester}_{programme}_{academic_year}"
-    cached = priorities_cache.get(cache_key)
-    if cached:
-        return cached
-
     priorities = _safe(agent10.compute_priorities, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
 
     results = []
@@ -181,7 +136,6 @@ def get_priorities(department: str = Depends(get_rbac_department), semester: str
             recommended_intervention=p.get("recommended_intervention", ""),
             anomaly_type=p.get("anomaly_type"),
         ))
-    priorities_cache.set(cache_key, results)
     return results
 
 
@@ -192,12 +146,7 @@ def get_priorities(department: str = Depends(get_rbac_department), semester: str
 @router.get("/performance/courses")
 def get_course_performance(department: str = Depends(get_rbac_department), semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """Course-level performance from assessment.v_course_performance."""
-    cache_key = f"courses_{department}_{semester}_{programme}_{academic_year}"
-    cached = course_perf_cache.get(cache_key)
-    if cached:
-        return cached
     resp = _safe(agent10.compute_course_performance, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
-    course_perf_cache.set(cache_key, resp)
     return resp
 
 
@@ -208,12 +157,7 @@ def get_course_performance(department: str = Depends(get_rbac_department), semes
 @router.get("/performance/departments", response_model=List[DepartmentPerformanceItem])
 def get_department_performance(department: str = Depends(get_rbac_department), semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """Department-level aggregation."""
-    cache_key = f"departments_{department}_{semester}_{programme}_{academic_year}"
-    cached = dept_perf_cache.get(cache_key)
-    if cached:
-        return cached
     resp = _safe(agent10.compute_department_performance, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
-    dept_perf_cache.set(cache_key, resp)
     return resp
 
 
@@ -383,11 +327,7 @@ def execute_recommendation(anomaly_id: str, db: Session = Depends(get_db)):
         )
         db.commit()
         
-        # Invalidate caches
-        exceptions_cache.cache.clear()
-        dashboard_cache.cache.clear()
-        priorities_cache.cache.clear()
-        recommendations_cache.cache.clear()
+        # Removed cache invalidation as cache is removed
         
         return {"success": True, "message": "Recommendation marked as IN_PROGRESS."}
     except Exception as e:
@@ -399,8 +339,6 @@ def trigger_audit(db: Session = Depends(get_db)):
     """Trigger an ingestion audit check."""
     # Return success so the frontend knows the connected backend acknowledged it.
     
-    # Invalidate caches
-    exceptions_cache.cache.clear()
-    dashboard_cache.cache.clear()
+    # Removed cache invalidation as cache is removed
     
     return {"success": True, "message": "Audit ingestion check triggered successfully."}

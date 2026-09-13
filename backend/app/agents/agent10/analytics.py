@@ -124,7 +124,7 @@ def compute_course_performance(db: Session, department: str = None, semester: st
     Per-course performance from assessment.v_course_performance.
     Assigns trend and priority based on deterministic thresholds.
     """
-    rows = queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.get_course_performance_all(db), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year)
+    rows = queries.filter_course_rows(queries.get_course_performance_all(db), queries.get_course_section_roster(db), department, semester, programme, academic_year)
     roster = queries.get_course_section_roster(db)
 
     # Build department lookup from roster
@@ -508,6 +508,9 @@ def compute_anomalies(db: Session, department: str = None, semester: str = None,
             "age_hours": _f(f.get("age_hours")),
         })
 
+    if department:
+        anomalies = [a for a in anomalies if a.get("department") == department]
+
     # Sort by priority_score descending
     anomalies.sort(key=lambda x: x.get("priority_score", 0), reverse=True)
     return anomalies
@@ -536,6 +539,9 @@ def compute_priorities(db: Session, department: str = None, semester: str = None
 
         pp = _f(a.get("current_value")) if a.get("anomaly_type") == "LOW_PASS_RATE" else None
         students = int(a.get("affected_students") or 0)
+
+        if department and a.get("department") != department:
+            continue
 
         priorities.append({
             "rank": rank,

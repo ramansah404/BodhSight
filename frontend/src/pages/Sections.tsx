@@ -71,9 +71,9 @@ export default function Sections() {
           </p>
         </div>
         {state === "success" && disparityCount > 0 && (
-          <div className="bg-rose-500/20 border border-rose-400/30 rounded-2xl px-5 py-3 text-center">
-            <div className="text-2xl font-black text-rose-200">{disparityCount}</div>
-            <div className="text-xs font-bold text-rose-300 mt-0.5">Sections Flagged</div>
+          <div className="bg-gradient-to-br from-rose-500 to-rose-700 border border-rose-400/30 rounded-2xl px-6 py-4 text-center shadow-lg shadow-rose-900/20 flex flex-col items-center justify-center">
+            <div className="text-3xl font-black text-white">{disparityCount}</div>
+            <div className="text-[10px] font-bold text-rose-100 uppercase tracking-widest mt-1">Sections Flagged</div>
           </div>
         )}
       </div>

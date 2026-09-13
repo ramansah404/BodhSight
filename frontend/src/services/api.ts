@@ -256,3 +256,28 @@ export const NotificationAPI = {
     return apiClient.put("/notifications/read-all").then(r => r.data);
   }
 };
+
+// ---------------------------------------------------------------------------
+// CRUD Data API
+// ---------------------------------------------------------------------------
+
+export interface StudentDataResponse {
+  student_id: string;
+  roll_no: string;
+  full_name: string;
+  section_code: string;
+  attendance_pct: number;
+  cgpa: number;
+}
+
+export const CrudDataAPI = {
+  getSections(): Promise<string[]> {
+    return get<string[]>("/crud_data/sections", true);
+  },
+  getStudentsBySection(sectionCode: string): Promise<StudentDataResponse[]> {
+    return get<StudentDataResponse[]>(`/crud_data/students/${sectionCode}`, true);
+  },
+  updateStudentData(studentId: string, data: { attendance_pct?: number; cgpa?: number }): Promise<{ status: string }> {
+    return apiClient.put(`/crud_data/students/${studentId}`, data).then(r => r.data);
+  }
+};

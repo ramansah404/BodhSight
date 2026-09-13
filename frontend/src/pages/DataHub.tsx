@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { UploadCloud, FileSpreadsheet, FileText, Database, CheckCircle2, AlertCircle, Sparkles, X, File as FileIcon } from "lucide-react";
 import { Agent10API } from "../services/api";
+import ManualEntry from "./ManualEntry";
 
 export default function DataHub() {
   const [dragActive, setDragActive] = useState(false);
@@ -10,6 +11,7 @@ export default function DataHub() {
   const [errorMsg, setErrorMsg] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const [activeTab, setActiveTab] = useState<"upload" | "manual">("upload");
   const rawRole = localStorage.getItem("bodhsight_display_role") || localStorage.getItem("bodhsight_role") || "Faculty";
 
   const handleDrag = (e: React.DragEvent) => {
@@ -97,13 +99,28 @@ export default function DataHub() {
             Upload raw Excel, Word, or PDF documents. Agent 10 will automatically extract, validate, and queue the data into the database.
           </p>
         </div>
+        <div className="flex bg-surface-hover/50 p-1 rounded-xl border border-border mt-4 md:mt-0">
+          <button 
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-colors ${activeTab === 'upload' ? 'bg-indigo-600 text-white shadow-sm' : 'text-secondary hover:text-primary'}`}
+            onClick={() => setActiveTab("upload")}
+          >
+            File Upload
+          </button>
+          <button 
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-colors ${activeTab === 'manual' ? 'bg-indigo-600 text-white shadow-sm' : 'text-secondary hover:text-primary'}`}
+            onClick={() => setActiveTab("manual")}
+          >
+            Manual Entry
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Left Col: Upload Zone */}
+        {/* Left Col: Upload Zone or Manual Entry */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-surface border border-border rounded-3xl p-6 shadow-sm">
+          {activeTab === "upload" ? (
+            <div className="bg-surface border border-border rounded-3xl p-6 shadow-sm">
             <h2 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
               <UploadCloud className="text-indigo-500" size={20} />
               Ingestion Queue
@@ -201,6 +218,9 @@ export default function DataHub() {
               )}
             </button>
           </div>
+          ) : (
+            <ManualEntry />
+          )}
         </div>
 
         {/* Right Col: Info */}
