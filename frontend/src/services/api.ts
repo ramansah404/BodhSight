@@ -175,7 +175,7 @@ export const Agent10API = {
   async updateStudentProfile(studentId: string, updates: Partial<import("../types/agent10").StudentProfile>): Promise<void> {
     try {
       // Try sending to the backend first (if it existed)
-      await apiClient.put(`/agent10/students/${studentId}`, updates);
+      await apiClient.put(`/crud_data/students/${studentId}`, updates);
     } catch (err) {
       console.warn("Backend update failed, saving to local overrides for hackathon demo persistence.");
       // Fallback: save to localStorage

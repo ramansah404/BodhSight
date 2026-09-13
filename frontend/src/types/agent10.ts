@@ -282,7 +282,7 @@ export function mapBackendRecommendation(r: BackendRecommendation): Recommendati
     problem: r.course_code
       ? `${anomalyLabel} detected in course ${r.course_code}${r.department ? ` (${r.department})` : ""}.`
       : `${anomalyLabel} detected${r.department ? ` in ${r.department}` : ""}.`,
-    evidence: r.evidence_sources,
+    evidence: r.evidence_sources || [],
     recommendation: r.recommended_action,
     priority,
     expected_impact: `Affects ${r.affected_students} student${r.affected_students !== 1 ? "s" : ""}. Priority score: ${(r.priority_score * 100).toFixed(0)}/100.`,

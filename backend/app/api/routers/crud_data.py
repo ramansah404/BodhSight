@@ -22,6 +22,7 @@ def get_rbac_department(
 class StudentDataUpdate(BaseModel):
     attendance_pct: Optional[float] = Field(None, ge=0.0, le=100.0, description="Attendance must be between 0 and 100")
     cgpa: Optional[float] = Field(None, ge=0.0, le=10.0, description="CGPA must be between 0.0 and 10.0")
+    backlog_count: Optional[int] = Field(None, ge=0, description="Number of active backlogs")
 
 class StudentDataResponse(BaseModel):
     student_id: str
@@ -112,6 +113,9 @@ def update_student_data(student_id: str, data: StudentDataUpdate, department: st
         if data.cgpa is not None:
             updates.append("demo_marks_override = :cgpa")
             params["cgpa"] = data.cgpa
+        if data.backlog_count is not None:
+            updates.append("demo_backlog_override = :backlogs")
+            params["backlogs"] = data.backlog_count
             
         if not updates:
             return {"status": "no_change"}

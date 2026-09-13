@@ -86,6 +86,14 @@ async def upload_document(
                         except ValueError:
                             pass
                             
+                    backlogs_str = row.get("backlogs") or row.get("backlog_count")
+                    if backlogs_str:
+                        try:
+                            params["backlogs"] = int(float(backlogs_str))
+                            updates.append("demo_backlog_override = :backlogs")
+                        except ValueError:
+                            pass
+                            
                     if updates:
                         update_q = "UPDATE people.student SET " + ", ".join(updates) + " WHERE student_id = :sid"
                         # Note: Strict line-by-line RBAC can be enforced here, but read-time RBAC already limits visibility.

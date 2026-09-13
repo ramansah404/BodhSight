@@ -3,9 +3,11 @@ import { useFilters } from "../contexts/FilterContext";
 import { Agent10API } from "../services/api";
 import type { AcademicException } from "../types/agent10";
 import { AlertTriangle, ShieldAlert, FileSearch, ArrowRight, Clock, Database, CheckCircle, X, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Exceptions() {
   const { filters } = useFilters();
+  const navigate = useNavigate();
   const [exceptions, setExceptions] = useState<AcademicException[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedException, setSelectedException] = useState<AcademicException | null>(null);
@@ -80,7 +82,7 @@ export default function Exceptions() {
                 >
                   <FileSearch size={16} /> View Evidence Trace & SQL Lineage →
                 </button>
-                <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-primary rounded-lg text-sm font-medium transition-colors">
+                <button onClick={() => navigate('/recommendations')} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-primary rounded-lg text-sm font-medium transition-colors">
                   Take Action <ArrowRight size={16} className="inline ml-1" />
                 </button>
               </div>
