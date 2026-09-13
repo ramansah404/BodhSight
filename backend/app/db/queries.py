@@ -602,7 +602,8 @@ def get_student_drilldown(
     department: str = None, 
     semester: str = None, 
     programme: str = None, 
-    academic_year: str = None
+    academic_year: str = None,
+    allowed_offering_ids: list[str] = None,
 ) -> List[Dict[str, Any]]:
     """
     Returns student details for a drill-down context:
@@ -653,7 +654,14 @@ def get_student_drilldown(
     else:
         select_clause += " 'Evaluated' AS reason "
 
+    params = {}
+    if context == "course" and allowed_offering_ids is not None:
+        if not allowed_offering_ids:
+            return []
+        where_clause += " AND cp.course_offering_id = ANY(CAST(:allowed_offering_ids AS uuid[])) "
+        params["allowed_offering_ids"] = allowed_offering_ids
+
     sql_text = select_clause + from_clause + where_clause + " ORDER BY p.roll_no ASC LIMIT 500"
     
-    result = db.execute(text(sql_text))
+    result = db.execute(text(sql_text), params)
     return [dict(row._mapping) for row in result]

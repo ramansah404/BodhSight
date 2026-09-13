@@ -52,14 +52,30 @@ from app.schemas.agent10 import (
     CoursePerformanceItem, DepartmentPerformanceItem, SectionComparison,
 )
 from app.schemas.ingestion import MarkAnomaly
+from app.core.authorization import (
+    Agent10Identity,
+    allowed_department,
+    filter_scoped_course_rows,
+    get_agent10_identity,
+    require_aggregate_access,
+    require_course_access,
+)
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
 @router.get("/mark-anomalies", response_model=List[MarkAnomaly])
-def get_mark_anomalies(db: Session = Depends(get_db)):
+def get_mark_anomalies(db: Session = Depends(get_db), identity: Agent10Identity = Depends(get_agent10_identity)):
     """Return persisted ingestion anomalies from the official mark anomaly table."""
+    scope_clause = ""
+    params = {}
+    if identity.role == "FACULTY":
+        scope_clause = " AND ma.course_offering_id = ANY(CAST(:offering_ids AS uuid[]))"
+        params["offering_ids"] = list(identity.offering_ids)
+    elif identity.role == "HOD":
+        scope_clause = " AND co.department_id = ANY(CAST(:department_ids AS uuid[]))"
+        params["department_ids"] = list(identity.department_ids)
     rows = db.execute(text("""
         SELECT ma.mark_anomaly_id, ma.anomaly_type, ma.detail, ma.severity,
                ma.detected_at, ma.status, cv.course_code, sec.code AS section_code,
@@ -70,9 +86,10 @@ def get_mark_anomalies(db: Session = Depends(get_db)):
         LEFT JOIN curriculum.section sec ON sec.section_id = co.section_id
         LEFT JOIN people.student s ON s.student_id = (ma.detail->>'student_id')::uuid
         WHERE ma.detected_by_agent = 'AGENT10_INGESTION'
+        """ + scope_clause + """
         ORDER BY ma.detected_at DESC
         LIMIT 100
-    """)).mappings().all()
+    """), params).mappings().all()
     return [MarkAnomaly(id=str(row["mark_anomaly_id"]), anomaly_type=row["anomaly_type"], detail=row["detail"] or {}, severity=row["severity"] or "WARNING", course_code=row["course_code"], section=row["section_code"], student_roll_no=row["student_roll_no"], detected_at=row["detected_at"].isoformat(), status=row["status"]) for row in rows]
 
 
@@ -90,15 +107,18 @@ def _safe(fn, db, *args, **kwargs):
 # ---------------------------------------------------------------------------
 
 @router.get("/dashboard", response_model=DashboardMetrics)
-async def get_dashboard_metrics(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_dashboard_metrics(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db), identity: Agent10Identity = Depends(get_agent10_identity)):
     """
     Dashboard KPIs from real Supabase database views.
     All values are deterministically computed from official university schema.
     """
+    require_aggregate_access(identity)
+    department = allowed_department(identity, department)
     cache_key = f"dashboard_{department}_{semester}_{programme}_{academic_year}"
-    cached = dashboard_cache.get(cache_key)
-    if cached:
-        return cached
+    if identity.role in {"DEAN", "PRINCIPAL", "CHAIRMAN", "IQAC"}:
+        cached = dashboard_cache.get(cache_key)
+        if cached:
+            return cached
 
     metrics = await run_in_threadpool(_safe, agent10.compute_dashboard_metrics, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
     resp = DashboardMetrics(
@@ -124,15 +144,18 @@ async def get_dashboard_metrics(department: str = None, semester: str = None, pr
 # ---------------------------------------------------------------------------
 
 @router.get("/exceptions", response_model=List[AcademicException])
-async def get_exceptions(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_exceptions(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db), identity: Agent10Identity = Depends(get_agent10_identity)):
     """
     Academic anomalies and exceptions backed by database evidence.
     Sorted by priority score (most critical first).
     """
+    require_aggregate_access(identity)
+    department = allowed_department(identity, department)
     cache_key = f"exceptions_{department}_{semester}_{programme}_{academic_year}"
-    cached = exceptions_cache.get(cache_key)
-    if cached:
-        return cached
+    if identity.role in {"DEAN", "PRINCIPAL", "CHAIRMAN", "IQAC"}:
+        cached = exceptions_cache.get(cache_key)
+        if cached:
+            return cached
 
     anomalies = await run_in_threadpool(_safe, agent10.compute_anomalies, db)
 
@@ -157,7 +180,9 @@ async def get_exceptions(department: str = None, semester: str = None, programme
             course_title=a.get("course_title"),
             is_overdue=a.get("is_overdue", False),
         ))
-    exceptions_cache.set(cache_key, results)
+    results = filter_scoped_course_rows(identity, results)
+    if identity.role in {"DEAN", "PRINCIPAL", "CHAIRMAN", "IQAC"}:
+        exceptions_cache.set(cache_key, results)
     return results
 
 
@@ -166,14 +191,17 @@ async def get_exceptions(department: str = None, semester: str = None, programme
 # ---------------------------------------------------------------------------
 
 @router.get("/priorities", response_model=List[InterventionPriority])
-async def get_priorities(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_priorities(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db), identity: Agent10Identity = Depends(get_agent10_identity)):
     """
     Ranked intervention priority list from deterministic priority scoring.
     """
+    require_aggregate_access(identity)
+    department = allowed_department(identity, department)
     cache_key = f"priorities_{department}_{semester}_{programme}_{academic_year}"
-    cached = priorities_cache.get(cache_key)
-    if cached:
-        return cached
+    if identity.role in {"DEAN", "PRINCIPAL", "CHAIRMAN", "IQAC"}:
+        cached = priorities_cache.get(cache_key)
+        if cached:
+            return cached
 
     priorities = await run_in_threadpool(_safe, agent10.compute_priorities, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
 
@@ -192,7 +220,9 @@ async def get_priorities(department: str = None, semester: str = None, programme
             recommended_intervention=p.get("recommended_intervention", ""),
             anomaly_type=p.get("anomaly_type"),
         ))
-    priorities_cache.set(cache_key, results)
+    results = filter_scoped_course_rows(identity, results)
+    if identity.role in {"DEAN", "PRINCIPAL", "CHAIRMAN", "IQAC"}:
+        priorities_cache.set(cache_key, results)
     return results
 
 
@@ -201,14 +231,18 @@ async def get_priorities(department: str = None, semester: str = None, programme
 # ---------------------------------------------------------------------------
 
 @router.get("/performance/courses")
-async def get_course_performance(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_course_performance(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db), identity: Agent10Identity = Depends(get_agent10_identity)):
     """Course-level performance from assessment.v_course_performance."""
+    department = allowed_department(identity, department)
     cache_key = f"courses_{department}_{semester}_{programme}_{academic_year}"
-    cached = course_perf_cache.get(cache_key)
-    if cached:
-        return cached
+    if identity.role in {"DEAN", "PRINCIPAL", "CHAIRMAN", "IQAC"}:
+        cached = course_perf_cache.get(cache_key)
+        if cached:
+            return cached
     resp = await run_in_threadpool(_safe, agent10.compute_course_performance, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
-    course_perf_cache.set(cache_key, resp)
+    resp = filter_scoped_course_rows(identity, resp)
+    if identity.role in {"DEAN", "PRINCIPAL", "CHAIRMAN", "IQAC"}:
+        course_perf_cache.set(cache_key, resp)
     return resp
 
 
@@ -217,14 +251,19 @@ async def get_course_performance(department: str = None, semester: str = None, p
 # ---------------------------------------------------------------------------
 
 @router.get("/performance/departments", response_model=List[DepartmentPerformanceItem])
-async def get_department_performance(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_department_performance(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db), identity: Agent10Identity = Depends(get_agent10_identity)):
     """Department-level aggregation."""
+    require_aggregate_access(identity)
+    department = allowed_department(identity, department)
     cache_key = f"departments_{department}_{semester}_{programme}_{academic_year}"
-    cached = dept_perf_cache.get(cache_key)
-    if cached:
-        return cached
+    if identity.role in {"DEAN", "PRINCIPAL", "CHAIRMAN", "IQAC"}:
+        cached = dept_perf_cache.get(cache_key)
+        if cached:
+            return cached
     resp = await run_in_threadpool(_safe, agent10.compute_department_performance, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
-    dept_perf_cache.set(cache_key, resp)
+    resp = filter_scoped_course_rows(identity, resp)
+    if identity.role in {"DEAN", "PRINCIPAL", "CHAIRMAN", "IQAC"}:
+        dept_perf_cache.set(cache_key, resp)
     return resp
 
 
@@ -233,11 +272,13 @@ async def get_department_performance(department: str = None, semester: str = Non
 # ---------------------------------------------------------------------------
 
 @router.get("/trends")
-async def get_trends(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_trends(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db), identity: Agent10Identity = Depends(get_agent10_identity)):
     """
     Academic trends. Returns current-term data with honest state notation
     when multi-term historical data is insufficient.
     """
+    require_aggregate_access(identity)
+    department = allowed_department(identity, department)
     return await run_in_threadpool(_safe, agent10.compute_trends, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
 
 
@@ -246,9 +287,12 @@ async def get_trends(department: str = None, semester: str = None, programme: st
 # ---------------------------------------------------------------------------
 
 @router.get("/recommendations")
-async def get_recommendations(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_recommendations(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db), identity: Agent10Identity = Depends(get_agent10_identity)):
     """Actionable recommendations derived from detected anomalies."""
-    return await run_in_threadpool(_safe, agent10.compute_recommendations, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
+    require_aggregate_access(identity)
+    department = allowed_department(identity, department)
+    recommendations = await run_in_threadpool(_safe, agent10.compute_recommendations, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
+    return filter_scoped_course_rows(identity, recommendations)
 
 
 # ---------------------------------------------------------------------------
@@ -256,8 +300,9 @@ async def get_recommendations(department: str = None, semester: str = None, prog
 # ---------------------------------------------------------------------------
 
 @router.get("/evidence/{course_code}")
-async def get_evidence(course_code: str, db: Session = Depends(get_db)):
+async def get_evidence(course_code: str, db: Session = Depends(get_db), identity: Agent10Identity = Depends(get_agent10_identity)):
     """Full evidence chain for a specific course."""
+    require_course_access(identity, db, course_code)
     return await run_in_threadpool(_safe, agent10.get_evidence_for_course, db, course_code)
 
 
@@ -266,7 +311,7 @@ async def get_evidence(course_code: str, db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/sections")
-async def get_section_comparison(db: Session = Depends(get_db)):
+async def get_section_comparison(db: Session = Depends(get_db), identity: Agent10Identity = Depends(get_agent10_identity)):
     """Section-level performance comparison — detects inter-section disparities."""
     from app.db import queries
     sections = queries.get_section_comparison(db)
@@ -289,6 +334,10 @@ async def get_section_comparison(db: Session = Depends(get_db)):
             "avg_external": float(s.get("avg_external") or 0) if s.get("avg_external") else None,
             "disparity_flag": code in disparity_courses,
         })
+    if identity.role == "FACULTY":
+        results = [row for row in results if row.get("course_code") in identity.course_codes]
+    elif identity.role == "HOD":
+        results = [row for row in results if row.get("department") in identity.department_codes]
     return results
 
 
@@ -297,8 +346,10 @@ async def get_section_comparison(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/condonation")
-async def get_condonation_forecast(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_condonation_forecast(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db), identity: Agent10Identity = Depends(get_agent10_identity)):
     """Condonation zone risk & revenue forecaster."""
+    require_aggregate_access(identity)
+    department = allowed_department(identity, department)
     from app.db import queries
     return await run_in_threadpool(
         _safe, 
@@ -307,7 +358,8 @@ async def get_condonation_forecast(department: str = None, semester: str = None,
         department=department, 
         semester=semester, 
         programme=programme, 
-        academic_year=academic_year
+        academic_year=academic_year,
+        allowed_offering_ids=list(identity.offering_ids) if identity.role == "FACULTY" else None,
     )
 
 
@@ -323,9 +375,21 @@ async def get_student_drilldown(
     semester: str = None, 
     programme: str = None, 
     academic_year: str = None, 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    identity: Agent10Identity = Depends(get_agent10_identity),
 ):
     """Fetch real student details for dashboard metric drill-downs."""
+    if identity.role in {"CHAIRMAN", "IQAC", "DEAN", "PRINCIPAL"}:
+        raise HTTPException(status_code=403, detail="Operational student drilldown is restricted to Faculty and HOD scope.")
+    if identity.role == "FACULTY":
+        if not course_code:
+            raise HTTPException(status_code=403, detail="Faculty drilldown requires an assigned course.")
+        require_course_access(identity, db, course_code)
+    if identity.role == "HOD" and course_code:
+        require_course_access(identity, db, course_code)
+    department = allowed_department(identity, department)
+    if identity.role == "HOD" and not department:
+        raise HTTPException(status_code=403, detail="HOD drilldown requires an in-scope department.")
     from app.db import queries
     return await run_in_threadpool(
         _safe, 
@@ -344,7 +408,7 @@ async def get_student_drilldown(
 # ---------------------------------------------------------------------------
 
 @router.get("/llm-status", response_model=LLMStatus)
-def get_llm_status():
+def get_llm_status(identity: Agent10Identity = Depends(get_agent10_identity)):
     """Returns whether the LLM explanation layer is available."""
     from app.agents.agent10.llm import llm_status
     status = llm_status()
@@ -362,11 +426,14 @@ def get_executive_summary(
     programme: str = None,
     academic_year: str = None,
     db: Session = Depends(get_db),
+    identity: Agent10Identity = Depends(get_agent10_identity),
 ):
     """
     Executive summary combining dashboard metrics and top anomalies.
     Uses LLM to humanize if configured; otherwise returns structured text.
     """
+    require_aggregate_access(identity)
+    department = allowed_department(identity, department)
     metrics = _safe(agent10.compute_dashboard_metrics, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
     anomalies = _safe(agent10.compute_anomalies, db)
     summary_text = agent10.generate_executive_summary(metrics, anomalies)
@@ -400,8 +467,10 @@ def get_executive_summary(
 from sqlalchemy import text
 
 @router.post("/recommendations/{anomaly_id}/execute")
-def execute_recommendation(anomaly_id: str, db: Session = Depends(get_db)):
+def execute_recommendation(anomaly_id: str, db: Session = Depends(get_db), identity: Agent10Identity = Depends(get_agent10_identity)):
     """Execute a recommendation by updating the underlying risk flag status."""
+    if identity.role not in {"HOD", "DEAN", "PRINCIPAL", "CHAIRMAN", "IQAC"}:
+        raise HTTPException(status_code=403, detail="Faculty cannot execute recommendations.")
     try:
         # Update the status of the risk flag
         db.execute(
@@ -422,8 +491,10 @@ def execute_recommendation(anomaly_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/audit/trigger")
-def trigger_audit(db: Session = Depends(get_db)):
+def trigger_audit(db: Session = Depends(get_db), identity: Agent10Identity = Depends(get_agent10_identity)):
     """Trigger an ingestion audit check."""
+    if identity.role not in {"DEAN", "PRINCIPAL", "CHAIRMAN", "IQAC"}:
+        raise HTTPException(status_code=403, detail="Only academic leadership may trigger an audit.")
     # Return success so the frontend knows the connected backend acknowledged it.
     
     # Invalidate caches

@@ -31,15 +31,15 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const allNavItems = [
     { name: "Overview", path: "/dashboard", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: LayoutDashboard },
     { name: "Trends", path: "/trends", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: TrendingUp },
-    { name: "Courses", path: "/courses", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: BookOpen },
-    { name: "Departments", path: "/departments", roles: ["Chairman", "Principal", "IQAC", "Dean"], icon: Building2 },
-    { name: "Sections", path: "/sections", roles: ["Chairman", "Principal", "Dean", "HOD", "Faculty"], icon: Layers },
-    { name: "Batches", path: "/batches", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: Users },
-    { name: "Students (At-Risk)", path: "/students", roles: ["Chairman", "Principal", "Dean", "HOD", "Faculty"], icon: ShieldAlert },
+    { name: "Courses", path: "/courses", roles: ["Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: BookOpen },
+    { name: "Departments", path: "/departments", roles: ["Principal", "IQAC", "Dean"], icon: Building2 },
+    { name: "Sections", path: "/sections", roles: ["Dean", "HOD", "Faculty"], icon: Layers },
+    { name: "Batches", path: "/batches", roles: ["Dean", "HOD"], icon: Users },
+    { name: "Students (At-Risk)", path: "/students", roles: ["Dean", "HOD", "Faculty"], icon: ShieldAlert },
     { name: "Problems", path: "/anomalies", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: AlertTriangle },
     { name: "Recommendations", path: "/recommendations", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: Lightbulb },
     { name: "Executive Reports", path: "/reports", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: FileText },
-    { name: "Upload Marks", path: "/ingestion", roles: ["HOD", "Faculty"], icon: UploadCloud },
+    { name: "Upload Marks", path: "/ingestion", roles: ["Faculty"], icon: UploadCloud },
   ];
 
   const navItems = allNavItems.filter(item => item.roles.includes(currentRole));

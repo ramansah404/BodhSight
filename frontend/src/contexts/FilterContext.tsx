@@ -43,11 +43,13 @@ export function FilterProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    const currentRole = localStorage.getItem("bodhsight_role") || "Chairman";
+    const scopedRole = currentRole === "Faculty" || currentRole === "HOD";
     async function load() {
       try {
         const [depts, summary] = await Promise.allSettled([
-          Agent10API.getDepartments(),
-          Agent10API.getSummary(),
+          scopedRole ? Promise.resolve([]) : Agent10API.getDepartments(),
+          scopedRole ? Promise.resolve({}) : Agent10API.getSummary(),
         ]);
 
         if (cancelled) return;
@@ -75,6 +77,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
         } else {
           setActiveTerm("2026-27");
         }
+        if (scopedRole) setActiveTerm("Authorized scope");
       } catch {
         // Non-critical — filter context degrades gracefully
         setActiveTerm("2026-27");

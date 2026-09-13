@@ -42,8 +42,10 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   const role = localStorage.getItem("bodhsight_role") || "Dean";
   const name = localStorage.getItem("bodhsight_name") || "User";
+  const userId = localStorage.getItem("bodhsight_user_id");
   config.headers["X-User-Role"] = role;
   config.headers["X-User-Name"] = name;
+  if (userId) config.headers["X-User-Id"] = userId;
   return config;
 });
 

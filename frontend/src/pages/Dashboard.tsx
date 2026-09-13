@@ -32,15 +32,20 @@ export default function Dashboard() {
 
   const displayRole = localStorage.getItem("bodhsight_display_role") || currentRole;
   const displayName = localStorage.getItem("bodhsight_name") || `${currentRole} User`;
+  const canOpenStudentDrilldown = currentRole === "Faculty" || currentRole === "HOD";
 
   useEffect(() => {
     let cancelled = false;
     setMetricsLoading(true);
     setMetricsError("");
 
+    const departmentRequest = currentRole === "Faculty"
+      ? Promise.resolve<DepartmentPerformance[]>([])
+      : Agent10API.getDepartments(filters);
+
     Promise.allSettled([
       Agent10API.getDashboard(filters),
-      Agent10API.getDepartments(filters),
+      departmentRequest,
     ]).then(([metricsResult, deptsResult]) => {
       if (cancelled) return;
 
@@ -76,7 +81,7 @@ export default function Dashboard() {
   const handleExportExcel = () => {
     // Generate institutional summary data
     const summaryData = [{
-      "Metric": "Students Evaluated",
+      "Metric": "Evaluations",
       "Value": metrics?.students_evaluated || 0
     }, {
       "Metric": "Total Students",
@@ -109,7 +114,7 @@ export default function Dashboard() {
   const handleExportWord = () => {
     const paragraphs = [
       `Institutional Macro Governance Report`,
-      `Students Evaluated: ${metrics?.students_evaluated || 0} (out of ${metrics?.total_students || 0})`,
+      `Evaluations: ${metrics?.students_evaluated || 0} across ${metrics?.total_students || 0} registered students`,
       `Institutional Pass Rate: ${metrics?.pass_rate?.toFixed(1) || 0}%`,
       `Average Marks: ${metrics?.average_marks?.toFixed(1) || 0}`,
       `Active Problems Requiring Attention: ${metrics?.active_anomalies || metrics?.significant_deviations || 0}`
@@ -140,22 +145,30 @@ export default function Dashboard() {
             Authenticated as {displayName}
           </div>
           <h1 className="text-3xl font-bold text-primary tracking-tight">
-            {currentRole === "Chairman" || currentRole === "Principal"
-              ? "Executive Board Overview"
-              : currentRole === "Dean"
-              ? "Institutional Macro Governance"
+            {currentRole === "Faculty"
+              ? "Course Instructor Telemetry"
               : currentRole === "HOD"
               ? "Departmental Command Center"
-              : "Course Instructor Telemetry"}
+              : currentRole === "Dean"
+              ? "Academic Management Center"
+              : currentRole === "Principal"
+              ? "Institutional Academic Health"
+              : currentRole === "IQAC"
+              ? "Academic Quality & Assurance"
+              : "Executive Board Overview"}
           </h1>
           <p className="text-secondary font-medium mt-1">
-            {currentRole === "Chairman" || currentRole === "Principal"
-              ? "High-level strategic forecasting, condonation analytics, and campus-wide academic metrics."
-              : currentRole === "Dean"
-              ? "University-wide academic health, trust audits, and strategic exceptions."
+            {currentRole === "Faculty"
+              ? "Assigned course telemetry, formative assessment tracking, and student support."
               : currentRole === "HOD"
-              ? "Departmental pass percentages, faculty distribution, and section disparities."
-              : "Assigned course telemetry, formative assessment tracking, and student support."}
+              ? "Departmental pass percentages, section disparities, and academic intervention."
+              : currentRole === "Dean"
+              ? "Academic governance across authorized departments, programmes, and exceptions."
+              : currentRole === "Principal"
+              ? "Institution-wide academic health, intervention priorities, and performance signals."
+              : currentRole === "IQAC"
+              ? "Quality trends, course outcomes, department comparison, evidence, and audit readiness."
+              : "Strategic forecasting, macro trends, and institution-wide academic oversight."}
           </p>
         </div>
 
@@ -200,11 +213,11 @@ export default function Dashboard() {
       ) : metrics ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div 
-            onClick={() => setDrilldown({ isOpen: true, context: "evaluated", title: "Students Evaluated" })}
-            className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md cursor-pointer group"
+            onClick={() => canOpenStudentDrilldown && setDrilldown({ isOpen: true, context: "evaluated", title: "Assigned Evaluations" })}
+            className={`bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md group ${canOpenStudentDrilldown ? "cursor-pointer" : "cursor-default"}`}
           >
             <div className="flex justify-between items-start">
-              <div className="text-xs font-bold uppercase tracking-wider text-secondary group-hover:text-primary transition-colors mt-1">Students Evaluated</div>
+              <div className="text-xs font-bold uppercase tracking-wider text-secondary group-hover:text-primary transition-colors mt-1">Evaluations</div>
               <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl">
                 <Users size={16} className="text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
               </div>
@@ -214,8 +227,8 @@ export default function Dashboard() {
             </div>
             <div className="text-xs text-secondary font-medium mt-1 group-hover:text-foreground transition-colors">
               {metrics.total_students
-                ? `of ${metrics.total_students.toLocaleString()} registered`
-                : "Institutional active scope"}
+                ? `${metrics.students_evaluated.toLocaleString()} evaluations across ${metrics.total_students.toLocaleString()} registered students`
+                : "Evaluation records in authorized scope"}
             </div>
           </div>
 
@@ -250,8 +263,8 @@ export default function Dashboard() {
           </div>
 
           <div 
-            onClick={() => setDrilldown({ isOpen: true, context: "problems", title: "Active Problems" })}
-            className="bg-surface hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-all p-6 rounded-3xl border border-rose-100 dark:border-rose-900/30 shadow-sm hover:shadow-md relative overflow-hidden cursor-pointer group"
+            onClick={() => canOpenStudentDrilldown && setDrilldown({ isOpen: true, context: "problems", title: "Assigned Student Problems" })}
+            className={`bg-surface hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-all p-6 rounded-3xl border border-rose-100 dark:border-rose-900/30 shadow-sm relative overflow-hidden group ${canOpenStudentDrilldown ? "cursor-pointer" : "cursor-default"}`}
           >
             <div className="flex justify-between items-start relative z-10">
               <div className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mt-1">Active Problems</div>
@@ -339,7 +352,7 @@ export default function Dashboard() {
         {/* Courses analyzed sidebar */}
         <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6">
           <h2 className="text-lg font-bold text-primary mb-4">
-            {currentRole === "Chairman" || currentRole === "Principal" ? "Campus Overview" : currentRole === "Faculty" ? "My Sections Summary" : currentRole === "HOD" ? "Department Summary" : "College Overview"}
+            {currentRole === "Chairman" ? "Strategic Overview" : currentRole === "Principal" ? "Institutional Overview" : currentRole === "Dean" ? "Academic Governance" : currentRole === "IQAC" ? "Quality Overview" : currentRole === "Faculty" ? "My Sections Summary" : "Department Summary"}
           </h2>
           {metrics ? (
             <div className="space-y-4">

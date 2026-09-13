@@ -6,6 +6,7 @@ export default function GlobalFilterBar() {
   const { filters, setFilters, departments, activeTerm, isLoading } = useFilters();
   const currentRole = localStorage.getItem("bodhsight_role") || "Chairman";
   const { canViewAllDepartments } = getRolePermissions(currentRole);
+  const scopedDepartment = localStorage.getItem("bodhsight_department") || "Authorized department";
 
   return (
     <div className="glass-panel border-b border-border/60 px-6 py-3 flex flex-wrap items-center gap-4 shadow-sm z-10 relative">
@@ -46,11 +47,12 @@ export default function GlobalFilterBar() {
           }`}
         >
           {canViewAllDepartments && <option value="">All Departments</option>}
-          {departments.length > 0
+          {!canViewAllDepartments && <option value={scopedDepartment}>{scopedDepartment}</option>}
+          {canViewAllDepartments && departments.length > 0
             ? departments.map((d) => (
                 <option key={d} value={d}>{d}</option>
               ))
-            : (
+            : canViewAllDepartments ? (
               // Fallback while loading or if API unavailable
               <>
                 <option value="CSE">CSE</option>
@@ -58,7 +60,7 @@ export default function GlobalFilterBar() {
                 <option value="MECH">MECH</option>
                 <option value="CIVIL">CIVIL</option>
               </>
-            )}
+            ) : null}
         </select>
         {!canViewAllDepartments && (
           <span className="text-[10px] uppercase font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded ml-1">Locked</span>
