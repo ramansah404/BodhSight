@@ -18,6 +18,7 @@ const Problems = lazy(() => import("./pages/Problems"));
 const Recommendations = lazy(() => import("./pages/Recommendations"));
 const Reports = lazy(() => import("./pages/Reports"));
 const Settings = lazy(() => import("./pages/Settings"));
+const DataHub = lazy(() => import("./pages/DataHub"));
 
 export default function App() {
   return (
@@ -47,6 +48,11 @@ export default function App() {
           </Route>
           <Route path="anomalies" element={<Problems />} />
           <Route path="recommendations" element={<Recommendations />} />
+          
+          <Route element={<ProtectedRoute allowedRoles={["HOD", "Faculty"]} />}>
+            <Route path="data-hub" element={<DataHub />} />
+          </Route>
+
           <Route element={<ProtectedRoute allowedRoles={["Chairman", "Principal", "IQAC", "Dean", "HOD"]} />}>
             <Route path="reports" element={<Reports />} />
           </Route>

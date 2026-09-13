@@ -39,8 +39,12 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   const role = localStorage.getItem("bodhsight_role") || "Dean";
   const name = localStorage.getItem("bodhsight_name") || "User";
+  const dept = localStorage.getItem("bodhsight_department");
   config.headers["X-User-Role"] = role;
   config.headers["X-User-Name"] = name;
+  if (dept) {
+    config.headers["X-User-Department"] = dept;
+  }
   return config;
 });
 
@@ -148,6 +152,18 @@ export const Agent10API = {
   /** Condonation risk & revenue forecast */
   getCondonationForecast(filters?: Partial<FilterState>): Promise<import("../types/agent10").CondonationForecastMetrics> {
     return get<import("../types/agent10").CondonationForecastMetrics>(buildQuery("/agent10/condonation", filters));
+  },
+
+  /** Upload unstructured document for Agent 10 Ingestion */
+  async uploadDocument(file: File, type: string): Promise<{ success: boolean; message: string; status: string }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("document_type", type);
+
+    const res = await apiClient.post("/ingestion/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+    return res.data;
   },
 
   /** Fetch student drilldown details for a specific context */

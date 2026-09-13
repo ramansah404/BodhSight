@@ -4,7 +4,7 @@ import { Agent10API } from "../services/api";
 import { getRolePermissions } from "../utils/rbac";
 import type { AcademicException } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
-import { exportToExcel } from "../utils/exportUtils";
+import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 
 type LoadState = "loading" | "success" | "error" | "empty";
 
@@ -73,8 +73,34 @@ export default function Problems() {
     exportToExcel(exportData, "Statistical_Anomalies_Log");
   };
 
+  const handleExportPDF = () => {
+    exportToPDF("problems-content", "Statistical_Anomalies_Log", "Anomaly Center & Evidence Explorer");
+  };
+
+  const handleExportWord = () => {
+    const paragraphs = [
+      `Anomaly Center & Evidence Explorer`,
+      `Generated for: ${rawRole} View`,
+      `Total Anomalies Detected: ${anomalies.length}`
+    ];
+    
+    const tableData = [
+      ["Anomaly Title", "Severity", "Course", "Department", "Deviation (pp)", "Status"],
+      ...anomalies.map(a => [
+        a.title, 
+        a.severity, 
+        a.course_code !== "—" ? a.course_code : "N/A", 
+        a.department !== "—" ? a.department : "N/A", 
+        String(a.deviation), 
+        a.is_overdue ? "OVERDUE" : "Active"
+      ])
+    ];
+
+    exportToWord(`Statistical Anomalies Log`, paragraphs, tableData, "Statistical_Anomalies_Log");
+  };
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6" id="problems-content">
       <div className="bg-amber-50/50 dark:bg-amber-950/20 backdrop-blur-sm border border-amber-100 dark:border-amber-900/50 rounded-3xl p-8 text-primary shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="inline-flex items-center gap-2 bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 px-3 py-1 rounded-full text-xs font-bold border border-amber-200 dark:border-amber-500/20 mb-2">
@@ -98,6 +124,8 @@ export default function Problems() {
           
           <ExportMenu 
             onExportExcel={handleExportExcel}
+            onExportPDF={handleExportPDF}
+            onExportWord={handleExportWord}
             disabled={state !== "success" || anomalies.length === 0}
           />
         </div>

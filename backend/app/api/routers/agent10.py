@@ -7,7 +7,7 @@ Data flow:
 Frontend expects these endpoints to match the TypeScript types in
 frontend/src/types/agent10.ts. Preserve field names exactly.
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from fastapi.responses import JSONResponse
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
@@ -54,6 +54,16 @@ from app.schemas.agent10 import (
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+def get_rbac_department(
+    department: str = None, 
+    x_user_role: str = Header(None), 
+    x_user_department: str = Header(None)
+) -> str | None:
+    """RBAC Hardening: Force override department filter if user is restricted."""
+    if x_user_role in ["Faculty", "HOD"] and x_user_department:
+        return x_user_department
+    return department
+
 
 def _safe(fn, db, *args, **kwargs):
     """Wrap a computation; return 500 with useful message on failure."""
@@ -69,7 +79,7 @@ def _safe(fn, db, *args, **kwargs):
 # ---------------------------------------------------------------------------
 
 @router.get("/dashboard", response_model=DashboardMetrics)
-async def get_dashboard_metrics(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_dashboard_metrics(department: str = Depends(get_rbac_department), semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """
     Dashboard KPIs from real Supabase database views.
     All values are deterministically computed from official university schema.
@@ -103,7 +113,7 @@ async def get_dashboard_metrics(department: str = None, semester: str = None, pr
 # ---------------------------------------------------------------------------
 
 @router.get("/exceptions", response_model=List[AcademicException])
-async def get_exceptions(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_exceptions(department: str = Depends(get_rbac_department), semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """
     Academic anomalies and exceptions backed by database evidence.
     Sorted by priority score (most critical first).
@@ -145,7 +155,7 @@ async def get_exceptions(department: str = None, semester: str = None, programme
 # ---------------------------------------------------------------------------
 
 @router.get("/priorities", response_model=List[InterventionPriority])
-async def get_priorities(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_priorities(department: str = Depends(get_rbac_department), semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """
     Ranked intervention priority list from deterministic priority scoring.
     """
@@ -180,7 +190,7 @@ async def get_priorities(department: str = None, semester: str = None, programme
 # ---------------------------------------------------------------------------
 
 @router.get("/performance/courses")
-async def get_course_performance(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_course_performance(department: str = Depends(get_rbac_department), semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """Course-level performance from assessment.v_course_performance."""
     cache_key = f"courses_{department}_{semester}_{programme}_{academic_year}"
     cached = course_perf_cache.get(cache_key)
@@ -196,7 +206,7 @@ async def get_course_performance(department: str = None, semester: str = None, p
 # ---------------------------------------------------------------------------
 
 @router.get("/performance/departments", response_model=List[DepartmentPerformanceItem])
-async def get_department_performance(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_department_performance(department: str = Depends(get_rbac_department), semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """Department-level aggregation."""
     cache_key = f"departments_{department}_{semester}_{programme}_{academic_year}"
     cached = dept_perf_cache.get(cache_key)
@@ -212,7 +222,7 @@ async def get_department_performance(department: str = None, semester: str = Non
 # ---------------------------------------------------------------------------
 
 @router.get("/trends")
-async def get_trends(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_trends(department: str = Depends(get_rbac_department), semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """
     Academic trends. Returns current-term data with honest state notation
     when multi-term historical data is insufficient.
@@ -225,7 +235,7 @@ async def get_trends(department: str = None, semester: str = None, programme: st
 # ---------------------------------------------------------------------------
 
 @router.get("/recommendations")
-async def get_recommendations(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_recommendations(department: str = Depends(get_rbac_department), semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """Actionable recommendations derived from detected anomalies."""
     return await run_in_threadpool(_safe, agent10.compute_recommendations, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
 
@@ -276,7 +286,7 @@ async def get_section_comparison(db: Session = Depends(get_db)):
 # ---------------------------------------------------------------------------
 
 @router.get("/condonation")
-async def get_condonation_forecast(department: str = None, semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
+async def get_condonation_forecast(department: str = Depends(get_rbac_department), semester: str = None, programme: str = None, academic_year: str = None, db: Session = Depends(get_db)):
     """Condonation zone risk & revenue forecaster."""
     from app.db import queries
     return await run_in_threadpool(
