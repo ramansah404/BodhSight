@@ -72,27 +72,27 @@ def get_course_performance_all(db: Session) -> List[Dict[str, Any]]:
 def filter_course_rows(rows: List[Dict[str, Any]], roster: List[Dict[str, Any]], department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> List[Dict[str, Any]]:
     if not any([department, semester, programme, academic_year]):
         return rows
-        
+
     course_to_dept = {r["course_code"]: r["department_code"] for r in roster}
     filtered = []
-    
+
     for r in rows:
         # Department filter
         if department:
             dept = str(course_to_dept.get(r.get("course_code"), r.get("department_id") or "Unknown"))
             if dept != department:
                 continue
-        
+
         # Semester / Term filter (frontend passes e.g. "T1")
         if semester:
             term = r.get("term_id")
             if term != semester and str(term) != semester:
                 continue
-                
+
         # Academic year or programme filtering can be added here based on schema
-        
+
         filtered.append(r)
-        
+
     return filtered
 
 
@@ -102,17 +102,17 @@ def get_course_performance_summary(db: Session, department: str = None, semester
     roster = get_course_section_roster(db)
     rows = filter_course_rows(rows, roster, department, semester, programme, academic_year)
     valid_rows = [r for r in rows if (r.get("students_appeared") or 0) > 0]
-    
+
     if not valid_rows:
         return {}
-        
+
     students_evaluated = sum((r.get("students_appeared") or 0) for r in valid_rows)
     total_passed = sum((r.get("passed") or 0) for r in valid_rows)
-    
+
     pass_pcts = [float(r["pass_pct"]) for r in valid_rows if r.get("pass_pct") is not None]
     avg_totals = [float(r["avg_total"]) for r in valid_rows if r.get("avg_total") is not None]
     sd_externals = [float(r["sd_external"]) for r in valid_rows if r.get("sd_external") is not None]
-    
+
     return {
         "total_course_sections": len(rows),
         "students_evaluated": students_evaluated,
@@ -383,16 +383,16 @@ def get_department_performance(db: Session, department: str = None, semester: st
     rows = get_course_performance_all(db)
     roster = get_course_section_roster(db)
     rows = filter_course_rows(rows, roster, department, semester, programme, academic_year)
-    
+
     # Map course_code to department_code from the roster view
     course_to_dept_code = {r["course_code"]: r["department_code"] for r in roster}
-    
+
     depts: Dict[str, Dict[str, Any]] = {}
     for r in rows:
         # Use the mapped department_code instead of the UUID department_id
         course_code = r.get("course_code")
         dept = str(course_to_dept_code.get(course_code, r.get("department_id") or "Unknown"))
-        
+
         if dept not in depts:
             depts[dept] = {
                 "department_code": dept,
@@ -402,25 +402,25 @@ def get_department_performance(db: Session, department: str = None, semester: st
                 "avg_totals": [],
                 "low_pass_offerings": 0
             }
-        
+
         depts[dept]["total_students"] += (r.get("students_appeared") or 0)
         depts[dept]["total_offerings"] += 1
-        
+
         pp = r.get("pass_pct")
         if pp is not None:
             depts[dept]["pass_pcts"].append(float(pp))
             if float(pp) < 60:
                 depts[dept]["low_pass_offerings"] += 1
-                
+
         avt = r.get("avg_total")
         if avt is not None:
             depts[dept]["avg_totals"].append(float(avt))
-            
+
     results = []
     for dept_code, data in depts.items():
         pp_list = data["pass_pcts"]
         avt_list = data["avg_totals"]
-        
+
         results.append({
             "department_code": data["department_code"],
             "total_students": data["total_students"],
@@ -429,7 +429,7 @@ def get_department_performance(db: Session, department: str = None, semester: st
             "avg_marks": round(sum(avt_list) / len(avt_list), 2) if avt_list else 0.0,
             "low_pass_offerings": data["low_pass_offerings"]
         })
-        
+
     results.sort(key=lambda x: x["avg_pass_rate"])
     return results
 
@@ -553,7 +553,7 @@ def get_condonation_forecast(db: Session, department: str = None, semester: str 
 
     filters = []
     params = {}
-    
+
     sql = text("""
         WITH condonation_fee AS (
             SELECT coalesce(max(fsl.amount), 0) AS fee_amount
@@ -574,7 +574,7 @@ def get_condonation_forecast(db: Session, department: str = None, semester: str 
             SELECT student_id, term_id, fee_paid
             FROM attendance.condonation
         )
-        SELECT 
+        SELECT
             count(z.student_id) AS total_at_risk,
             count(z.student_id) - count(p.student_id) AS requiring_condonation,
             (count(z.student_id) - count(p.student_id)) * (SELECT fee_amount FROM condonation_fee) AS expected_revenue,
@@ -584,7 +584,7 @@ def get_condonation_forecast(db: Session, department: str = None, semester: str 
     """)
     result = db.execute(sql, params)
     row = result.fetchone()
-    
+
     data = {
         "at_risk_students": row[0] or 0,
         "requiring_condonation": row[1] or 0,
@@ -596,12 +596,12 @@ def get_condonation_forecast(db: Session, department: str = None, semester: str 
 
 
 def get_student_drilldown(
-    db: Session, 
-    context: str, 
+    db: Session,
+    context: str,
     course_code: str = None,
-    department: str = None, 
-    semester: str = None, 
-    programme: str = None, 
+    department: str = None,
+    semester: str = None,
+    programme: str = None,
     academic_year: str = None,
     allowed_offering_ids: list[str] = None,
 ) -> List[Dict[str, Any]]:
@@ -610,7 +610,7 @@ def get_student_drilldown(
     contexts: 'evaluated', 'condonation', 'problems'
     """
     select_clause = """
-        SELECT 
+        SELECT
             p.student_id,
             p.roll_no,
             p.full_name,
@@ -624,15 +624,15 @@ def get_student_drilldown(
             p.attendance_pct,
             p.fee_outstanding,
     """
-    
+
     from_clause = " FROM people.v_student_profile p "
     where_clause = " WHERE p.status = 'ACTIVE' "
-    
+
     if department:
         where_clause += f" AND p.department_code = '{department}' "
     if programme:
         where_clause += f" AND p.programme_code = '{programme}' "
-        
+
     if context == "condonation":
         select_clause += " a.band AS reason "
         from_clause += " JOIN attendance.attendance_summary a ON p.student_id = a.student_id "
@@ -662,6 +662,37 @@ def get_student_drilldown(
         params["allowed_offering_ids"] = allowed_offering_ids
 
     sql_text = select_clause + from_clause + where_clause + " ORDER BY p.roll_no ASC LIMIT 500"
-    
+
     result = db.execute(text(sql_text), params)
     return [dict(row._mapping) for row in result]
+
+
+# ---------------------------------------------------------------------------
+# Auto-Tutor Feature
+# ---------------------------------------------------------------------------
+
+def get_weakest_question(db: Session, student_id: str) -> Optional[Dict[str, Any]]:
+    """Finds the weakest question for a given student based on marks_obtained / marks."""
+    sql = text("""
+        SELECT
+            pq.paper_question_id,
+            sqm.marks_obtained,
+            pq.marks AS max_marks,
+            pq.question_no,
+            pq.question_text,
+            cu.title AS unit_title,
+            cu.unit_no,
+            co.co_no,
+            co.statement AS co_statement
+        FROM assessment.student_question_mark sqm
+        JOIN assessment.paper_question pq ON sqm.paper_question_id = pq.paper_question_id
+        LEFT JOIN curriculum.course_unit cu ON pq.course_unit_id = cu.course_unit_id
+        LEFT JOIN curriculum.course_outcome co ON pq.course_outcome_id = co.course_outcome_id
+        WHERE sqm.student_id = :student_id
+          AND pq.marks > 0
+        ORDER BY (sqm.marks_obtained / pq.marks) ASC, pq.marks DESC
+        LIMIT 1
+    """)
+    result = db.execute(sql, {"student_id": student_id})
+    row = result.fetchone()
+    return dict(row._mapping) if row else None

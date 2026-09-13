@@ -352,12 +352,12 @@ async def get_condonation_forecast(department: str = None, semester: str = None,
     department = allowed_department(identity, department)
     from app.db import queries
     return await run_in_threadpool(
-        _safe, 
-        queries.get_condonation_forecast, 
-        db, 
-        department=department, 
-        semester=semester, 
-        programme=programme, 
+        _safe,
+        queries.get_condonation_forecast,
+        db,
+        department=department,
+        semester=semester,
+        programme=programme,
         academic_year=academic_year,
         allowed_offering_ids=list(identity.offering_ids) if identity.role == "FACULTY" else None,
     )
@@ -371,10 +371,10 @@ async def get_condonation_forecast(department: str = None, semester: str = None,
 async def get_student_drilldown(
     context: str,
     course_code: str = None,
-    department: str = None, 
-    semester: str = None, 
-    programme: str = None, 
-    academic_year: str = None, 
+    department: str = None,
+    semester: str = None,
+    programme: str = None,
+    academic_year: str = None,
     db: Session = Depends(get_db),
     identity: Agent10Identity = Depends(get_agent10_identity),
 ):
@@ -392,14 +392,14 @@ async def get_student_drilldown(
         raise HTTPException(status_code=403, detail="HOD drilldown requires an in-scope department.")
     from app.db import queries
     return await run_in_threadpool(
-        _safe, 
-        queries.get_student_drilldown, 
-        db, 
+        _safe,
+        queries.get_student_drilldown,
+        db,
         context=context,
         course_code=course_code,
-        department=department, 
-        semester=semester, 
-        programme=programme, 
+        department=department,
+        semester=semester,
+        programme=programme,
         academic_year=academic_year
     )
 
@@ -478,13 +478,13 @@ def execute_recommendation(anomaly_id: str, db: Session = Depends(get_db), ident
             {"id": anomaly_id}
         )
         db.commit()
-        
+
         # Invalidate caches
         exceptions_cache.cache.clear()
         dashboard_cache.cache.clear()
         priorities_cache.cache.clear()
         recommendations_cache.cache.clear()
-        
+
         return {"success": True, "message": "Recommendation marked as IN_PROGRESS."}
     except Exception as e:
         db.rollback()
@@ -496,9 +496,53 @@ def trigger_audit(db: Session = Depends(get_db), identity: Agent10Identity = Dep
     if identity.role not in {"DEAN", "PRINCIPAL", "CHAIRMAN", "IQAC"}:
         raise HTTPException(status_code=403, detail="Only academic leadership may trigger an audit.")
     # Return success so the frontend knows the connected backend acknowledged it.
-    
+
     # Invalidate caches
     exceptions_cache.cache.clear()
     dashboard_cache.cache.clear()
-    
+
     return {"success": True, "message": "Audit ingestion check triggered successfully."}
+
+
+@router.post("/autotutor")
+async def generate_autotutor(
+    request: dict,
+    db: Session = Depends(get_db),
+    identity: Agent10Identity = Depends(get_agent10_identity)
+):
+    """
+    Generate targeted Auto-Tutor intervention based on the student's weakest question.
+    """
+    student_id = request.get("student_id")
+    if not student_id:
+        raise HTTPException(status_code=400, detail="student_id is required")
+
+    # Authorize: Only allowed roles can use this.
+    if identity.role not in {"FACULTY", "HOD", "DEAN", "PRINCIPAL", "CHAIRMAN", "IQAC"}:
+        raise HTTPException(status_code=403, detail="Unauthorized scope for Auto-Tutor.")
+
+    from app.db import queries
+    from app.agents.agent10.llm import generate_auto_tutor
+
+    weakest_q = await run_in_threadpool(_safe, queries.get_weakest_question, db, student_id=student_id)
+
+    if not weakest_q:
+        raise HTTPException(status_code=404, detail="No question marks found for this student.")
+
+    # Call LLM logic
+    ai_response = await run_in_threadpool(generate_auto_tutor, weakest_q)
+
+    return {
+        "student_id": student_id,
+        "weakest_question_id": str(weakest_q.get("paper_question_id", "")),
+        "question_no": str(weakest_q.get("question_no", "")),
+        "question_text": str(weakest_q.get("question_text", "")),
+        "marks_obtained": float(weakest_q.get("marks_obtained", 0)),
+        "max_marks": float(weakest_q.get("max_marks", 1)),
+        "unit_title": f"Unit {weakest_q.get('unit_no', '?')} — {weakest_q.get('unit_title', 'Unknown')}",
+        "co_title": f"CO{weakest_q.get('co_no', '?')}: {weakest_q.get('co_statement', '')}",
+        "ai_diagnosis": ai_response.get("ai_diagnosis", ""),
+        "targeted_explanation": ai_response.get("targeted_explanation", ""),
+        "practice_plan": ai_response.get("practice_plan", ""),
+        "resources": ai_response.get("resources", [])
+    }

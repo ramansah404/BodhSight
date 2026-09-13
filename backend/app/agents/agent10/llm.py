@@ -292,3 +292,66 @@ def llm_status() -> Dict[str, Any]:
             else "LLM API key not configured. Structured JSON responses are used instead."
         ),
     }
+
+
+# ---------------------------------------------------------------------------
+# Auto-Tutor Feature
+# ---------------------------------------------------------------------------
+
+SYSTEM_PROMPT_AUTOTUTOR = """\
+You are an AI Auto-Tutor helping a student understand their weakest question.
+You will be provided with details about the question, the student's marks, and the curriculum topic (Unit and Course Outcome).
+Your goal is to provide a structured JSON response containing:
+- "ai_diagnosis": A short diagnosis of why the student might have struggled based on the topic.
+- "targeted_explanation": A concise explanation of the concept tested in the question.
+- "practice_plan": Actionable steps for the student to improve on this specific topic.
+- "resources": A list of 2-3 generic textbook topics or online search terms they can use to study.
+
+RULES:
+1. ONLY use the provided database data. Do not invent marks or questions.
+2. The response MUST be a valid JSON object matching the requested fields exactly. Do NOT wrap in markdown code blocks like ```json ... ```, just output the raw JSON object.
+"""
+
+def generate_auto_tutor(weak_question_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Generate Auto-Tutor JSON intervention."""
+    fallback = {
+        "ai_diagnosis": "System could not generate AI diagnosis at this time.",
+        "targeted_explanation": "Please review the unit materials.",
+        "practice_plan": "Attempt similar questions from previous years.",
+        "resources": ["Course Textbook", "Lecture Notes"]
+    }
+
+    if not _check_llm_available():
+        return fallback
+
+    payload = json.dumps(weak_question_data, default=str)[:2000]
+
+    result = _call_llm(
+        SYSTEM_PROMPT_AUTOTUTOR,
+        f"Generate the auto-tutor intervention JSON for this data:\n{payload}"
+    )
+
+    if not result:
+        return fallback
+
+    try:
+        # Clean up any potential markdown formatting
+        cleaned_result = result.strip()
+        if cleaned_result.startswith("```json"):
+            cleaned_result = cleaned_result[7:]
+        if cleaned_result.startswith("```"):
+            cleaned_result = cleaned_result[3:]
+        if cleaned_result.endswith("```"):
+            cleaned_result = cleaned_result[:-3]
+
+        parsed = json.loads(cleaned_result.strip())
+
+        return {
+            "ai_diagnosis": parsed.get("ai_diagnosis", fallback["ai_diagnosis"]),
+            "targeted_explanation": parsed.get("targeted_explanation", fallback["targeted_explanation"]),
+            "practice_plan": parsed.get("practice_plan", fallback["practice_plan"]),
+            "resources": parsed.get("resources", fallback["resources"])
+        }
+    except Exception as e:
+        logger.error(f"Failed to parse Auto-Tutor JSON: {e}")
+        return fallback

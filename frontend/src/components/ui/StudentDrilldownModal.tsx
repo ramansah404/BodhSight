@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { X, Loader2, Users, AlertTriangle, Edit2, Save, XCircle } from "lucide-react";
+import { X, Loader2, Users, AlertTriangle, Edit2, Save, XCircle, Bot } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Agent10API } from "../../services/api";
 import { useFilters } from "../../contexts/FilterContext";
 import type { StudentProfile } from "../../types/agent10";
+import AutoTutorModal from "./AutoTutorModal";
 
 interface Props {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<StudentProfile>>({});
+  const [autoTutorId, setAutoTutorId] = useState<string | null>(null);
 
   const loadStudents = () => {
     setLoading(true);
@@ -56,6 +58,7 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
   };
 
   return (
+    <>
     <AnimatePresence>
       {isOpen && (
         <>
@@ -142,8 +145,8 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
                                <input type="number" className="w-20 bg-surface border border-border rounded px-2 py-1 text-xs" value={editForm.attendance_pct ?? s.attendance_pct ?? 0} onChange={(e) => setEditForm({...editForm, attendance_pct: Number(e.target.value)})} />
                             ) : (
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              (s.attendance_pct ?? 0) < 75 
-                                ? "bg-rose-500/10 text-rose-600 dark:text-rose-400" 
+                              (s.attendance_pct ?? 0) < 75
+                                ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
                                 : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                             }`}>
                               {s.attendance_pct != null ? `${s.attendance_pct}%` : "N/A"}
@@ -156,7 +159,7 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
                             ) : (
                                <div className="text-foreground font-medium">{s.cgpa != null ? s.cgpa.toFixed(2) : "N/A"}</div>
                             )}
-                            
+
                             {isEditing ? (
                                <input type="number" placeholder="Backlogs" className="w-20 bg-surface border border-border rounded px-2 py-1 text-xs" value={editForm.backlog_count ?? s.backlog_count ?? 0} onChange={(e) => setEditForm({...editForm, backlog_count: Number(e.target.value)})} />
                             ) : (
@@ -179,9 +182,14 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
                                   <button onClick={() => setEditingId(null)} className="p-1.5 bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 rounded-md transition-colors"><XCircle size={16}/></button>
                                </div>
                              ) : (
-                               <button onClick={() => { setEditingId(s.student_id); setEditForm(s); }} className="p-1.5 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-md transition-colors" title="Modify Details">
-                                 <Edit2 size={16}/>
-                               </button>
+                               <div className="flex items-center justify-end gap-2">
+                                 <button onClick={() => setAutoTutorId(s.student_id)} className="p-1.5 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-500/10 rounded-md transition-colors" title="Auto-Tutor Intervention">
+                                   <Bot size={16}/>
+                                 </button>
+                                 <button onClick={() => { setEditingId(s.student_id); setEditForm(s); }} className="p-1.5 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-md transition-colors" title="Modify Details">
+                                   <Edit2 size={16}/>
+                                 </button>
+                               </div>
                              )}
                           </td>
                         </tr>
@@ -197,5 +205,7 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
         </>
       )}
     </AnimatePresence>
+    <AutoTutorModal isOpen={!!autoTutorId} onClose={() => setAutoTutorId(null)} studentId={autoTutorId} />
+    </>
   );
 }

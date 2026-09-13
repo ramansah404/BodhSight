@@ -158,3 +158,23 @@ class SectionComparison(BaseModel):
     avg_external: Optional[float] = None
     disparity_flag: bool = False
     disparity_vs_peer: Optional[float] = None
+
+
+class AutoTutorRequest(BaseModel):
+    student_id: str
+    course_code: Optional[str] = None
+
+
+class AutoTutorResponse(BaseModel):
+    student_id: str
+    weakest_question_id: str
+    question_no: str
+    question_text: str
+    marks_obtained: float
+    max_marks: float
+    unit_title: str
+    co_title: str
+    ai_diagnosis: str
+    targeted_explanation: str
+    practice_plan: str
+    resources: List[str]

@@ -80,7 +80,7 @@ async function get<T>(path: string, forceFresh = false): Promise<T> {
   }).catch((err) => {
     inFlight.delete(path);
     console.warn(`[API] Failed to fetch ${path}, falling back to mock data. Error:`, err.message);
-    
+
     throw new Error(`Failed to fetch ${path} from backend.`);
   });
 
@@ -99,7 +99,7 @@ function buildQuery(path: string, filters?: Partial<FilterState>): string {
   if (filters.department) params.append("department", filters.department);
   if (filters.semester) params.append("semester", filters.semester);
   if (filters.programme) params.append("programme", filters.programme);
-  
+
   const q = params.toString();
   return q ? `${path}?${q}` : path;
 }
@@ -178,6 +178,11 @@ export const Agent10API = {
       overrides[studentId] = { ...(overrides[studentId] || {}), ...updates };
       localStorage.setItem("bodhsight_student_overrides", JSON.stringify(overrides));
     }
+  },
+
+  async generateAutoTutor(studentId: string) {
+    const res = await apiClient.post(`/agent10/autotutor`, { student_id: studentId });
+    return res.data;
   },
 
   /** Full evidence chain for one course */
