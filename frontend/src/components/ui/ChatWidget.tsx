@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageSquare, X, Send, Loader2, Bot, User, Sparkles, Maximize2, Minimize2 } from "lucide-react";
+import { MessageSquare, X, Send, Loader2, User, Sparkles, Maximize2, Minimize2 } from "lucide-react";
 import { Agent10API } from "../../services/api";
 import { useFilters } from "../../contexts/FilterContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -65,7 +65,7 @@ export default function ChatWidget() {
         drag
         dragConstraints={{ left: -1000, right: 0, top: -1000, bottom: 0 }}
         dragMomentum={false}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg flex items-center justify-center z-50 transition-colors cursor-grab active:cursor-grabbing"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-teal-800 hover:bg-teal-700 text-white rounded-full shadow-lg flex items-center justify-center z-50 transition-colors cursor-grab active:cursor-grabbing"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
@@ -87,15 +87,15 @@ export default function ChatWidget() {
               className={`fixed ${isMaximized ? 'inset-4 w-auto h-auto max-w-none max-h-none' : 'bottom-6 right-6 w-96 h-[32rem] max-w-[calc(100vw-3rem)]'} bg-surface rounded-3xl shadow-2xl border border-border/80 z-50 flex flex-col overflow-hidden transition-all duration-300 ease-in-out`}
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white p-4 flex justify-between items-center shadow-md z-10 relative">
+              <div className="bg-teal-800 text-white p-4 flex justify-between items-center shadow-md z-10 relative">
                 <div className="flex items-center gap-3">
                   <div className="relative flex items-center justify-center w-10 h-10 bg-white shadow-lg rounded-xl overflow-hidden">
-                    <Sparkles size={22} className="text-indigo-600 drop-shadow-sm" />
-                    <div className="absolute inset-0 bg-indigo-500/10 pointer-events-none" />
+                    <Sparkles size={22} className="text-teal-700 drop-shadow-sm" />
+                    <div className="absolute inset-0 bg-teal-500/10 pointer-events-none" />
                   </div>
                   <div>
                     <h3 className="font-bold text-sm tracking-wide">Agent 10</h3>
-                    <p className="text-[10px] text-indigo-100 font-medium">Logged in as {userRole}</p>
+                    <p className="text-[10px] text-teal-100 font-medium">Logged in as {userRole}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1">

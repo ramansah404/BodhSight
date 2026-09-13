@@ -4,15 +4,15 @@
 
 @layer base {
   :root {
-  --background: 210 40% 98%; /* slate-50 */
-  --surface: 0 0% 100%; /* white */
-  --surface-secondary: 210 40% 96.1%; /* slate-100 */
-  --surface-hover: 214.3 31.8% 91.4%; /* slate-200 */
-  --border: 214.3 31.8% 91.4%; /* slate-200 */
-  --border-muted: 214.3 31.8% 91.4%;
-  --text-primary: 222.2 84% 4.9%; /* slate-900 */
-  --text-secondary: 215.3 19.3% 32%; /* slate-700 */
-  --accent: 239 84% 67%; /* indigo-600 (approx) */
+  --background: 210 25% 97%;
+  --surface: 0 0% 100%;
+  --surface-secondary: 210 22% 94%;
+  --surface-hover: 210 20% 91%;
+  --border: 214 20% 86%;
+  --border-muted: 214 20% 90%;
+  --text-primary: 215 32% 14%;
+  --text-secondary: 215 16% 40%;
+  --accent: 174 72% 32%;
   --glass-surface: 0 0% 100%;
   --glass-surface-strong: 0 0% 100%;
   --glass-border: 214.3 31.8% 88%;
@@ -26,15 +26,15 @@
 }
 
 .dark {
-  --background: 222.2 84% 4.9%; /* #020817 */
-  --surface: 222.2 47.4% 8.4%; /* #0B1120 */
-  --surface-secondary: 217.2 32.6% 17.5%; /* slate-800 */
-  --surface-hover: 215 27.9% 16.9%; /* slate-800 slightly lighter */
-  --border: 217.2 32.6% 17.5%; /* slate-800 */
-  --border-muted: 217.2 32.6% 17.5%;
-  --text-primary: 210 40% 98%; /* white-ish */
-  --text-secondary: 215 20.2% 72%; /* brighter slate-300 for readable secondary content */
-  --accent: 239 84% 67%; /* indigo-600 (approx) */
+  --background: 215 28% 10%;
+  --surface: 215 24% 14%;
+  --surface-secondary: 215 22% 19%;
+  --surface-hover: 215 20% 23%;
+  --border: 215 18% 27%;
+  --border-muted: 215 18% 22%;
+  --text-primary: 210 25% 96%;
+  --text-secondary: 215 16% 72%;
+  --accent: 174 68% 48%;
   --glass-surface: 222.2 47.4% 10%;
   --glass-surface-strong: 222.2 47.4% 13%;
   --glass-border: 215 27.9% 28%;
@@ -50,10 +50,7 @@
 
   body {
     @apply bg-background text-foreground transition-colors duration-500 antialiased;
-    background-image:
-      radial-gradient(circle at 8% 0%, hsl(var(--accent) / 0.12), transparent 28rem),
-      radial-gradient(circle at 92% 12%, hsl(190 80% 55% / 0.08), transparent 24rem),
-      linear-gradient(135deg, hsl(var(--background)), hsl(var(--surface-secondary)));
+    background-image: linear-gradient(135deg, hsl(var(--background)), hsl(var(--surface-secondary)));
     background-attachment: fixed;
   }
 
@@ -126,19 +123,15 @@
 
 @layer components {
   .glass-panel {
-    background: linear-gradient(135deg, hsl(var(--glass-surface) / 0.78), hsl(var(--glass-surface) / 0.54));
+    background: hsl(var(--surface) / 0.96);
     border: 1px solid hsl(var(--glass-border) / 0.78);
-    box-shadow: 0 18px 45px hsl(var(--glass-shadow) / 0.12), inset 0 1px 0 hsl(0 0% 100% / 0.08);
-    backdrop-filter: blur(18px) saturate(125%);
-    -webkit-backdrop-filter: blur(18px) saturate(125%);
+    box-shadow: 0 8px 24px hsl(var(--glass-shadow) / 0.06);
   }
 
   .glass-card {
-    background: hsl(var(--glass-surface) / 0.68);
+    background: hsl(var(--surface));
     border: 1px solid hsl(var(--glass-border) / 0.7);
-    box-shadow: 0 12px 30px hsl(var(--glass-shadow) / 0.1), inset 0 1px 0 hsl(0 0% 100% / 0.06);
-    backdrop-filter: blur(14px) saturate(118%);
-    -webkit-backdrop-filter: blur(14px) saturate(118%);
+    box-shadow: 0 8px 24px hsl(var(--glass-shadow) / 0.06);
     transition: background-color 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
   }
 
@@ -148,11 +141,9 @@
   }
 
   .glass-control {
-    background: hsl(var(--glass-surface) / 0.58);
+    background: hsl(var(--surface));
     border: 1px solid hsl(var(--glass-border) / 0.78);
     box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.07);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
   }
 
   .glass-overlay {
@@ -162,31 +153,23 @@
   }
 
   .glass-surface {
-    background: hsl(var(--glass-surface) / 0.68) !important;
+    background: hsl(var(--surface)) !important;
     border-color: hsl(var(--glass-border) / 0.72) !important;
-    backdrop-filter: blur(14px) saturate(118%);
-    -webkit-backdrop-filter: blur(14px) saturate(118%);
   }
 
   .glass-surface-strong {
-    background: hsl(var(--glass-surface-strong) / 0.84) !important;
+    background: hsl(var(--surface)) !important;
     border-color: hsl(var(--glass-border) / 0.82) !important;
-    backdrop-filter: blur(18px) saturate(125%);
-    -webkit-backdrop-filter: blur(18px) saturate(125%);
   }
 
   /* Existing page surfaces inherit the shared glass treatment without changing markup. */
   .bg-surface {
-    background-color: hsl(var(--glass-surface) / 0.68) !important;
-    background-image: linear-gradient(135deg, hsl(var(--glass-surface) / 0.08), transparent 55%);
-    backdrop-filter: blur(14px) saturate(118%);
-    -webkit-backdrop-filter: blur(14px) saturate(118%);
+    background-color: hsl(var(--surface)) !important;
+    background-image: none;
   }
 
   .bg-surface-secondary {
-    background-color: hsl(var(--surface-secondary) / 0.68) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background-color: hsl(var(--surface-secondary)) !important;
   }
 
   table thead tr {

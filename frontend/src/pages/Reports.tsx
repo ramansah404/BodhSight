@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FileText, ShieldCheck, Printer, Lock, X, TrendingUp, Users, AlertTriangle, BookOpen, BarChart3, Activity, Calendar, Database } from "lucide-react";
+import { FileText, ShieldCheck, Printer, Lock, X, TrendingUp, Users, AlertTriangle, BookOpen, BarChart3, Activity, Database } from "lucide-react";
 import { getRolePermissions } from "../utils/rbac";
 import { useFilters } from "../contexts/FilterContext";
 import { Agent10API } from "../services/api";
@@ -156,18 +156,18 @@ export default function Reports() {
           <h1 className="text-3xl font-extrabold tracking-tight text-primary">Academic Performance Reports</h1>
           <p className="text-secondary text-sm">
             {permissions.canExportOfficialReports
-              ? "Generate, export, and review consolidated institutional reports for management and accreditation bodies."
-              : "Your current role is restricted from exporting institutional master reports."}
+              ? "Review live dashboard data and export the current scoped view. The report catalog below is a set of available report templates, not a backend-generated report list."
+              : "Your current role is restricted from exporting institutional master views."}
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <div className="flex items-center gap-2 bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20">
+            <div className="flex items-center gap-2 bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20">
             <ShieldCheck size={18} className="text-emerald-500" />
-            <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">100% Verified</div>
+            <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Live scoped data</div>
           </div>
           <div className="flex items-center gap-2 bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-500/20">
             <Database size={12} className="text-indigo-400" />
-            <span className="text-xs text-indigo-400 font-semibold">Live Supabase Data</span>
+            <span className="text-xs text-indigo-400 font-semibold">Current API response</span>
           </div>
         </div>
       </div>
@@ -202,7 +202,7 @@ export default function Reports() {
                 <YAxis domain={[0, 100]} axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `${v}%`} />
                 <Tooltip
                   contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#1e293b", color: "#f8fafc" }}
-                  formatter={(val: number) => [`${val.toFixed(1)}%`, "Pass Rate"]}
+                  formatter={(val) => [`${Number(val ?? 0).toFixed(1)}%`, "Pass Rate"]}
                 />
                 <Bar dataKey="passRate" radius={[6, 6, 0, 0]} maxBarSize={60}>
                   {deptChartData.map((entry, index) => (
@@ -224,7 +224,7 @@ export default function Reports() {
       <div className="bg-surface rounded-3xl border border-border shadow-sm p-6 space-y-4">
         <div className="flex items-center justify-between border-b border-border pb-4">
           <h2 className="text-lg font-bold text-primary flex items-center gap-2">
-            <Printer className="text-indigo-500" size={20} /> Available Institutional Exports
+            <Printer className="text-indigo-500" size={20} /> Available Report Views
           </h2>
           <span className={`text-xs font-bold px-3 py-1 rounded-full ${permissions.canExportOfficialReports ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"}`}>
             {permissions.canExportOfficialReports ? "Export Authorized" : "Restricted Access"}
@@ -240,10 +240,7 @@ export default function Reports() {
                     {rep.type}
                   </span>
                   <span className="text-xs font-bold text-secondary">{rep.category}</span>
-                  <span className="text-xs text-secondary/60 font-medium">• {rep.size}</span>
-                  <span className="text-xs text-secondary/60 font-medium flex items-center gap-1">
-                    <Calendar size={10} /> {rep.generated_date}
-                  </span>
+                  <span className="text-xs text-secondary/60 font-medium">• Export current scope on request</span>
                 </div>
                 <h3 className="font-bold text-primary text-base">{rep.title}</h3>
                 <p className="text-xs text-secondary">{rep.description}</p>
@@ -254,7 +251,7 @@ export default function Reports() {
                   onClick={() => setSelectedReport(rep)}
                   className="px-4 py-2 rounded-xl text-xs font-bold border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
                 >
-                  View Details
+                  View Template
                 </button>
                 {permissions.canExportOfficialReports ? (
                   <ExportMenu
@@ -300,8 +297,8 @@ export default function Reports() {
             <div className="p-8 space-y-6">
               {/* Live Data Section */}
               <div>
-                <h3 className="text-sm font-black uppercase tracking-widest text-secondary mb-3 flex items-center gap-2">
-                  <Activity size={14} /> Live Institutional Data (Real-Time from Database)
+                  <h3 className="text-sm font-black uppercase tracking-widest text-secondary mb-3 flex items-center gap-2">
+                  <Activity size={14} /> Live Institutional Data (Current API response)
                 </h3>
                 {metricsLoading ? (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

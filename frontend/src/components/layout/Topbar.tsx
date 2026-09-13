@@ -1,10 +1,11 @@
 import BrandLogo from "../ui/BrandLogo";
 import { Bell, LogOut, Menu } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import NotificationPanel from '../ui/NotificationPanel';
 import { useNotifications } from '../../contexts/NotificationContext';
 import ThemeToggle from '../ui/ThemeToggle';
+import { getRoleConfig } from '../../utils/roleConfig';
 interface TopbarProps {
   currentRole: string;
   onMenuToggle: () => void;
@@ -12,10 +13,28 @@ interface TopbarProps {
 
 export default function Topbar({ currentRole, onMenuToggle }: TopbarProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { unreadCount } = useNotifications();
   const displayRole = localStorage.getItem("bodhsight_display_role") || currentRole;
   const displayName = localStorage.getItem("bodhsight_name") || `${currentRole} User`;
+  const pageTitles: Record<string, [string, string]> = {
+    "/dashboard": ["Academic command center", "Institutional performance, risk, and action in one view"],
+    "/trends": ["Performance trends", "Compare academic movement across the active scope"],
+    "/courses": ["Courses", "Course-level outcomes and delivery signals"],
+    "/departments": ["Departments", "Department health across the institution"],
+    "/sections": ["Sections", "Section comparisons and disparity signals"],
+    "/students": ["Student Insights", "Prioritize support where it can change outcomes"],
+    "/anomalies": ["Problems console", "Evidence-backed academic exceptions requiring attention"],
+    "/exceptions": ["Exceptions", "Review operational exceptions within your scope"],
+    "/recommendations": ["Recommendations", "Move detected risks toward accountable action"],
+    "/reports": ["Executive reports", "Verified summaries for academic leadership"],
+    "/data-hub": ["Academic data workspace", "Inspect the sources behind institutional intelligence"],
+    "/settings": ["Settings", "Session, health, and role permissions"],
+  };
+  const [pageTitle, pageSubtitle] = location.pathname === "/dashboard"
+    ? [getRoleConfig(currentRole).title, getRoleConfig(currentRole).purpose]
+    : pageTitles[location.pathname] ?? ["BodhSight", "Academic intelligence platform"];
   
   const getInitials = (name: string) => {
     const parts = name.split(" ").filter(n => n.length > 0);
@@ -31,7 +50,7 @@ export default function Topbar({ currentRole, onMenuToggle }: TopbarProps) {
 
   return (
     <>
-    <header className="glass-panel h-16 border-b border-border/60 flex items-center justify-between px-4 md:px-6 sticky top-0 z-20 text-primary">
+    <header className="bg-surface/95 h-20 border-b border-border flex items-center justify-between px-4 md:px-8 sticky top-0 z-20 text-primary">
       <div className="flex items-center gap-3">
         <button 
           onClick={onMenuToggle}
@@ -44,32 +63,36 @@ export default function Topbar({ currentRole, onMenuToggle }: TopbarProps) {
         <div className="md:hidden">
           <BrandLogo />
         </div>
+        <div className="hidden md:block pl-2">
+          <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-teal-700 dark:text-teal-300">{pageTitle}</div>
+          <div className="text-xs text-secondary mt-1">{pageSubtitle}</div>
+        </div>
       </div>
       
       <div className="flex items-center gap-3 md:gap-5">
         <ThemeToggle />
         <button 
           onClick={() => setIsNotifOpen(true)}
-          className="glass-control relative p-2 rounded-xl hover:bg-white/20 text-primary"
+          className="glass-control relative p-2 rounded-lg hover:bg-surface-secondary text-primary"
           aria-label="Notifications"
         >
           <Bell size={18} />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-4 w-4 bg-rose-500 rounded-full text-[10px] text-primary flex items-center justify-center font-bold ring-2 ring-[#020817]">
+            <span className="absolute -top-1 -right-1 h-4 w-4 bg-rose-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold ring-2 ring-surface">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </button>
 
         <div className="flex items-center gap-3 pl-3 md:pl-4 border-l border-border relative group cursor-pointer">
-          <div className="h-8 w-8 md:h-9 md:w-9 rounded-xl bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center text-xs md:text-sm font-bold text-white shadow-sm tracking-widest">
+          <div className="h-8 w-8 md:h-9 md:w-9 rounded-lg bg-teal-700 flex items-center justify-center text-xs md:text-sm font-bold text-white shadow-sm tracking-widest">
             {getInitials(displayName)}
           </div>
           <div className="hidden lg:flex flex-col text-xs">
             <span className="font-bold text-primary tracking-wide">
               {displayName}
             </span>
-            <span className="text-indigo-600 dark:text-indigo-400 font-medium">Academic Scope: {displayRole}</span>
+            <span className="text-teal-700 dark:text-teal-300 font-medium">Academic scope: {displayRole}</span>
           </div>
           
           <div className="absolute right-0 top-full mt-2 w-48 bg-surface border border-border rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 py-1">

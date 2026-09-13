@@ -33,7 +33,7 @@ export default function Layout() {
   return (
     <FilterProvider>
       <NotificationProvider>
-      <div className="flex h-[100dvh] bg-background overflow-hidden font-sans text-primary selection:bg-indigo-500/30 selection:text-indigo-200">
+      <div className="flex h-[100dvh] bg-background overflow-hidden font-sans text-primary selection:bg-teal-500/20">
         <Sidebar 
           isOpen={isMobileMenuOpen} 
           setIsOpen={setIsMobileMenuOpen} 
@@ -45,7 +45,7 @@ export default function Layout() {
             onMenuToggle={() => setIsMobileMenuOpen(true)} 
           />
           <GlobalFilterBar />
-          <main ref={mainRef} className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+          <main ref={mainRef} className="flex-1 overflow-y-auto px-4 py-5 md:px-7 md:py-6 lg:px-10">
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}

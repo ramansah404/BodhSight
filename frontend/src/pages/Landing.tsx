@@ -1,408 +1,79 @@
 import BrandLogo from "../components/ui/BrandLogo";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { 
-  Sparkles, ShieldCheck, Activity, BrainCircuit, LineChart, 
-  ChevronRight, MoveRight, Database, Lock, Search, Users,
-  Menu, X
+import {
+  Activity, ArrowRight, BrainCircuit, Check, ChevronRight, Database,
+  FileCheck2, Fingerprint, LayoutDashboard, Lock, Menu, Network,
+  ShieldCheck, Sparkles, Target, TrendingUp, Users, X,
 } from "lucide-react";
 import ThemeToggle from "../components/ui/ThemeToggle";
 
-const fadeIn: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
-};
+const flow = [
+  ["01", "Upload", "Raw academic files enter a controlled workspace."],
+  ["02", "Extract", "Agent 10 identifies structure and meaning."],
+  ["03", "Validate", "People verify what the system found."],
+  ["04", "Commit", "Approved records become operational data."],
+  ["05", "Detect", "Signals surface before they become invisible."],
+  ["06", "Intervene", "Teams move from evidence to action."],
+  ["07", "Decide", "Leadership sees the shape of academic health."],
+];
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
-};
+const reveal: Variants = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: "easeOut" } } };
+
+function ProductPreview() {
+  return (
+    <div className="relative rounded-2xl border border-border bg-surface p-3 shadow-[0_28px_80px_hsl(var(--glass-shadow)/0.16)]">
+      <div className="rounded-xl border border-border overflow-hidden bg-background">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div className="flex items-center gap-2"><div className="h-2 w-2 rounded-full bg-teal-600" /><span className="text-[10px] font-bold uppercase tracking-[0.18em] text-secondary">Illustrative command center</span></div>
+          <span className="text-[10px] font-medium text-secondary">Live product preview</span>
+        </div>
+        <div className="grid grid-cols-[48px_1fr] sm:grid-cols-[148px_1fr] min-h-[330px]">
+          <div className="border-r border-border bg-surface px-2 py-4 sm:px-3">
+            <div className="mb-5 px-2 text-[9px] font-bold uppercase tracking-[0.18em] text-secondary hidden sm:block">Workspace</div>
+            {[LayoutDashboard, TrendingUp, Target, Users].map((Icon, i) => <div key={i} className={`mb-2 flex items-center gap-2 rounded-lg px-2 py-2 ${i === 0 ? "bg-teal-50 text-teal-800 dark:bg-teal-500/10 dark:text-teal-300" : "text-secondary"}`}><Icon size={15} /><span className="hidden sm:block text-xs font-semibold">{["Overview", "Trends", "Risk center", "Students"][i]}</span></div>)}
+          </div>
+          <div className="p-4 sm:p-6">
+            <div className="flex items-start justify-between gap-4 mb-5"><div><div className="text-[10px] font-bold uppercase tracking-[0.16em] text-teal-700 dark:text-teal-300">Academic command center</div><div className="mt-1 text-lg font-bold text-primary">A clear view of what needs attention</div></div><div className="hidden sm:flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[10px] font-bold text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300"><ShieldCheck size={13} /> Verified scope</div></div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 mb-4">{["Pass rate", "Students", "Open flags", "Data trust"].map((label, i) => <div key={label} className={`rounded-lg border p-3 ${i === 2 ? "border-amber-200 bg-amber-50/70 dark:border-amber-500/20 dark:bg-amber-500/10" : "border-border bg-surface"}`}><div className="text-[9px] font-bold uppercase tracking-wider text-secondary">{label}</div><div className="mt-2 text-lg font-bold text-primary">{i === 0 ? "—" : i === 1 ? "—" : i === 2 ? "Review" : "Live"}</div><div className="mt-1 text-[9px] text-secondary">From connected data</div></div>)}</div>
+            <div className="grid gap-3 sm:grid-cols-[1.35fr_0.65fr]"><div className="rounded-lg border border-border bg-surface p-3"><div className="flex justify-between text-[10px] font-bold text-primary"><span>Performance signal</span><span className="text-secondary">Current scope</span></div><div className="mt-5 flex h-28 items-end gap-1.5 border-b border-border px-1">{[28, 42, 35, 58, 50, 67, 61, 74, 68, 82, 77, 88].map((height, i) => <div key={i} className="flex-1 rounded-t-sm bg-teal-700/70 transition-all hover:bg-teal-600" style={{ height: `${height}%` }} />)}</div><div className="mt-2 flex justify-between text-[9px] text-secondary"><span>Earlier</span><span>Now</span></div></div><div className="rounded-lg border border-border bg-surface p-3"><div className="text-[10px] font-bold text-primary">Attention queue</div><div className="mt-3 space-y-2">{[["Review", "amber"], ["Verified", "green"], ["Action", "teal"]].map(([label, tone]) => <div key={label} className="flex items-center justify-between border-b border-border pb-2 text-[10px]"><span className="text-secondary">{label}</span><span className={`h-2 w-2 rounded-full ${tone === "amber" ? "bg-amber-500" : tone === "green" ? "bg-emerald-500" : "bg-teal-600"}`} /></div>)}</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Landing() {
   const navigate = useNavigate();
-  const { scrollY } = useScroll();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  const heroY = useTransform(scrollY, [0, 500], [0, 100]);
-  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Auto-redirect already logged-in users to their dashboard
-  useEffect(() => {
-    if (localStorage.getItem("bodhsight_role")) {
-      navigate("/dashboard", { replace: true });
-    }
+    if (localStorage.getItem("bodhsight_role")) navigate("/dashboard", { replace: true });
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, [navigate]);
 
-
-  const scrollTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-      setMobileMenuOpen(false);
-    }
-  };
+  const scrollTo = (id: string) => { document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); setMobileOpen(false); };
 
   return (
-    <div className="min-h-screen bg-background text-primary font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
-      
-      {/* ---------------- NAVBAR ---------------- */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
-        isScrolled 
-          ? "bg-background backdrop-blur-xl border-slate-800/50 py-3 shadow-2xl shadow-indigo-500/5" 
-          : "bg-transparent border-transparent py-5"
-      }`}>
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
-          <div onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
-            <BrandLogo />
-          </div>
-
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
-            <button onClick={() => scrollTo('features')} className="text-sm font-medium hover:text-primary transition-colors">Platform</button>
-            <button onClick={() => scrollTo('intelligence')} className="text-sm font-medium hover:text-primary transition-colors">Intelligence</button>
-            <button onClick={() => scrollTo('security')} className="text-sm font-medium hover:text-primary transition-colors">Security</button>
-          </div>
-
-          <div className="hidden md:flex items-center gap-4">
-            <ThemeToggle showLabel />
-            <button onClick={() => navigate('/login')} className="text-sm font-medium hover:text-primary transition-colors">Sign In</button>
-            <button 
-              onClick={() => navigate('/login')}
-              className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-sm font-bold transition-all shadow-[0_0_20px_rgba(79,70,229,0.2)] hover:shadow-[0_0_25px_rgba(79,70,229,0.4)]"
-            >
-              Enter BodhSight
-            </button>
-          </div>
-
-          {/* Mobile Nav Toggle */}
-          <button className="md:hidden text-primary" onClick={() => setMobileMenuOpen(true)}>
-            <Menu size={24} />
-          </button>
-        </div>
+    <div className="min-h-screen bg-background text-primary selection:bg-teal-500/20">
+      <nav className={`fixed inset-x-0 top-0 z-50 border-b transition-all ${scrolled ? "border-border bg-background/90 py-3 backdrop-blur-xl" : "border-transparent bg-transparent py-5"}`}>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 lg:px-8"><button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="BodhSight home"><BrandLogo /></button><div className="hidden items-center gap-8 md:flex"><button onClick={() => scrollTo("platform")} className="text-sm font-semibold text-secondary hover:text-primary">Platform</button><button onClick={() => scrollTo("workflow")} className="text-sm font-semibold text-secondary hover:text-primary">Workflow</button><button onClick={() => scrollTo("governance")} className="text-sm font-semibold text-secondary hover:text-primary">Governance</button></div><div className="hidden items-center gap-3 md:flex"><ThemeToggle /><button onClick={() => navigate("/login")} className="px-3 py-2 text-sm font-semibold text-secondary hover:text-primary">Sign in</button><button onClick={() => navigate("/login")} className="inline-flex items-center gap-2 rounded-lg bg-teal-800 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-teal-700">Enter platform <ArrowRight size={15} /></button></div><button onClick={() => setMobileOpen(true)} className="rounded-lg border border-border p-2 md:hidden" aria-label="Open navigation"><Menu size={20} /></button></div>
       </nav>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, x: "100%" }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[60] bg-background flex flex-col p-6"
-          >
-            <div className="flex justify-between items-center mb-8">
-              <BrandLogo />
-              <button onClick={() => setMobileMenuOpen(false)}><X size={24} /></button>
-            </div>
-            <div className="flex flex-col gap-6 text-lg">
-              <ThemeToggle showLabel />
-              <button onClick={() => scrollTo('features')} className="text-left font-medium">Platform</button>
-              <button onClick={() => scrollTo('intelligence')} className="text-left font-medium">Intelligence</button>
-              <button onClick={() => scrollTo('security')} className="text-left font-medium">Security</button>
-              <hr className="border-border my-2" />
-              <button onClick={() => navigate('/login')} className="text-left font-medium">Sign In</button>
-              <button onClick={() => navigate('/login')} className="bg-indigo-600 text-white text-center py-3 rounded-xl font-bold">Enter BodhSight</button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ---------------- HERO ---------------- */}
-      <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden flex flex-col items-center">
-        {/* Glow Effects */}
-        <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
-        
-        <motion.div 
-          style={{ y: heroY, opacity: heroOpacity }}
-          className="relative z-10 max-w-5xl mx-auto px-6 text-center space-y-8"
-        >
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-bold uppercase tracking-widest"
-          >
-            <Sparkles size={14} /> Agent 10 is Live
-          </motion.div>
-          
-          <motion.h1 
-            initial="hidden" animate="visible" variants={fadeIn}
-            className="text-5xl md:text-7xl font-bold text-primary tracking-tight leading-[1.1]"
-          >
-            Academic Intelligence,<br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">Built for Better Decisions.</span>
-          </motion.h1>
-          
-          <motion.p 
-            initial="hidden" animate="visible" variants={fadeIn} transition={{ delay: 0.1 }}
-            className="text-lg md:text-xl text-secondary max-w-2xl mx-auto font-medium"
-          >
-            BodhSight transforms raw institutional data into actionable intelligence. 
-            Detect anomalies, track performance trends, and deploy interventions before students fall behind.
-          </motion.p>
-          
-          <motion.div 
-            initial="hidden" animate="visible" variants={fadeIn} transition={{ delay: 0.2 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
-          >
-            <button 
-              onClick={() => navigate('/login')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-all shadow-[0_0_30px_rgba(79,70,229,0.3)] hover:shadow-[0_0_40px_rgba(79,70,229,0.5)] flex items-center justify-center gap-2"
-            >
-              Enter Dashboard <MoveRight size={16} />
-            </button>
-            <button 
-              onClick={() => scrollTo('features')}
-              className="w-full sm:w-auto px-8 py-3.5 bg-surface-secondary/50 hover:bg-surface-secondary border border-border/50 hover:border-slate-600 text-primary rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
-            >
-              Explore BodhSight
-            </button>
-          </motion.div>
-        </motion.div>
-
-        {/* Dashboard Preview Mockup */}
-        <motion.div 
-          initial={{ opacity: 0, y: 100 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-          className="relative z-20 mt-20 max-w-6xl w-full px-6"
-        >
-          <div className="rounded-2xl border border-slate-800/80 bg-surface/50 backdrop-blur-sm p-2 shadow-2xl overflow-hidden ring-1 ring-white/10">
-            <div className="rounded-xl overflow-hidden border border-border relative bg-surface">
-              {/* Fake Dashboard Header */}
-              <div className="h-12 border-b border-border flex items-center px-4 gap-2 bg-surface/80">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-slate-700" />
-                  <div className="w-3 h-3 rounded-full bg-slate-700" />
-                  <div className="w-3 h-3 rounded-full bg-slate-700" />
-                </div>
-                <div className="ml-4 w-64 h-6 rounded-md bg-surface-secondary" />
-              </div>
-              {/* Fake Dashboard Content - Polished Mockup */}
-              <div className="p-6 flex flex-col md:flex-row gap-6 opacity-90">
-                {/* Mock Sidebar */}
-                <div className="w-48 space-y-2 hidden md:block">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-indigo-500/10 text-indigo-500 rounded-lg">
-                    <Activity size={16} /> <span className="text-sm font-semibold">Dashboard</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-2 text-secondary hover:text-primary transition-colors">
-                    <BrainCircuit size={16} /> <span className="text-sm font-medium">Anomalies</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-2 text-secondary hover:text-primary transition-colors">
-                    <Search size={16} /> <span className="text-sm font-medium">Students</span>
-                  </div>
-                </div>
-                
-                {/* Mock Main Content */}
-                <div className="flex-1 space-y-6">
-                  {/* Top Stats */}
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="h-24 rounded-xl bg-surface-secondary border border-border/50 p-4 flex flex-col justify-between">
-                      <div className="text-xs text-secondary font-bold uppercase tracking-wider">Avg Pass Rate</div>
-                      <div className="text-2xl font-black text-primary">87.4%</div>
-                      <div className="w-full h-1 bg-emerald-500/20 rounded-full overflow-hidden"><div className="h-full w-[87%] bg-emerald-500"></div></div>
-                    </div>
-                    <div className="h-24 rounded-xl bg-surface-secondary border border-border/50 p-4 flex flex-col justify-between">
-                      <div className="text-xs text-secondary font-bold uppercase tracking-wider">At-Risk Cohort</div>
-                      <div className="text-2xl font-black text-primary">42 <span className="text-xs text-rose-500 font-normal">Students</span></div>
-                      <div className="w-full h-1 bg-rose-500/20 rounded-full overflow-hidden"><div className="h-full w-[15%] bg-rose-500"></div></div>
-                    </div>
-                    <div className="h-24 rounded-xl bg-indigo-900/40 border border-indigo-500/30 p-4 flex flex-col justify-between relative overflow-hidden">
-                      <div className="absolute top-0 right-0 p-4 text-indigo-400 opacity-50"><Sparkles size={24} /></div>
-                      <div className="text-xs text-indigo-300 font-bold uppercase tracking-wider z-10">Agent 10 Status</div>
-                      <div className="text-lg font-bold text-indigo-100 z-10 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Monitoring</div>
-                      <div className="text-xs text-indigo-200/70 z-10">All systems operational</div>
-                    </div>
-                  </div>
-                  
-                  {/* Mock Chart Area */}
-                  <div className="h-64 rounded-xl bg-surface-secondary/50 border border-border/50 p-6 flex flex-col">
-                    <div className="text-sm font-bold text-primary mb-6">Historical Performance Trend</div>
-                    <div className="flex-1 flex items-end gap-2 justify-between px-4 pb-2">
-                      {[40, 60, 45, 80, 65, 90, 75, 85, 95, 70, 88].map((h, i) => (
-                        <div key={i} className="w-full bg-indigo-500/20 rounded-t-md hover:bg-indigo-500/40 transition-colors" style={{ height: `${h}%` }}>
-                          <div className="w-full bg-indigo-500 rounded-t-md opacity-80" style={{ height: '4px' }} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* ---------------- FEATURES ---------------- */}
-      <section id="features" className="py-24 relative z-10 border-t border-slate-800/50 bg-background/50">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">A complete view of your institution.</h2>
-            <p className="text-secondary">BodhSight connects the dots between isolated database silos, bringing clarity to assessment patterns, faculty distribution, and student risk.</p>
-          </div>
-
-          <motion.div 
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {[
-              { icon: <Activity />, title: "Performance", desc: "Real-time insights into pass rates, GPAs, and assessment marks across all departments." },
-              { icon: <BrainCircuit />, title: "Anomaly Detection", desc: "Agent 10 continuously scans PostgreSQL views to flag statistical deviations automatically." },
-              { icon: <Search />, title: "Student Risk Detection", desc: "Identify at-risk cohorts with high backlogs before they fail out of the program." },
-              { icon: <LineChart />, title: "Trend Analysis", desc: "Compare historical term data against the current institutional mean baseline." },
-              { icon: <ShieldCheck />, title: "Role-Based Access", desc: "Deans, HODs, and Faculty see precisely what they are authorized to see, securely." },
-              { icon: <Database />, title: "PostgreSQL Native", desc: "Direct integration with institutional database views ensures data is always live and trusted." }
-            ].map((feature, i) => (
-              <motion.div 
-                key={i} variants={fadeIn}
-                className="bg-surface/50 border border-border/60 p-6 rounded-2xl hover:bg-surface-secondary/50 transition-colors group"
-              >
-                <div className="w-12 h-12 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg font-bold text-primary mb-2">{feature.title}</h3>
-                <p className="text-sm text-secondary leading-relaxed">{feature.desc}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ---------------- HOW IT WORKS ---------------- */}
-      <section id="intelligence" className="py-24 relative z-10 border-t border-slate-800/50">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <motion.div 
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="space-y-6"
-            >
-              <div className="inline-flex items-center gap-2 bg-violet-500/10 text-violet-400 px-3 py-1 rounded-full text-xs font-bold border border-violet-500/20">
-                Workflow
-              </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-primary">How Agent 10 Works</h2>
-              <p className="text-secondary text-lg">BodhSight doesn't just show charts. It actively hunts for problems.</p>
-              
-              <div className="space-y-8 pt-4">
-                {[
-                  { num: "01", title: "Data Ingestion", desc: "Reads directly from secure PostgreSQL views containing assessment, attendance, and faculty records." },
-                  { num: "02", title: "Statistical Analysis", desc: "Calculates Z-scores and deviations to establish normal institutional baselines." },
-                  { num: "03", title: "Intelligence Synthesis", desc: "Flags critical anomalies like unexpected grading variances or section-level disparities." },
-                  { num: "04", title: "Actionable Recommendations", desc: "Generates explicit intervention protocols for Deans and HODs to authorize." }
-                ].map((step, i) => (
-                  <div key={i} className="flex gap-4">
-                    <div className="text-indigo-500 font-mono font-bold text-sm pt-1">{step.num}</div>
-                    <div>
-                      <h4 className="text-primary font-bold mb-1">{step.title}</h4>
-                      <p className="text-sm text-secondary">{step.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="relative"
-            >
-              <div className="absolute inset-0 bg-violet-600/20 blur-[100px] rounded-full" />
-              <div className="relative bg-surface border border-border rounded-2xl p-6 shadow-2xl">
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
-                  <BrainCircuit className="text-violet-400" />
-                  <span className="font-bold text-primary">Agent 10 Detection Log</span>
-                </div>
-                <div className="space-y-4 font-mono text-xs">
-                  <div className="p-3 bg-background rounded-lg text-secondary">
-                    <span className="text-emerald-600 dark:text-emerald-400">SUCCESS</span> Connected to people.v_student_profile
-                  </div>
-                  <div className="p-3 bg-background rounded-lg text-secondary">
-                    <span className="text-indigo-600 dark:text-indigo-400">ANALYZING</span> Course performance deviation matrix...
-                  </div>
-                  <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-300">
-                    <span className="font-bold">CRITICAL FLAG</span> CS301 Sec-B pass rate (61.2%) dropped &gt; 2σ below mean.
-                  </div>
-                  <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-indigo-300">
-                    <span className="font-bold">GENERATING</span> Intervention recommendation ID-802...
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ---------------- SECURITY / RBAC ---------------- */}
-      <section id="security" className="py-24 relative z-10 border-y border-slate-800/50 bg-surface">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-6">
-            <Lock size={32} />
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">Enterprise-Grade Governance</h2>
-          <p className="text-secondary max-w-2xl mx-auto mb-12">
-            BodhSight respects institutional hierarchy. Information access and action authority are strictly gated by the user's role.
-          </p>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { role: "Dean / Principal", access: "Full Macro View & Audit", icon: <ShieldCheck /> },
-              { role: "HOD", access: "Departmental Command", icon: <Users /> },
-              { role: "IQAC Officer", access: "Quality Reports", icon: <LineChart /> },
-              { role: "Faculty", access: "Assigned Courses Only", icon: <Search /> }
-            ].map((item, i) => (
-              <div key={i} className="bg-surface border border-border p-6 rounded-2xl text-left">
-                <div className="text-emerald-600 dark:text-emerald-400 mb-3">{item.icon}</div>
-                <div className="font-bold text-primary mb-1">{item.role}</div>
-                <div className="text-xs text-secondary">{item.access}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ---------------- CTA ---------------- */}
-      <section className="py-32 relative overflow-hidden">
-        <div className="absolute inset-0 bg-indigo-600/10 blur-[100px]" />
-        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center space-y-8">
-          <h2 className="text-4xl md:text-5xl font-bold text-primary">Turn Academic Data Into<br/>Institutional Intelligence.</h2>
-          <p className="text-secondary text-lg">Stop guessing. Start acting.</p>
-          <button 
-            onClick={() => navigate('/login')}
-            className="px-8 py-4 bg-white text-slate-950 hover:bg-slate-200 rounded-xl text-sm font-bold transition-all shadow-[0_0_30px_rgba(255,255,255,0.15)] flex items-center justify-center gap-2 mx-auto"
-          >
-            Sign In to BodhSight <ChevronRight size={16} />
-          </button>
-        </div>
-      </section>
-
-      {/* ---------------- FOOTER ---------------- */}
-      <footer className="py-10 border-t border-slate-800/50 bg-background text-center">
-        <div className="flex justify-center mb-4 opacity-60 hover:opacity-100 transition-opacity grayscale hover:grayscale-0">
-          <BrandLogo />
-        </div>
-        <p className="text-xs text-secondary font-medium">
-          © {new Date().getFullYear()} BodhSight Academic Intelligence Platform. All rights reserved.
-        </p>
-      </footer>
+      <AnimatePresence>{mobileOpen && <motion.div initial={{ opacity: 0, x: "100%" }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: "100%" }} className="fixed inset-0 z-[60] bg-background p-6"><div className="flex items-center justify-between"><BrandLogo /><button onClick={() => setMobileOpen(false)} aria-label="Close navigation"><X /></button></div><div className="mt-12 flex flex-col gap-6 text-lg font-semibold"><button onClick={() => scrollTo("platform")} className="text-left">Platform</button><button onClick={() => scrollTo("workflow")} className="text-left">Workflow</button><button onClick={() => scrollTo("governance")} className="text-left">Governance</button><ThemeToggle showLabel /><button onClick={() => navigate("/login")} className="mt-3 rounded-lg bg-teal-800 py-3 text-white">Enter platform</button></div></motion.div>}</AnimatePresence>
+      <main>
+        <section className="relative overflow-hidden border-b border-border pt-28 pb-12 lg:pt-36 lg:pb-20"><div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.32)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.32)_1px,transparent_1px)] bg-[size:54px_54px] [mask-image:linear-gradient(to_bottom,black,transparent_82%)]" /><div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 md:grid-cols-[0.88fr_1.12fr] lg:gap-14 lg:px-8"><motion.div initial="hidden" animate="visible" variants={reveal}><div className="mb-5 inline-flex items-center gap-2 rounded-md border border-teal-200 bg-teal-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-teal-800 dark:border-teal-500/20 dark:bg-teal-500/10 dark:text-teal-300"><Sparkles size={13} /> Academic intelligence platform</div><h1 className="max-w-2xl text-4xl font-bold leading-[1.04] tracking-[-0.04em] text-primary sm:text-5xl lg:text-[4.6rem]">Turn academic data into <span className="text-teal-700 dark:text-teal-300">timely action.</span></h1><p className="mt-5 max-w-xl text-base leading-7 text-secondary lg:text-lg lg:leading-8">BodhSight transforms raw institutional data into verified insight, early intervention, and confident academic decisions.</p><div className="mt-6 flex flex-col gap-3 sm:flex-row"><button onClick={() => navigate("/login")} className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-800 px-5 py-3.5 text-sm font-bold text-white shadow-[0_12px_30px_hsl(var(--accent)/0.2)] hover:bg-teal-700">Enter BodhSight <ArrowRight size={16} /></button><button onClick={() => scrollTo("workflow")} className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-surface px-5 py-3.5 text-sm font-bold text-primary hover:bg-surface-secondary">See how it works <ChevronRight size={16} /></button></div><div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-secondary"><span className="inline-flex items-center gap-2"><Check size={14} className="text-teal-700" /> Evidence-backed</span><span className="inline-flex items-center gap-2"><Check size={14} className="text-teal-700" /> Role-aware</span><span className="inline-flex items-center gap-2"><Check size={14} className="text-teal-700" /> PostgreSQL connected</span></div></motion.div><motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.65 }}><ProductPreview /></motion.div></div></section>
+        <section id="platform" className="mx-auto max-w-7xl px-5 py-24 lg:px-8"><div className="grid gap-12 lg:grid-cols-[0.72fr_1.28fr]"><div><div className="text-[11px] font-bold uppercase tracking-[0.18em] text-teal-700 dark:text-teal-300">A decision layer for academia</div><h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">See the signal. Understand the why. Move with confidence.</h2><p className="mt-5 max-w-md leading-7 text-secondary">The platform connects ingestion, verification, analytics, and intervention into one accountable operating rhythm.</p></div><div className="grid gap-5 sm:grid-cols-3"><article className="border-t-2 border-teal-700 pt-5"><div className="mb-7 flex h-10 w-10 items-center justify-center rounded-lg bg-teal-50 text-teal-800 dark:bg-teal-500/10 dark:text-teal-300"><Activity size={19} /></div><h3 className="text-xl font-bold">Detect</h3><p className="mt-3 text-sm leading-6 text-secondary">Find academic risk before it disappears inside a spreadsheet or averages out of view.</p></article><article className="border-t-2 border-amber-500 pt-5"><div className="mb-7 flex h-10 w-10 items-center justify-center rounded-lg bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300"><BrainCircuit size={19} /></div><h3 className="text-xl font-bold">Intervene</h3><p className="mt-3 text-sm leading-6 text-secondary">Turn a performance signal into a focused review, recommendation, or student support action.</p></article><article className="border-t-2 border-slate-500 pt-5"><div className="mb-7 flex h-10 w-10 items-center justify-center rounded-lg bg-surface-secondary text-primary"><Network size={19} /></div><h3 className="text-xl font-bold">Decide</h3><p className="mt-3 text-sm leading-6 text-secondary">Give academic leaders a shared, defensible view of what is happening and what comes next.</p></article></div></div></section>
+        <section id="workflow" className="border-y border-border bg-surface py-24"><div className="mx-auto max-w-7xl px-5 lg:px-8"><div className="flex flex-col justify-between gap-5 md:flex-row md:items-end"><div><div className="text-[11px] font-bold uppercase tracking-[0.18em] text-teal-700 dark:text-teal-300">The operating rhythm</div><h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">From raw data to academic action.</h2></div><p className="max-w-md text-sm leading-6 text-secondary">Every transition keeps the evidence visible, the human checkpoint explicit, and the next decision closer.</p></div><div className="mt-12 grid gap-px overflow-hidden rounded-xl border border-border bg-border md:grid-cols-4 lg:grid-cols-7">{flow.map(([number, title, desc], i) => <motion.div key={title} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }} variants={reveal} transition={{ delay: i * 0.04 }} className="group relative bg-background p-5 hover:bg-teal-50/50 dark:hover:bg-teal-500/5"><div className="flex items-center justify-between"><span className="font-mono text-xs font-bold text-teal-700 dark:text-teal-300">{number}</span>{i < flow.length - 1 && <ArrowRight size={13} className="text-border group-hover:text-teal-700" />}</div><h3 className="mt-10 text-sm font-bold uppercase tracking-wider">{title}</h3><p className="mt-3 text-xs leading-5 text-secondary">{desc}</p></motion.div>)}</div></div></section>
+        <section className="mx-auto max-w-7xl px-5 py-24 lg:px-8"><div className="grid items-center gap-14 lg:grid-cols-[1.1fr_0.9fr]"><div className="rounded-xl border border-border bg-surface p-5 shadow-sm"><div className="flex items-center gap-3 border-b border-border pb-4"><div className="rounded-lg bg-teal-50 p-2 text-teal-800 dark:bg-teal-500/10 dark:text-teal-300"><FileCheck2 size={17} /></div><div><div className="text-sm font-bold">Evidence chain</div><div className="text-xs text-secondary">Conceptual product view</div></div></div><div className="space-y-3 pt-5">{[["Source record", "Captured from approved academic data"], ["System validation", "Rules and confidence made visible"], ["Human decision", "Review remains accountable"], ["Operational insight", "Only approved evidence informs action"]].map(([title, desc], i) => <div key={title} className="flex gap-3"><div className="flex flex-col items-center"><div className={`mt-1 h-2.5 w-2.5 rounded-full ${i === 3 ? "bg-teal-700" : "border-2 border-teal-700"}`} />{i < 3 && <div className="h-full w-px bg-border" />}</div><div className="pb-5"><div className="text-sm font-bold">{title}</div><div className="mt-1 text-xs text-secondary">{desc}</div></div></div>)}</div></div><div id="governance"><div className="text-[11px] font-bold uppercase tracking-[0.18em] text-teal-700 dark:text-teal-300">Trust by design</div><h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">Intelligence that respects the institution.</h2><p className="mt-5 leading-7 text-secondary">BodhSight keeps role-based access, evidence lineage, and human review close to every operational decision.</p><div className="mt-7 space-y-4">{[[Lock, "RBAC at the boundary", "The backend remains the security boundary for every scope and action."], [Fingerprint, "Evidence stays visible", "Signals can be traced back to the data and validation stage that produced them."], [ShieldCheck, "Calm by default", "The interface reserves urgency for the moments that actually need it."]].map(([Icon, title, desc]) => <div key={title as string} className="flex gap-3"><Icon size={18} className="mt-1 shrink-0 text-teal-700 dark:text-teal-300" /><div><div className="text-sm font-bold">{title as string}</div><div className="mt-1 text-sm leading-6 text-secondary">{desc as string}</div></div></div>)}</div></div></div></section>
+        <section className="border-t border-border bg-surface px-5 py-24 lg:px-8"><div className="mx-auto max-w-4xl text-center"><div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-800 text-white"><Database size={22} /></div><h2 className="text-4xl font-bold tracking-tight sm:text-5xl">BodhSight turns academic complexity into clarity.</h2><p className="mx-auto mt-5 max-w-xl leading-7 text-secondary">Bring data, validation, intelligence, and action into one institutional view.</p><button onClick={() => navigate("/login")} className="mt-8 inline-flex items-center gap-2 rounded-lg bg-teal-800 px-5 py-3.5 text-sm font-bold text-white hover:bg-teal-700">Enter BodhSight <ArrowRight size={16} /></button></div></section>
+      </main>
+      <footer className="border-t border-border bg-background py-8"><div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 sm:flex-row lg:px-8"><BrandLogo /><span className="text-xs text-secondary">Academic Intelligence Platform · {new Date().getFullYear()}</span></div></footer>
     </div>
   );
 }

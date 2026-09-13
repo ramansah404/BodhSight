@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ShieldCheck, Lock, Mail, ArrowRight, Sparkles, KeyRound,
+  ShieldCheck, Lock, Mail, ArrowRight, Sparkles, Activity, KeyRound,
   CheckCircle2, X, User, UserPlus, Fingerprint, MoveLeft,
   ChevronDown, Phone, Building2, Eye, EyeOff,
 } from "lucide-react";
@@ -200,7 +200,7 @@ export default function Login() {
     setTimeout(() => { setForgotLoading(false); setForgotStep(3); }, 800);
   };
 
-  const inputClass = "w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-primary placeholder:text-secondary/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm";
+  const inputClass = "w-full pl-10 pr-4 py-3 bg-background border border-border rounded-lg text-sm font-medium text-primary placeholder:text-secondary/50 focus:outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15 transition-all shadow-sm";
 
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden transition-colors duration-300">
@@ -210,12 +210,7 @@ export default function Login() {
         <ThemeToggle showLabel />
       </div>
 
-      {/* Background Gradients */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-violet-600/10 dark:bg-violet-600/20 blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/10 dark:bg-blue-600/20 blur-[120px]" />
-        <div className="absolute top-[30%] left-[40%] w-[20%] h-[20%] rounded-full bg-indigo-500/5 dark:bg-indigo-500/10 blur-[80px]" />
-      </div>
+      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(to_right,hsl(var(--border)/0.24)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.24)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:linear-gradient(to_bottom,black,transparent_80%)]" />
 
       <button
         onClick={() => navigate("/")}
@@ -229,21 +224,25 @@ export default function Login() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="max-w-5xl w-full bg-surface backdrop-blur-2xl rounded-3xl shadow-2xl border border-border overflow-hidden grid grid-cols-1 md:grid-cols-12 relative z-10 my-auto"
+        className="max-w-6xl w-full bg-surface rounded-2xl shadow-[0_24px_80px_hsl(var(--glass-shadow)/0.14)] border border-border overflow-hidden grid grid-cols-1 md:grid-cols-12 relative z-10 my-auto"
       >
         {/* Left Branding Column */}
-        <div className="md:col-span-5 bg-surface-secondary/50 p-8 md:p-12 border-r border-border flex flex-col justify-between relative overflow-hidden">
+        <div className="md:col-span-5 bg-surface-secondary/55 p-8 md:p-12 border-r border-border flex flex-col justify-between relative overflow-hidden">
 
           <div className="space-y-6 relative z-10">
             <BrandLogo className="mb-8 scale-110 origin-left" />
-            <div className="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 px-3 py-1 rounded-full text-xs font-bold border border-indigo-500/20">
-              <Sparkles size={14} className="text-indigo-600 dark:text-indigo-400" /> Secure Gateway
+            <div className="inline-flex items-center gap-2 bg-teal-50 text-teal-800 dark:bg-teal-500/10 dark:text-teal-300 px-3 py-1 rounded-md text-xs font-bold border border-teal-200 dark:border-teal-500/20">
+              <Sparkles size={14} className="text-teal-700 dark:text-teal-300" /> Secure Gateway
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-primary mb-2">Welcome to<br/>BodhSight.</h1>
               <p className="text-secondary text-sm leading-relaxed font-medium">
                 Authenticate your institutional credentials to access secure academic telemetry and Agent 10 analytics.
               </p>
+            </div>
+            <div className="rounded-xl border border-border bg-surface p-4 shadow-sm">
+              <div className="mb-4 flex items-center justify-between"><span className="text-[10px] font-bold uppercase tracking-[0.16em] text-secondary">Data to decision</span><Activity size={15} className="text-teal-700 dark:text-teal-300" /></div>
+              <div className="space-y-2.5">{[["Raw data", "Source records"], ["Validated", "Human checkpoint"], ["Actionable", "Leadership signal"]].map(([label, desc], index) => <div key={label} className="flex items-center gap-3"><div className={`h-2.5 w-2.5 rounded-full ${index === 2 ? "bg-teal-700" : "border-2 border-teal-700"}`} /><div className="flex-1 text-xs font-semibold text-primary">{label}<span className="ml-2 font-normal text-secondary">{desc}</span></div></div>)}</div>
             </div>
           </div>
 
@@ -263,13 +262,13 @@ export default function Login() {
                   whileTap={{ scale: 0.98 }}
                   key={demo.code}
                   onClick={() => handleQuickDemo(demo.code, demo.label, demo.name)}
-                  className="w-full text-left px-4 py-3 bg-background hover:bg-indigo-500/5 dark:hover:bg-indigo-500/10 border border-border hover:border-indigo-500/30 rounded-xl text-xs font-medium text-primary transition-all flex items-center justify-between cursor-pointer group shadow-sm"
+                  className="w-full text-left px-4 py-3 bg-background hover:bg-teal-500/5 border border-border hover:border-teal-700/30 rounded-lg text-xs font-medium text-primary transition-all flex items-center justify-between cursor-pointer group shadow-sm"
                 >
                   <span className="flex items-center gap-2">
-                    <Fingerprint size={14} className="text-secondary group-hover:text-indigo-500 dark:group-hover:text-indigo-600 dark:text-indigo-400 transition-colors" />
+                    <Fingerprint size={14} className="text-secondary group-hover:text-teal-700 dark:text-teal-300 transition-colors" />
                     {demo.desc}
                   </span>
-                  <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:-translate-x-1 transition-all text-indigo-500 dark:text-indigo-400" />
+                  <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:-translate-x-1 transition-all text-teal-700 dark:text-teal-300" />
                 </motion.button>
               ))}
             </div>
@@ -296,7 +295,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => { setIsSignUp(!isSignUp); setError(""); setSuccess(""); }}
-              className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 bg-indigo-500/10 px-4 py-2 rounded-lg border border-indigo-500/20 transition-all cursor-pointer flex items-center gap-1.5"
+              className="text-xs font-bold text-teal-800 dark:text-teal-300 hover:text-teal-700 bg-teal-500/10 px-4 py-2 rounded-lg border border-teal-500/20 transition-all cursor-pointer flex items-center gap-1.5"
             >
               {isSignUp ? <User size={14} /> : <UserPlus size={14} />}
               {isSignUp ? "Sign In Instead" : "Create Account"}
@@ -536,7 +535,7 @@ export default function Login() {
               whileTap={{ scale: 0.99 }}
               type="submit"
               disabled={loading}
-              className="w-full py-3 mt-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 mt-4 bg-teal-800 hover:bg-teal-700 disabled:opacity-50 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-teal-800/20 flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSignUp ? <UserPlus size={18} /> : <ShieldCheck size={18} />}
               {loading
