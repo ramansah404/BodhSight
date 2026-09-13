@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { TrendingUp, CalendarDays, TrendingDown, Info , AlertCircle, BarChart2 } from "lucide-react";
 import { Agent10API } from "../services/api";
+import { useFilters } from "../contexts/FilterContext";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { TrendsResponse } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
@@ -9,6 +10,7 @@ import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 type LoadState = "loading" | "success" | "error";
 
 export default function Trends() {
+  const { filters } = useFilters();
   const [data, setData] = useState<TrendsResponse | null>(null);
   const [state, setState] = useState<LoadState>("loading");
   const [errorMsg, setErrorMsg] = useState("");
@@ -17,7 +19,7 @@ export default function Trends() {
     let cancelled = false;
     setState("loading");
 
-    Agent10API.getTrends()
+    Agent10API.getTrends(filters)
       .then((res) => {
         if (cancelled) return;
         setData(res);
@@ -30,7 +32,7 @@ export default function Trends() {
       });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [filters]);
 
   const handleExportExcel = () => {
     if (!data) return;

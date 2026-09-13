@@ -4,11 +4,11 @@ import {
   Users, AlertTriangle, ShieldCheck, Sparkles,
   BookOpen, ChevronRight, Activity, Building2, Award, Loader2
 } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from "recharts";
 import { motion } from "framer-motion";
 import { useFilters } from "../contexts/FilterContext";
 import { Agent10API } from "../services/api";
-import type { AcademicDashboardMetrics, DepartmentPerformance } from "../types/agent10";
+import type { AcademicDashboardMetrics, DepartmentPerformance, CoursePerformance } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 import CondonationWidget from "../components/dashboard/CondonationWidget";
@@ -21,6 +21,7 @@ export default function Dashboard() {
 
   const [metrics, setMetrics] = useState<AcademicDashboardMetrics | null>(null);
   const [departments, setDepartments] = useState<DepartmentPerformance[]>([]);
+  const [courses, setCourses] = useState<CoursePerformance[]>([]);
   const [metricsLoading, setMetricsLoading] = useState(true);
   const [metricsError, setMetricsError] = useState("");
   
@@ -42,7 +43,8 @@ export default function Dashboard() {
     Promise.allSettled([
       Agent10API.getDashboard(filters),
       Agent10API.getDepartments(filters),
-    ]).then(([metricsResult, deptsResult]) => {
+      Agent10API.getCourses(filters),
+    ]).then(([metricsResult, deptsResult, coursesResult]) => {
       if (cancelled) return;
 
       if (metricsResult.status === "fulfilled") {
@@ -55,6 +57,10 @@ export default function Dashboard() {
 
       if (deptsResult.status === "fulfilled" && deptsResult.value.length > 0) {
         setDepartments(deptsResult.value);
+      }
+
+      if (coursesResult.status === "fulfilled" && coursesResult.value.length > 0) {
+        setCourses(coursesResult.value.slice(0, 12)); // top 12 for chart
       }
 
       setMetricsLoading(false);
@@ -320,9 +326,11 @@ export default function Dashboard() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* Pass rate gauge card */}
+        {/* Pass rate chart — dept for senior roles, courses for Faculty/HOD */}
         <div className="lg:col-span-2 bg-surface rounded-3xl border border-border/60 shadow-sm p-6">
-          <h2 className="text-lg font-bold text-primary mb-6">Department Pass Rate Comparison</h2>
+          <h2 className="text-lg font-bold text-primary mb-6">
+            {deptChartData.length > 0 ? "Department Pass Rate Comparison" : "Course Pass Rate Overview"}
+          </h2>
           {deptChartData.length > 0 ? (
             <div style={{ width: "100%", height: 288 }}>
               <ResponsiveContainer width="100%" height="100%">
@@ -369,11 +377,27 @@ export default function Dashboard() {
             </div>
           ) : metricsLoading ? (
             <div className="h-72 flex items-center justify-center gap-2 text-secondary">
-              <Loader2 size={18} className="animate-spin" /> Loading department data…
+              <Loader2 size={18} className="animate-spin" /> Loading data…
+            </div>
+          ) : courses.length > 0 ? (
+            <div style={{ width: "100%", height: 288 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={courses.map(c => ({ name: c.course_code, passRate: c.pass_rate ?? 0, status: c.status }))} margin={{ top: 10, right: 10, left: -20, bottom: 40 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(100,116,139,0.2)" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }} angle={-35} textAnchor="end" />
+                  <YAxis domain={[0, 100]} axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `${v}%`} />
+                  <Tooltip contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#1e293b", color: "#f8fafc" }} formatter={(val: number) => [`${val.toFixed(1)}%`, "Pass Rate"]} />
+                  <Bar dataKey="passRate" radius={[6, 6, 0, 0]} maxBarSize={40}>
+                    {courses.map((c, i) => (
+                      <Cell key={i} fill={c.status === "INTERVENTION_REQUIRED" ? "#f43f5e" : c.status === "MONITORING" ? "#f59e0b" : "#8b5cf6"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           ) : (
             <div className="h-72 flex items-center justify-center text-sm text-secondary font-medium">
-              No department data available.
+              No data available for current scope.
             </div>
           )}
         </div>

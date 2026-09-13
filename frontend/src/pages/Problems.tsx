@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, FileSearch, Sparkles, Database, CheckCircle, X, ShieldAlert, ShieldCheck , AlertCircle } from "lucide-react";
 import { Agent10API } from "../services/api";
 import { getRolePermissions } from "../utils/rbac";
+import { useFilters } from "../contexts/FilterContext";
 import type { AcademicException } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
@@ -14,6 +15,7 @@ export default function Problems() {
     localStorage.getItem("bodhsight_role") ||
     "Dean";
   const permissions = getRolePermissions(rawRole);
+  const { filters } = useFilters();
 
   const [anomalies, setAnomalies] = useState<AcademicException[]>([]);
   const [state, setState] = useState<LoadState>("loading");
@@ -26,7 +28,7 @@ export default function Problems() {
     setState("loading");
     setErrorMsg("");
 
-    Agent10API.getAnomalies()
+    Agent10API.getAnomalies(filters)
       .then((data) => {
         if (cancelled) return;
         if (!data || data.length === 0) {
@@ -43,7 +45,7 @@ export default function Problems() {
       });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [filters]);
 
   const handleTriggerAudit = async () => {
     if (!permissions.canTriggerSystemAudit) {

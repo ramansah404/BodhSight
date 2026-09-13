@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Lightbulb, CheckCircle2, Play, Sparkles, Lock , AlertCircle, Info, Database, Brain } from "lucide-react";
 import { Agent10API } from "../services/api";
 import { getRolePermissions } from "../utils/rbac";
+import { useFilters } from "../contexts/FilterContext";
 import type { RecommendationItem } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
@@ -14,6 +15,7 @@ export default function Recommendations() {
     localStorage.getItem("bodhsight_role") ||
     "Dean";
   const permissions = getRolePermissions(rawRole);
+  const { filters } = useFilters();
 
   const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
   const [state, setState] = useState<LoadState>("loading");
@@ -25,7 +27,7 @@ export default function Recommendations() {
     let cancelled = false;
     setState("loading");
 
-    Agent10API.getRecommendations()
+    Agent10API.getRecommendations(filters)
       .then((data) => {
         if (cancelled) return;
         if (!data || data.length === 0) {
@@ -42,7 +44,7 @@ export default function Recommendations() {
       });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [filters]);
 
   const handleExecute = async (id: string) => {
     if (!permissions.canExecuteRecommendation) {

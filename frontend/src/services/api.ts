@@ -269,7 +269,7 @@ export const CrudDataAPI = {
   getStudentsBySection(sectionCode: string): Promise<StudentDataResponse[]> {
     return get<StudentDataResponse[]>(`/crud_data/students/${sectionCode}`, true);
   },
-  updateStudentData(studentId: string, data: { attendance_pct?: number; cgpa?: number }): Promise<{ status: string }> {
+  updateStudentData(studentId: string, data: { attendance_pct?: number; cgpa?: number; backlog_count?: number }): Promise<{ status: string }> {
     return apiClient.put(`/crud_data/students/${studentId}`, data).then(r => r.data);
   }
 };

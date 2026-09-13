@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { ShieldAlert, Users, AlertTriangle, AlertCircle, Info, BookOpen, PieChart as PieChartIcon } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Agent10API } from "../services/api";
+import { useFilters } from "../contexts/FilterContext";
 import type { TrendsResponse } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
@@ -10,6 +11,7 @@ import StudentDrilldownModal from "../components/ui/StudentDrilldownModal";
 type LoadState = "loading" | "success" | "error" | "empty";
 
 export default function Students() {
+  const { filters } = useFilters();
   const [trendsData, setTrendsData] = useState<TrendsResponse | null>(null);
   const [state, setState] = useState<LoadState>("loading");
   const [errorMsg, setErrorMsg] = useState("");
@@ -24,24 +26,22 @@ export default function Students() {
     title: "",
   });
 
-  const fetchTrends = () => {
-    Agent10API.getTrends()
+  useEffect(() => {
+    let cancelled = false;
+    setState("loading");
+    Agent10API.getTrends(filters)
       .then((data) => {
+        if (cancelled) return;
         if (!data) setState("empty");
         else { setTrendsData(data); setState("success"); }
       })
       .catch((err) => {
+        if (cancelled) return;
         setErrorMsg(err?.message ?? "Failed to load student data.");
         setState("error");
       });
-  };
-
-  useEffect(() => {
-    if (!drilldown.isOpen) {
-      if (state === "loading") setState("loading");
-      fetchTrends();
-    }
-  }, [drilldown.isOpen]);
+    return () => { cancelled = true; };
+  }, [filters]);
 
   const backlog = trendsData?.student_backlog_trend;
 

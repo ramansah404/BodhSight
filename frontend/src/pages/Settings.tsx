@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, User, ShieldCheck, Server, Database, CheckCircle2, AlertCircle, Loader2, LogOut } from "lucide-react";
+import { Settings as SettingsIcon, User, ShieldCheck, Server, Database, CheckCircle2, AlertCircle, Loader2, LogOut, RefreshCw, Lock } from "lucide-react";
 import { Agent10API } from "../services/api";
+import { getRolePermissions } from "../utils/rbac";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -19,17 +20,18 @@ export default function Settings() {
   const [healthData, setHealthData] = useState<{ service?: string; environment?: string; agent?: string } | null>(null);
 
   const apiBase = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
+  const perms = getRolePermissions(role);
+
+  const checkHealth = useCallback(() => {
+    setHealthStatus("loading");
+    Agent10API.getHealth()
+      .then((data) => { setHealthData(data); setHealthStatus("ok"); })
+      .catch(() => setHealthStatus("error"));
+  }, []);
 
   useEffect(() => {
-    Agent10API.getHealth()
-      .then((data) => {
-        setHealthData(data);
-        setHealthStatus("ok");
-      })
-      .catch(() => {
-        setHealthStatus("error");
-      });
-  }, []);
+    checkHealth();
+  }, [checkHealth]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -88,32 +90,41 @@ export default function Settings() {
               <span className="font-mono text-xs text-primary">{apiBase}</span>
             </div>
 
-            <div className={`p-4 rounded-xl border flex items-center gap-3 ${
-              healthStatus === "ok"
-                ? "bg-emerald-500/10 border-emerald-200"
-                : healthStatus === "error"
-                ? "bg-rose-500/10 border-rose-500/20"
-                : "bg-surface/40 border-border/60"
-            }`}>
-              {healthStatus === "loading" && <Loader2 size={18} className="text-secondary animate-spin" />}
-              {healthStatus === "ok" && <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />}
-              {healthStatus === "error" && <AlertCircle size={18} className="text-rose-600 shrink-0" />}
-              <div>
-                <div className={`font-bold text-sm ${
-                  healthStatus === "ok" ? "text-emerald-600 dark:text-emerald-400" : healthStatus === "error" ? "text-rose-600 dark:text-rose-400" : "text-secondary"
-                }`}>
-                  {healthStatus === "loading"
-                    ? "Checking connection…"
-                    : healthStatus === "ok"
-                    ? "Backend Connected & Healthy"
-                    : "Backend Connection Failed"}
-                </div>
-                {healthData && (
-                  <div className="text-xs text-emerald-500 font-medium mt-0.5">
-                    {healthData.service} • {healthData.agent} • {healthData.environment}
+            <div className="flex items-center justify-between">
+              <div className={`p-4 rounded-xl border flex items-center gap-3 flex-1 ${
+                healthStatus === "ok"
+                  ? "bg-emerald-500/10 border-emerald-200"
+                  : healthStatus === "error"
+                  ? "bg-rose-500/10 border-rose-500/20"
+                  : "bg-surface/40 border-border/60"
+              }`}>
+                {healthStatus === "loading" && <Loader2 size={18} className="text-secondary animate-spin" />}
+                {healthStatus === "ok" && <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />}
+                {healthStatus === "error" && <AlertCircle size={18} className="text-rose-600 shrink-0" />}
+                <div>
+                  <div className={`font-bold text-sm ${
+                    healthStatus === "ok" ? "text-emerald-600 dark:text-emerald-400" : healthStatus === "error" ? "text-rose-600 dark:text-rose-400" : "text-secondary"
+                  }`}>
+                    {healthStatus === "loading"
+                      ? "Checking connection…"
+                      : healthStatus === "ok"
+                      ? "Backend Connected & Healthy"
+                      : "Backend Connection Failed"}
                   </div>
-                )}
+                  {healthData && (
+                    <div className="text-xs text-emerald-500 font-medium mt-0.5">
+                      {healthData.service} • {healthData.agent} • {healthData.environment}
+                    </div>
+                  )}
+                </div>
               </div>
+              <button
+                onClick={checkHealth}
+                className="ml-3 p-2.5 rounded-xl border border-border text-secondary hover:text-primary hover:bg-surface-secondary transition-colors"
+                title="Refresh health check"
+              >
+                <RefreshCw size={16} className={healthStatus === "loading" ? "animate-spin" : ""} />
+              </button>
             </div>
 
             <div className="flex justify-between p-3 bg-surface/40 rounded-xl border border-border/60">
@@ -127,39 +138,37 @@ export default function Settings() {
         <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6 space-y-4 md:col-span-2">
           <h2 className="text-lg font-bold text-primary flex items-center gap-2">
             <ShieldCheck className="text-indigo-600 dark:text-indigo-400" size={20} />
-            Role Permissions ({role})
+            Role Permissions — {displayRole}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-            {[
-              { label: "Approve Macro Interventions", roles: ["Dean", "Principal", "Management"] },
-              { label: "View All Departments", roles: ["Dean", "Principal", "Management", "IQAC"] },
-              { label: "Export Official Reports", roles: ["Dean", "Principal", "Management", "IQAC"] },
-              { label: "Trigger System Audit", roles: ["Dean", "Principal", "Management", "IQAC"] },
-              { label: "Calibrate Course Difficulty", roles: ["Dean", "Principal", "Management", "HOD"] },
-              { label: "Execute Recommendations", roles: ["Dean", "Principal", "Management", "HOD"] },
-              { label: "Submit Faculty Feedback", roles: ["HOD", "Faculty"] },
-            ].map((perm) => {
-              const hasPermission = perm.roles.includes(role);
-              return (
-                <div
-                  key={perm.label}
-                  className={`p-3 rounded-xl border flex items-center gap-2 ${
-                    hasPermission
-                      ? "bg-emerald-500/10 border-emerald-200"
-                      : "bg-surface/40 border-border/60 opacity-60"
-                  }`}
-                >
-                  {hasPermission ? (
-                    <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
-                  ) : (
-                    <div className="w-3.5 h-3.5 rounded-full border-2 border-border shrink-0" />
-                  )}
-                  <span className={`font-semibold ${hasPermission ? "text-emerald-600 dark:text-emerald-400" : "text-secondary"}`}>
-                    {perm.label}
-                  </span>
-                </div>
-              );
-            })}
+            {([
+              { label: "View All Departments",         granted: perms.canViewAllDepartments },
+              { label: "Export Official Reports",       granted: perms.canExportOfficialReports },
+              { label: "Approve Macro Interventions",   granted: perms.canApproveMacroInterventions },
+              { label: "Execute Recommendations",       granted: perms.canExecuteRecommendation },
+              { label: "Trigger System Audit",          granted: perms.canTriggerSystemAudit },
+              { label: "Calibrate Course Difficulty",   granted: perms.canCalibrateDifficulty },
+              { label: "Submit Faculty Feedback",       granted: perms.canSubmitFacultyFeedback },
+              { label: "Override Student Data",         granted: perms.canOverrideStudentData ?? false },
+            ] as { label: string; granted: boolean }[]).map((perm) => (
+              <div
+                key={perm.label}
+                className={`p-3 rounded-xl border flex items-center gap-2 ${
+                  perm.granted
+                    ? "bg-emerald-500/10 border-emerald-200 dark:border-emerald-900/50"
+                    : "bg-surface/40 border-border/60 opacity-50"
+                }`}
+              >
+                {perm.granted ? (
+                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                ) : (
+                  <Lock size={14} className="text-secondary shrink-0" />
+                )}
+                <span className={`font-semibold text-xs ${ perm.granted ? "text-emerald-600 dark:text-emerald-400" : "text-secondary"}`}>
+                  {perm.label}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 

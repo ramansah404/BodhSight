@@ -18,7 +18,7 @@ export default function Sections() {
     let cancelled = false;
     setState("loading");
 
-    Agent10API.getSections()
+    Agent10API.getSections(filters)
       .then((data) => {
         if (cancelled) return;
         if (!data || data.length === 0) {
@@ -35,7 +35,7 @@ export default function Sections() {
       });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [filters]);
 
   // Apply department filter
   const visible = filters.department
