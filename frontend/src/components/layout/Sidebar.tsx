@@ -79,7 +79,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     { name: "Executive Reports", path: "/reports", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: FileText },
 
     { name: "Data Hub", path: "/data-hub", roles: ["HOD", "Faculty"], icon: Database },
-
+    { name: "User Management", path: "/admin/users", roles: ["Admin"], icon: ShieldAlert },
   ];
 
 

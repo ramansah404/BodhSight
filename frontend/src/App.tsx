@@ -41,6 +41,7 @@ import DataHub       from "./pages/DataHub";
 import ManualEntry   from "./pages/ManualEntry";
 
 import Exceptions    from "./pages/Exceptions";
+import AdminDashboard from "./pages/AdminDashboard";
 
 
 
@@ -136,16 +137,15 @@ export default function App() {
 
             </Route>
 
-
-
-            {/* DataHub & Manual Entry ΓÇö HOD and Faculty only */}
-
-            <Route element={<ProtectedRoute allowedRoles={["HOD", "Faculty"]} />}>
-
+            {/* Data Hub — Data upload for faculty/HOD */}
+            <Route element={<ProtectedRoute allowedRoles={["HOD", "Faculty", "Chairman"]} />}>
               <Route path="data-hub"      element={<DataHub />} />
+              <Route path="data-hub/manual-entry" element={<ManualEntry />} />
+            </Route>
 
-              <Route path="manual-entry"  element={<ManualEntry />} />
-
+            {/* Admin User Management — Admin only */}
+            <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
+              <Route path="admin/users"   element={<AdminDashboard />} />
             </Route>
 
 

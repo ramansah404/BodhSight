@@ -479,23 +479,8 @@ export const AdminAPI = {
     return res.data;
   },
 
-  async createUser(data: any): Promise<{ success: boolean; message: string }> {
-    const res = await apiClient.post("/admin/users", data);
-    return res.data;
-  },
-
   async updateUserRole(userId: string, role: string, department: string | null): Promise<{ success: boolean; message: string }> {
     const res = await apiClient.put(`/admin/users/${userId}/role`, { role, department });
-    return res.data;
-  },
-
-  async updateUserStatus(userId: string, isActive: boolean): Promise<{ success: boolean; message: string }> {
-    const res = await apiClient.put(`/admin/users/${userId}/status`, { is_active: isActive });
-    return res.data;
-  },
-
-  async resetPassword(userId: string, password: string): Promise<{ success: boolean; message: string }> {
-    const res = await apiClient.put(`/admin/users/${userId}/password`, { password });
     return res.data;
   },
 
