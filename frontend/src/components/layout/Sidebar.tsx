@@ -10,6 +10,7 @@ import {
   AlertTriangle, 
   Lightbulb, 
   FileText, 
+  UploadCloud,
   ShieldAlert,
   X,
   PanelLeftClose,
@@ -38,6 +39,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     { name: "Problems", path: "/anomalies", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: AlertTriangle },
     { name: "Recommendations", path: "/recommendations", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: Lightbulb },
     { name: "Executive Reports", path: "/reports", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: FileText },
+    { name: "Upload Marks", path: "/ingestion", roles: ["HOD", "Faculty"], icon: UploadCloud },
   ];
 
   const navItems = allNavItems.filter(item => item.roles.includes(currentRole));

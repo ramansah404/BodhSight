@@ -19,6 +19,7 @@ const Problems = lazy(() => import("./pages/Problems"));
 const Recommendations = lazy(() => import("./pages/Recommendations"));
 const Reports = lazy(() => import("./pages/Reports"));
 const Settings = lazy(() => import("./pages/Settings"));
+const Ingestion = lazy(() => import("./pages/Ingestion"));
 
 export default function App() {
   return (
@@ -53,6 +54,9 @@ export default function App() {
             <Route path="reports" element={<Reports />} />
           </Route>
           <Route path="settings" element={<Settings />} />
+          <Route element={<ProtectedRoute allowedRoles={["Faculty", "HOD"]} />}>
+            <Route path="ingestion" element={<Ingestion />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />
