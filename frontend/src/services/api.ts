@@ -59,7 +59,7 @@ interface CacheEntry {
 
 const cache = new Map<string, CacheEntry>();
 const inFlight = new Map<string, Promise<any>>();
-const CACHE_TTL = 10000; // 10 second cache to ensure instant component navigation
+const CACHE_TTL = 0; // Disabled to guarantee strict real-time data sync across the app
 
 async function get<T>(path: string, forceFresh = false): Promise<T> {
   if (!forceFresh) {
@@ -173,19 +173,9 @@ export const Agent10API = {
     return get<import("../types/agent10").StudentProfile[]>(buildQuery("/agent10/students/drilldown", { ...filters, context } as any));
   },
 
-  /** Update a student profile (saves to localStorage if backend is down) */
+  /** Update a student profile (saves to live database) */
   async updateStudentProfile(studentId: string, updates: Partial<import("../types/agent10").StudentProfile>): Promise<void> {
-    try {
-      // Try sending to the backend first (if it existed)
-      await apiClient.put(`/crud_data/students/${studentId}`, updates);
-    } catch (err) {
-      console.warn("Backend update failed, saving to local overrides for hackathon demo persistence.");
-      // Fallback: save to localStorage
-      const overridesStr = localStorage.getItem("bodhsight_student_overrides");
-      const overrides = overridesStr ? JSON.parse(overridesStr) : {};
-      overrides[studentId] = { ...(overrides[studentId] || {}), ...updates };
-      localStorage.setItem("bodhsight_student_overrides", JSON.stringify(overrides));
-    }
+    await apiClient.put(`/crud_data/students/${studentId}`, updates);
   },
 
   /** Full evidence chain for one course */
