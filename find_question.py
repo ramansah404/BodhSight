@@ -1,29 +1,20 @@
 import os
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.pool import NullPool
+from dotenv import load_dotenv
 
-engine = create_engine('[REDACTED]', poolclass=NullPool)
+
+load_dotenv()
+database_url = os.getenv("DATABASE_URL")
+if not database_url:
+    raise SystemExit("DATABASE_URL must be set in ignored environment configuration.")
+
+engine = create_engine(database_url, poolclass=NullPool)
 
 with engine.connect() as conn:
-    print("Schema for assessment.student_question_mark:")
-    result = conn.execute(text("SELECT column_name, data_type FROM information_schema.columns WHERE table_schema='assessment' AND table_name='student_question_mark'"))
-    for row in result: print(row)
-    
-    print("\nSchema for assessment.paper_question:")
-    result = conn.execute(text("SELECT column_name, data_type FROM information_schema.columns WHERE table_schema='assessment' AND table_name='paper_question'"))
-    for row in result: print(row)
-    
-    print("\nSchema for curriculum.course_unit:")
-    result = conn.execute(text("SELECT column_name, data_type FROM information_schema.columns WHERE table_schema='curriculum' AND table_name='course_unit'"))
-    for row in result: print(row)
-
-    print("\nSchema for curriculum.course_outcome:")
-    result = conn.execute(text("SELECT column_name, data_type FROM information_schema.columns WHERE table_schema='curriculum' AND table_name='course_outcome'"))
-    for row in result: print(row)
-
-    print("\nFinding marks for 24CSE005:")
     result = conn.execute(text("""
-        SELECT sqm.marks_awarded, pq.question_text, pq.question_number, pq.max_marks, 
+        SELECT sqm.marks_awarded, pq.question_text, pq.question_number, pq.max_marks,
                cu.unit_title, cu.unit_number, co.code, co.description
         FROM assessment.student_question_mark sqm
         JOIN assessment.paper_question pq ON sqm.paper_question_id = pq.paper_question_id

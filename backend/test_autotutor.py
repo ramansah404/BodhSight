@@ -1,29 +1,31 @@
-import os
 import json
+import os
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
 
-from app.db.queries import get_weakest_question
 from app.agents.agent10.llm import generate_auto_tutor
+from app.db.queries import get_weakest_question
 
-engine = create_engine('[REDACTED]')
+
+load_dotenv()
+database_url = os.getenv("DATABASE_URL")
+if not database_url:
+    raise SystemExit("DATABASE_URL must be set in ignored environment configuration.")
+
+engine = create_engine(database_url)
 SessionLocal = sessionmaker(bind=engine)
 
-db = SessionLocal()
+with SessionLocal() as db:
+    student_id = db.execute(
+        text("SELECT student_id FROM people.student WHERE roll_no = '24CSE005'")
+    ).scalar()
 
-# Get the UUID of 24CSE005
-student_res = db.execute(text("SELECT student_id FROM people.student WHERE roll_no = '24CSE005'"))
-student_id = student_res.scalar()
+    if not student_id:
+        raise SystemExit("Student 24CSE005 was not found.")
 
-if not student_id:
-    print("Student not found!")
-else:
-    print(f"Testing for student_id: {student_id}")
     weakest = get_weakest_question(db, str(student_id))
-    print("Weakest Question DB data:")
     print(json.dumps(weakest, indent=2, default=str))
-
     if weakest:
-        ai_output = generate_auto_tutor(weakest)
-        print("\nAI Output:")
-        print(json.dumps(ai_output, indent=2))
+        print(json.dumps(generate_auto_tutor(weakest), indent=2))
