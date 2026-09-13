@@ -137,6 +137,7 @@ export default function DataHub() {
                 <option value="marks">Mid-Term Marks / Grades</option>
                 <option value="assignments">Assignment Submissions</option>
                 <option value="condonation">Condonation Medical Certificates</option>
+                <option value="all">Import All (Consolidated Data)</option>
               </select>
             </div>
 

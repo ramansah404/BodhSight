@@ -231,7 +231,11 @@ def compute_trends(db: Session, department: str = None, semester: str = None, pr
     Detect trends. With a single term of data, we cannot compute
     multi-term change — return what we have with a clear status flag.
     """
-    perf_rows = queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.get_course_performance_all(db), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year)
+    perf_rows = queries.filter_course_rows(
+        queries.get_course_performance_all(db),
+        queries.get_course_section_roster(db),
+        department, semester, programme, academic_year
+    )
     perf_summary = queries.get_course_performance_summary(db, department, semester, programme, academic_year)
     student_summary = queries.get_student_profile_summary(db)
 
@@ -525,7 +529,7 @@ def compute_priorities(db: Session, department: str = None, semester: str = None
     Rank courses/flags by intervention urgency.
     Uses pass rate, student count, and deviation as the scoring signal.
     """
-    anomalies = compute_anomalies(db)
+    anomalies = compute_anomalies(db, department=department, semester=semester, programme=programme, academic_year=academic_year)
 
     # De-duplicate to course-level for priorities
     seen: set = set()
@@ -600,7 +604,11 @@ def _intervention_text(anomaly: Dict[str, Any]) -> str:
 
 def get_evidence_for_course(db: Session, course_code: str) -> Dict[str, Any]:
     """Return full evidence chain for a specific course."""
-    all_perf = queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.filter_course_rows(queries.get_course_performance_all(db), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year), queries.get_course_section_roster(db), department, semester, programme, academic_year)
+    all_perf = queries.filter_course_rows(
+        queries.get_course_performance_all(db),
+        queries.get_course_section_roster(db),
+        None, None, None, None
+    )
     course_rows = [r for r in all_perf if r.get("course_code") == course_code]
 
     if not course_rows:
@@ -643,7 +651,7 @@ def compute_recommendations(db: Session, department: str = None, semester: str =
     Generate actionable recommendations directly from detected anomalies.
     Each recommendation is traceable to a database-backed evidence source.
     """
-    anomalies = compute_anomalies(db)
+    anomalies = compute_anomalies(db, department=department, semester=semester, programme=programme, academic_year=academic_year)
     recs = []
     for a in anomalies:
         if a.get("priority_score", 0) < 0.4:

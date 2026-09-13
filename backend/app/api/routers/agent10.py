@@ -37,10 +37,23 @@ def get_rbac_department(
     return department
 
 
+_QUERY_CACHE = {}
+_CACHE_TTL = 300 # 5 minutes
+
 def _safe(fn, db, *args, **kwargs):
-    """Wrap a computation; return 500 with useful message on failure."""
+    """Wrap a computation; return 500 with useful message on failure. Includes in-memory caching for performance."""
+    cache_key = (fn.__name__, str(args), str(frozenset(kwargs.items())))
+    now = time.time()
+    
+    if cache_key in _QUERY_CACHE:
+        val, ts = _QUERY_CACHE[cache_key]
+        if now - ts < _CACHE_TTL:
+            return val
+            
     try:
-        return fn(db, *args, **kwargs)
+        val = fn(db, *args, **kwargs)
+        _QUERY_CACHE[cache_key] = (val, now)
+        return val
     except Exception as e:
         logger.error("Agent10 compute error in %s: %s", fn.__name__, e, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Analytics error: {str(e)}")
@@ -285,7 +298,7 @@ def get_executive_summary(department: str = Depends(get_rbac_department), semest
     Uses LLM to humanize if configured; otherwise returns structured text.
     """
     metrics = _safe(agent10.compute_dashboard_metrics, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
-    anomalies = _safe(agent10.compute_anomalies, db)
+    anomalies = _safe(agent10.compute_anomalies, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
     summary_text = agent10.generate_executive_summary(metrics, anomalies)
 
     return {

@@ -157,7 +157,8 @@ export default function Courses() {
                 No courses found for department <strong>{filters.department}</strong>.
               </div>
             ) : (
-              <table className="w-full text-left border-collapse">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-surface/40 text-secondary text-xs uppercase tracking-wider border-b border-border/60">
                     <th className="py-4 px-6 font-bold">Course Code & Title</th>
@@ -214,6 +215,7 @@ export default function Courses() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         )}

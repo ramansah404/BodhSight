@@ -584,13 +584,16 @@ def get_student_drilldown(
             p.fee_outstanding,
     """
     
+    params = {}
     from_clause = " FROM people.v_student_profile p "
     where_clause = " WHERE p.status = 'ACTIVE' "
     
     if department:
-        where_clause += f" AND p.department_code = '{department}' "
+        where_clause += " AND p.department_code = :department "
+        params["department"] = department
     if programme:
-        where_clause += f" AND p.programme_code = '{programme}' "
+        where_clause += " AND p.programme_code = :programme "
+        params["programme"] = programme
         
     if context == "condonation":
         select_clause += " a.band AS reason "
@@ -607,13 +610,13 @@ def get_student_drilldown(
         select_clause += " 'High Backlogs' AS reason "
         where_clause += " AND p.backlog_count >= 3 "
     elif context == "course" and course_code:
-        select_clause += " cp.pass_pct::text AS reason "
-        from_clause += f" JOIN assessment.v_course_performance cp ON p.student_id = cp.student_id "
-        where_clause += f" AND cp.course_code = '{course_code}' "
+        select_clause += " 'Course Risk' AS reason "
+        where_clause += " AND p.student_id IN (SELECT student_id FROM academics.v_offering_roster WHERE course_code = :course_code) "
+        params["course_code"] = course_code
     else:
         select_clause += " 'Evaluated' AS reason "
 
     sql_text = select_clause + from_clause + where_clause + " ORDER BY p.roll_no ASC LIMIT 500"
     
-    result = db.execute(text(sql_text))
+    result = db.execute(text(sql_text), params)
     return [dict(row._mapping) for row in result]

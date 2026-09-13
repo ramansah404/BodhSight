@@ -25,7 +25,7 @@ import {
   mapBackendRecommendation as _mapRec,
   type CoursePerformance,
 } from "../types/agent10";
-import * as mockData from "./mockData";
+
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
 
@@ -281,3 +281,39 @@ export const CrudDataAPI = {
     return apiClient.put(`/crud_data/students/${studentId}`, data).then(r => r.data);
   }
 };
+
+// ---------------------------------------------------------------------------
+// Auth API — Signup / Login backed by core.user_account in PostgreSQL
+// ---------------------------------------------------------------------------
+
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  role?: string;
+  full_name?: string;
+  email?: string;
+  department?: string;
+}
+
+export const AuthAPI = {
+  async signup(payload: {
+    full_name: string;
+    email?: string;
+    phone_number?: string;
+    password: string;
+    role: string;
+    department?: string;
+  }): Promise<AuthResponse> {
+    const res = await apiClient.post<AuthResponse>("/auth/signup", payload);
+    return res.data;
+  },
+
+  async login(payload: {
+    identifier: string;
+    password: string;
+  }): Promise<AuthResponse> {
+    const res = await apiClient.post<AuthResponse>("/auth/login", payload);
+    return res.data;
+  },
+};
+

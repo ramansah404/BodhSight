@@ -40,6 +40,19 @@ export default function ManualEntry() {
   }, [selectedSection]);
 
   const handleInputChange = (studentId: string, field: 'attendance_pct' | 'cgpa', value: string) => {
+    // Basic clamping validation
+    let parsed = parseFloat(value);
+    if (!isNaN(parsed)) {
+      if (field === 'attendance_pct') {
+        if (parsed < 0) parsed = 0;
+        if (parsed > 100) parsed = 100;
+      } else if (field === 'cgpa') {
+        if (parsed < 0) parsed = 0;
+        if (parsed > 10) parsed = 10;
+      }
+      value = parsed.toString();
+    }
+    
     setEditedData(prev => {
       const student = students.find(s => s.student_id === studentId);
       if (!student) return prev;
@@ -164,7 +177,7 @@ export default function ManualEntry() {
                       <td className="py-4 px-6 text-sm text-secondary">{s.full_name}</td>
                       <td className="py-4 px-6">
                         <input 
-                          type="number" 
+                          type="number" min="0" max="100" step="1"
                           className={`w-full bg-background border ${isEdited ? 'border-indigo-500 focus:ring-1 focus:ring-indigo-500' : 'border-border'} rounded px-3 py-1.5 text-sm font-bold text-primary focus:outline-none`}
                           value={currentAtt} 
                           onChange={e => handleInputChange(s.student_id, 'attendance_pct', e.target.value)}
@@ -172,7 +185,7 @@ export default function ManualEntry() {
                       </td>
                       <td className="py-4 px-6">
                         <input 
-                          type="number" step="0.1"
+                          type="number" min="0" max="10" step="0.1"
                           className={`w-full bg-background border ${isEdited ? 'border-indigo-500 focus:ring-1 focus:ring-indigo-500' : 'border-border'} rounded px-3 py-1.5 text-sm font-bold text-primary focus:outline-none`}
                           value={currentCgpa} 
                           onChange={e => handleInputChange(s.student_id, 'cgpa', e.target.value)}

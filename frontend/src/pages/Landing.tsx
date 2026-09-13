@@ -106,7 +106,7 @@ export default function Landing() {
               <button onClick={() => scrollTo('security')} className="text-left font-medium">Security</button>
               <hr className="border-border my-2" />
               <button onClick={() => navigate('/login')} className="text-left font-medium">Sign In</button>
-              <button onClick={() => navigate('/login')} className="bg-indigo-600 text-primary text-center py-3 rounded-xl font-bold">Enter BodhSight</button>
+              <button onClick={() => navigate('/login')} className="bg-indigo-600 text-white text-center py-3 rounded-xl font-bold">Enter BodhSight</button>
             </div>
           </motion.div>
         )}

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import logging
 
 from app.db.session import get_db
@@ -20,8 +20,8 @@ def get_rbac_department(
     return department
 
 class StudentDataUpdate(BaseModel):
-    attendance_pct: Optional[float] = None
-    cgpa: Optional[float] = None
+    attendance_pct: Optional[float] = Field(None, ge=0.0, le=100.0, description="Attendance must be between 0 and 100")
+    cgpa: Optional[float] = Field(None, ge=0.0, le=10.0, description="CGPA must be between 0.0 and 10.0")
 
 class StudentDataResponse(BaseModel):
     student_id: str
@@ -35,10 +35,10 @@ class StudentDataResponse(BaseModel):
 def get_sections_for_crud(department: str = Depends(get_rbac_department), db: Session = Depends(get_db)):
     """Fetch distinct sections for the RBAC-filtered department."""
     try:
-        query = "SELECT DISTINCT section FROM analytics.v_course_performance WHERE 1=1 AND section IS NOT NULL"
+        query = "SELECT DISTINCT section_code FROM academics.v_offering_roster WHERE 1=1 AND section_code IS NOT NULL"
         params = {}
         if department:
-            query += " AND department = :dept"
+            query += " AND department_code = :dept"
             params["dept"] = department
         
         result = db.execute(text(query), params).fetchall()
@@ -53,7 +53,7 @@ def get_students_by_section(section_code: str, department: str = Depends(get_rba
     try:
         # Enforce RBAC securely by verifying the section belongs to their department
         if department:
-            verify_q = "SELECT 1 FROM analytics.v_course_performance WHERE section = :section AND department = :dept"
+            verify_q = "SELECT 1 FROM academics.v_offering_roster WHERE section_code = :section AND department_code = :dept"
             is_valid = db.execute(text(verify_q), {"section": section_code, "dept": department}).fetchone()
             if not is_valid:
                 raise HTTPException(status_code=403, detail="Unauthorized to view this section")
@@ -94,8 +94,8 @@ def update_student_data(student_id: str, data: StudentDataUpdate, department: st
             check_q = """
                 SELECT 1 
                 FROM people.v_student_profile p
-                JOIN analytics.v_course_performance c ON c.section = p.section_code
-                WHERE p.student_id = :sid AND c.department = :dept
+                JOIN academics.v_offering_roster c ON c.section_code = p.section_code
+                WHERE p.student_id = :sid AND c.department_code = :dept
             """
             res = db.execute(text(check_q), {"sid": student_id, "dept": department}).fetchone()
             if not res:
