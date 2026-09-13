@@ -24,7 +24,7 @@ export default function Topbar({ currentRole, onMenuToggle }: TopbarProps) {
     "/courses": ["Courses", "Course-level outcomes and delivery signals"],
     "/departments": ["Departments", "Department health across the institution"],
     "/sections": ["Sections", "Section comparisons and disparity signals"],
-    "/students": ["At-risk students", "Prioritize support where it can change outcomes"],
+    "/students": ["Student Insights", "Prioritize support where it can change outcomes"],
     "/anomalies": ["Problems console", "Evidence-backed academic exceptions requiring attention"],
     "/exceptions": ["Exceptions", "Review operational exceptions within your scope"],
     "/recommendations": ["Recommendations", "Move detected risks toward accountable action"],

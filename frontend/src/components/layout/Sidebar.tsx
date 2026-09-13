@@ -37,7 +37,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     { name: "Departments", path: "/departments", roles: ["Principal", "Dean"], icon: Building2 },
     { name: "Sections", path: "/sections", roles: ["HOD", "Faculty"], icon: Layers },
     { name: "Batches", path: "/batches", roles: ["Dean", "HOD"], icon: Layers },
-    { name: "Students (At-Risk)", path: "/students", roles: ["Faculty", "HOD"], icon: ShieldAlert },
+    { name: "Student Insights", path: "/students", roles: ["Faculty", "HOD"], icon: ShieldAlert },
     { name: "Problems", path: "/anomalies", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: AlertTriangle },
     { name: "Exceptions", path: "/exceptions", roles: ["Chairman", "Principal", "Dean"], icon: FileWarning },
     { name: "Recommendations", path: "/recommendations", roles: ["Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: Lightbulb },
