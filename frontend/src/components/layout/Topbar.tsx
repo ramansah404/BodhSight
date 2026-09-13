@@ -31,7 +31,7 @@ export default function Topbar({ currentRole, onMenuToggle }: TopbarProps) {
 
   return (
     <>
-    <header className="h-16 bg-background backdrop-blur-md border-b border-border/60 flex items-center justify-between px-4 md:px-6 sticky top-0 z-20 shadow-md text-primary">
+    <header className="glass-panel h-16 border-b border-border/60 flex items-center justify-between px-4 md:px-6 sticky top-0 z-20 text-primary">
       <div className="flex items-center gap-3">
         <button 
           onClick={onMenuToggle}
@@ -50,7 +50,7 @@ export default function Topbar({ currentRole, onMenuToggle }: TopbarProps) {
         <ThemeToggle />
         <button 
           onClick={() => setIsNotifOpen(true)}
-          className="relative p-2 rounded-xl bg-surface-secondary/50 hover:bg-surface-secondary transition-colors text-primary" 
+          className="glass-control relative p-2 rounded-xl hover:bg-white/20 text-primary"
           aria-label="Notifications"
         >
           <Bell size={18} />

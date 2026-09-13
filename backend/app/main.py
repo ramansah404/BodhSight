@@ -19,8 +19,8 @@ if settings.CORS_ORIGINS:
     else:
         required_origins.extend(settings.CORS_ORIGINS)
 
-# Remove duplicates
-final_origins = list(set(required_origins))
+# Remove duplicates while preserving a predictable order for diagnostics.
+final_origins = list(dict.fromkeys(required_origins))
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
