@@ -58,6 +58,54 @@ export default function Sections() {
     exportToExcel(exportData, `Section_Performance_${filters.department || 'All'}`);
   };
 
+  const handleExportPDF = () => {
+    const paragraphs = [
+      `Section-Level Disparity Telemetry`,
+      `Generated for: ${filters.department || 'All Departments'}`,
+      `Total Sections: ${visible.length} | Flagged Disparities: ${disparityCount}`
+    ];
+    
+    const tableData = [
+      ["Course Code", "Course Title", "Section", "Department", "Students", "Pass Rate (%)", "Avg Marks", "Disparity"],
+      ...visible.map(s => [
+        s.course_code, 
+        s.course_title, 
+        s.section, 
+        s.department, 
+        String(s.students_appeared), 
+        String(s.pass_rate), 
+        String(s.avg_marks), 
+        s.disparity_flag ? "FLAGGED" : "Normal"
+      ])
+    ];
+
+    exportToPDF(`Section Disparity Analysis`, paragraphs, tableData, `Section_Performance_${filters.department || 'All'}`);
+  };
+
+  const handleExportWord = () => {
+    const paragraphs = [
+      `Section-Level Disparity Telemetry`,
+      `Generated for: ${filters.department || 'All Departments'}`,
+      `Total Sections: ${visible.length} | Flagged Disparities: ${disparityCount}`
+    ];
+    
+    const tableData = [
+      ["Course Code", "Course Title", "Section", "Department", "Students", "Pass Rate (%)", "Avg Marks", "Disparity"],
+      ...visible.map(s => [
+        s.course_code, 
+        s.course_title, 
+        s.section, 
+        s.department, 
+        String(s.students_appeared), 
+        String(s.pass_rate), 
+        String(s.avg_marks), 
+        s.disparity_flag ? "FLAGGED" : "Normal"
+      ])
+    ];
+
+    exportToWord(`Section Disparity Analysis`, paragraphs, tableData, `Section_Performance_${filters.department || 'All'}`);
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="bg-surface/80 backdrop-blur-sm border border-border/60 rounded-3xl p-8 text-primary shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -133,6 +181,8 @@ export default function Sections() {
                   )}
                   <ExportMenu 
                     onExportExcel={handleExportExcel}
+                    onExportPDF={handleExportPDF}
+                    onExportWord={handleExportWord}
                     disabled={state !== "success" || visible.length === 0}
                   />
                 </div>

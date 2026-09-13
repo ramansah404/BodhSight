@@ -191,20 +191,54 @@ export default function Landing() {
                 </div>
                 <div className="ml-4 w-64 h-6 rounded-md bg-surface-secondary" />
               </div>
-              {/* Fake Dashboard Content */}
-              <div className="p-6 grid grid-cols-4 gap-4 opacity-70">
-                <div className="col-span-1 space-y-4 hidden md:block">
-                  <div className="h-8 rounded bg-indigo-500/20 w-full" />
-                  <div className="h-8 rounded bg-surface-secondary w-5/6" />
-                  <div className="h-8 rounded bg-surface-secondary w-4/6" />
-                </div>
-                <div className="col-span-4 md:col-span-3 space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="h-24 rounded-xl bg-surface-secondary border border-border/50" />
-                    <div className="h-24 rounded-xl bg-surface-secondary border border-border/50" />
-                    <div className="h-24 rounded-xl bg-indigo-900/40 border border-indigo-500/20" />
+              {/* Fake Dashboard Content - Polished Mockup */}
+              <div className="p-6 flex flex-col md:flex-row gap-6 opacity-90">
+                {/* Mock Sidebar */}
+                <div className="w-48 space-y-2 hidden md:block">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-indigo-500/10 text-indigo-500 rounded-lg">
+                    <Activity size={16} /> <span className="text-sm font-semibold">Dashboard</span>
                   </div>
-                  <div className="h-64 rounded-xl bg-surface-secondary/50 border border-border/50" />
+                  <div className="flex items-center gap-2 px-3 py-2 text-secondary hover:text-primary transition-colors">
+                    <BrainCircuit size={16} /> <span className="text-sm font-medium">Anomalies</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-2 text-secondary hover:text-primary transition-colors">
+                    <Search size={16} /> <span className="text-sm font-medium">Students</span>
+                  </div>
+                </div>
+                
+                {/* Mock Main Content */}
+                <div className="flex-1 space-y-6">
+                  {/* Top Stats */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="h-24 rounded-xl bg-surface-secondary border border-border/50 p-4 flex flex-col justify-between">
+                      <div className="text-xs text-secondary font-bold uppercase tracking-wider">Avg Pass Rate</div>
+                      <div className="text-2xl font-black text-primary">87.4%</div>
+                      <div className="w-full h-1 bg-emerald-500/20 rounded-full overflow-hidden"><div className="h-full w-[87%] bg-emerald-500"></div></div>
+                    </div>
+                    <div className="h-24 rounded-xl bg-surface-secondary border border-border/50 p-4 flex flex-col justify-between">
+                      <div className="text-xs text-secondary font-bold uppercase tracking-wider">At-Risk Cohort</div>
+                      <div className="text-2xl font-black text-primary">42 <span className="text-xs text-rose-500 font-normal">Students</span></div>
+                      <div className="w-full h-1 bg-rose-500/20 rounded-full overflow-hidden"><div className="h-full w-[15%] bg-rose-500"></div></div>
+                    </div>
+                    <div className="h-24 rounded-xl bg-indigo-900/40 border border-indigo-500/30 p-4 flex flex-col justify-between relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-4 text-indigo-400 opacity-50"><Sparkles size={24} /></div>
+                      <div className="text-xs text-indigo-300 font-bold uppercase tracking-wider z-10">Agent 10 Status</div>
+                      <div className="text-lg font-bold text-indigo-100 z-10 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Monitoring</div>
+                      <div className="text-xs text-indigo-200/70 z-10">All systems operational</div>
+                    </div>
+                  </div>
+                  
+                  {/* Mock Chart Area */}
+                  <div className="h-64 rounded-xl bg-surface-secondary/50 border border-border/50 p-6 flex flex-col">
+                    <div className="text-sm font-bold text-primary mb-6">Historical Performance Trend</div>
+                    <div className="flex-1 flex items-end gap-2 justify-between px-4 pb-2">
+                      {[40, 60, 45, 80, 65, 90, 75, 85, 95, 70, 88].map((h, i) => (
+                        <div key={i} className="w-full bg-indigo-500/20 rounded-t-md hover:bg-indigo-500/40 transition-colors" style={{ height: `${h}%` }}>
+                          <div className="w-full bg-indigo-500 rounded-t-md opacity-80" style={{ height: '4px' }} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />

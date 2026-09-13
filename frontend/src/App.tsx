@@ -5,28 +5,27 @@ import ProtectedRoute from "./components/layout/ProtectedRoute";
 import { lazy, Suspense } from "react";
 import LoadingFallback from "./components/ui/LoadingFallback";
 
-const Landing       = lazy(() => import("./pages/Landing"));
-const Login         = lazy(() => import("./pages/Login"));
-const Dashboard     = lazy(() => import("./pages/Dashboard"));
-const Trends        = lazy(() => import("./pages/Trends"));
-const Courses       = lazy(() => import("./pages/Courses"));
-const Departments   = lazy(() => import("./pages/Departments"));
-const Sections      = lazy(() => import("./pages/Sections"));
-const Batches       = lazy(() => import("./pages/Batches"));
-const Students      = lazy(() => import("./pages/Students"));
-const Problems      = lazy(() => import("./pages/Problems"));
-const Recommendations = lazy(() => import("./pages/Recommendations"));
-const Reports       = lazy(() => import("./pages/Reports"));
-const Settings      = lazy(() => import("./pages/Settings"));
-const DataHub       = lazy(() => import("./pages/DataHub"));
-const ManualEntry   = lazy(() => import("./pages/ManualEntry"));
-const Exceptions    = lazy(() => import("./pages/Exceptions"));
+import Landing       from "./pages/Landing";
+import Login         from "./pages/Login";
+import Dashboard     from "./pages/Dashboard";
+import Trends        from "./pages/Trends";
+import Courses       from "./pages/Courses";
+import Departments   from "./pages/Departments";
+import Sections      from "./pages/Sections";
+import Batches       from "./pages/Batches";
+import Students      from "./pages/Students";
+import Problems      from "./pages/Problems";
+import Recommendations from "./pages/Recommendations";
+import Reports       from "./pages/Reports";
+import Settings      from "./pages/Settings";
+import DataHub       from "./pages/DataHub";
+import ManualEntry   from "./pages/ManualEntry";
+import Exceptions    from "./pages/Exceptions";
 
 export default function App() {
   return (
     <ThemeProvider>
     <HashRouter>
-      <Suspense fallback={<LoadingFallback />}>
       <Routes>
         {/* Public routes — accessible without login */}
         <Route path="/"      element={<Landing />} />
@@ -87,7 +86,6 @@ export default function App() {
         {/* Catch-all: redirect to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-      </Suspense>
     </HashRouter>
     </ThemeProvider>
   );
