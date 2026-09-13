@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, User, ShieldCheck, Server, Database, CheckCircle2, AlertCircle, Loader2, LogOut, RefreshCw, Lock } from "lucide-react";
+import { Settings as SettingsIcon, User, ShieldCheck, Server, Database, CheckCircle2, AlertCircle, Loader2, LogOut, RefreshCw, Lock, Sliders, Bell } from "lucide-react";
 import { Agent10API } from "../services/api";
 import { getRolePermissions } from "../utils/rbac";
 
@@ -171,6 +171,46 @@ export default function Settings() {
             ))}
           </div>
         </div>
+
+        {/* Agent 10 Preferences (RBAC Restricted) */}
+        {(role === "Chairman" || role === "Principal") && (
+          <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6 space-y-4 md:col-span-2">
+            <h2 className="text-lg font-bold text-primary flex items-center gap-2">
+              <Sliders className="text-indigo-600 dark:text-indigo-400" size={20} />
+              Agent 10 Preferences
+            </h2>
+            <p className="text-sm text-secondary">
+              As a top-level administrator, you can configure the global behavior of the BodhSight AI engine.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+              <div className="p-4 rounded-xl border border-border bg-surface/40 flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-sm text-primary">Anomaly Sensitivity</span>
+                  <span className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 px-2 py-0.5 rounded text-xs font-bold">Strict</span>
+                </div>
+                <p className="text-xs text-secondary mb-2">Dictates how aggressively Agent 10 flags anomalies in course pass rates.</p>
+                <input type="range" min="1" max="100" defaultValue="70" className="w-full accent-indigo-600" />
+                <div className="flex justify-between text-[10px] text-secondary font-bold px-1">
+                  <span>Lenient</span>
+                  <span>Strict</span>
+                </div>
+              </div>
+              <div className="p-4 rounded-xl border border-border bg-surface/40 flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-sm text-primary">Notification Threshold</span>
+                  <Bell size={16} className="text-secondary" />
+                </div>
+                <p className="text-xs text-secondary mb-2">Minimum severity required before sending automated alerts to HODs.</p>
+                <select className="bg-surface border border-border rounded-lg text-sm p-2 text-primary focus:ring-1 focus:ring-indigo-500">
+                  <option>All Anomalies</option>
+                  <option>Medium and Above</option>
+                  <option>High and Above</option>
+                  <option selected>Critical Only</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Database views */}
         <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6 space-y-4 md:col-span-2">

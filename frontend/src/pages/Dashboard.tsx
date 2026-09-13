@@ -74,11 +74,21 @@ export default function Dashboard() {
     return () => { cancelled = true; };
   }, [filters]);
 
-  const deptChartData = departments.map((d) => ({
-    name: d.department_code,
-    passRate: d.pass_rate ?? 0,
-    status: d.status
-  }));
+  // Dynamic chart data based on Role
+  // Top level roles see Departments. HOD/Faculty see Courses because they only have 1 department.
+  const isDepartmentLevel = currentRole === "Chairman" || currentRole === "Principal" || currentRole === "IQAC" || currentRole === "Dean";
+  
+  const chartData = isDepartmentLevel 
+    ? departments.map((d) => ({
+        name: d.department_code,
+        passRate: d.pass_rate ?? 0,
+        status: d.status
+      }))
+    : courses.map((c) => ({
+        name: c.course_code,
+        passRate: c.pass_pct ?? 0,
+        status: "MONITORING"
+      }));
 
   const handleExportExcel = () => {
     // Generate institutional summary data
@@ -329,12 +339,12 @@ export default function Dashboard() {
         {/* Pass rate chart — dept for senior roles, courses for Faculty/HOD */}
         <div className="lg:col-span-2 bg-surface rounded-3xl border border-border/60 shadow-sm p-6">
           <h2 className="text-lg font-bold text-primary mb-6">
-            {deptChartData.length > 0 ? "Department Pass Rate Comparison" : "Course Pass Rate Overview"}
+            {isDepartmentLevel ? "Department Pass Rate Comparison" : "Course Pass Rate Overview"}
           </h2>
-          {deptChartData.length > 0 ? (
+          {chartData.length > 0 ? (
             <div style={{ width: "100%", height: 288 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={deptChartData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+                <AreaChart data={chartData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
                   <defs>
                     <linearGradient id="colorPassRate" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
@@ -382,17 +392,49 @@ export default function Dashboard() {
           ) : courses.length > 0 ? (
             <div style={{ width: "100%", height: 288 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={courses.map(c => ({ name: c.course_code, passRate: c.pass_rate ?? 0, status: c.status }))} margin={{ top: 10, right: 10, left: -20, bottom: 40 }}>
+                <AreaChart 
+                  data={courses.map(c => ({ name: c.course_code, passRate: c.pass_rate ?? 0, status: c.status }))} 
+                  margin={{ top: 10, right: 10, left: -20, bottom: 40 }}
+                >
+                  <defs>
+                    <linearGradient id="courseColorPassRate" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="courseLineColor" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#8b5cf6" />
+                      <stop offset="100%" stopColor="#ec4899" />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(100,116,139,0.2)" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }} angle={-35} textAnchor="end" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }} 
+                    angle={-35} 
+                    textAnchor="end" 
+                  />
                   <YAxis domain={[0, 100]} axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `${v}%`} />
-                  <Tooltip contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#1e293b", color: "#f8fafc" }} formatter={(val: number) => [`${val.toFixed(1)}%`, "Pass Rate"]} />
-                  <Bar dataKey="passRate" radius={[6, 6, 0, 0]} maxBarSize={40}>
-                    {courses.map((c, i) => (
-                      <Cell key={i} fill={c.status === "INTERVENTION_REQUIRED" ? "#f43f5e" : c.status === "MONITORING" ? "#f59e0b" : "#8b5cf6"} />
-                    ))}
-                  </Bar>
-                </BarChart>
+                  <Tooltip 
+                    cursor={{ stroke: "#334155", strokeWidth: 1, strokeDasharray: "3 3" }}
+                    contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#0f172a", color: "#f8fafc" }} 
+                    formatter={(val: number) => [`${val.toFixed(1)}%`, "Pass Rate"]} 
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="passRate"
+                    stroke="url(#courseLineColor)"
+                    strokeWidth={4}
+                    fillOpacity={1}
+                    fill="url(#courseColorPassRate)"
+                    dot={{ fill: "#0f172a", stroke: "#8b5cf6", strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: "#ec4899", strokeWidth: 0 }}
+                    name="Pass Rate %"
+                    isAnimationActive={true}
+                    animationDuration={2000}
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           ) : (

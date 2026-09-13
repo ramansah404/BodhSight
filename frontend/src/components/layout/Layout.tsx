@@ -8,6 +8,8 @@ import GlobalFilterBar from "../filters/GlobalFilterBar";
 import { FilterProvider } from "../../contexts/FilterContext";
 import { NotificationProvider } from "../../contexts/NotificationContext";
 
+import ChatWidget from "../ui/ChatWidget";
+
 // Page transition variants — subtle fade+slide from KrishakMitra pattern
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
@@ -61,6 +63,7 @@ export default function Layout() {
             </AnimatePresence>
           </main>
         </div>
+        <ChatWidget />
       </div>
       </NotificationProvider>
     </FilterProvider>

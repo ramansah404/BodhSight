@@ -59,7 +59,12 @@ interface CacheEntry {
 
 const cache = new Map<string, CacheEntry>();
 const inFlight = new Map<string, Promise<any>>();
-const CACHE_TTL = 0; // Disabled to guarantee strict real-time data sync across the app
+const CACHE_TTL = 300000; // 5 minutes (aggressive caching for UI speed, invalidated instantly on writes)
+
+export const clearCache = () => {
+  cache.clear();
+  inFlight.clear();
+};
 
 async function get<T>(path: string, forceFresh = false): Promise<T> {
   if (!forceFresh) {
@@ -165,6 +170,7 @@ export const Agent10API = {
     const res = await apiClient.post("/ingestion/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" }
     });
+    clearCache();
     return res.data;
   },
 
@@ -176,6 +182,7 @@ export const Agent10API = {
   /** Update a student profile (saves to live database) */
   async updateStudentProfile(studentId: string, updates: Partial<import("../types/agent10").StudentProfile>): Promise<void> {
     await apiClient.put(`/crud_data/students/${studentId}`, updates);
+    clearCache(); // Force real-time sync for next read
   },
 
   /** Full evidence chain for one course */
@@ -191,16 +198,30 @@ export const Agent10API = {
   /** Execute a recommendation (updates database status) */
   async executeRecommendation(id: string): Promise<void> {
     await apiClient.post(`/agent10/recommendations/${id}/execute`);
+    clearCache();
   },
 
   /** Trigger an ingestion audit */
   async triggerAudit(): Promise<void> {
     await apiClient.post("/agent10/audit/trigger");
+    clearCache();
   },
 
   /** Backend health check */
   getHealth(): Promise<{ status: string; service: string; environment: string; agent: string }> {
     return get("/health");
+  },
+
+  /** Send a message to the Agent 10 Live Chat */
+  async sendChatMessage(message: string, filters?: Partial<FilterState>): Promise<{ reply: string }> {
+    const payload = {
+      message,
+      department: filters?.department || null,
+      semester: filters?.semester || null,
+      programme: filters?.programme || null,
+    };
+    const res = await apiClient.post("/agent10/chat", payload);
+    return res.data;
   },
 
   /**
@@ -270,7 +291,10 @@ export const CrudDataAPI = {
     return get<StudentDataResponse[]>(`/crud_data/students/${sectionCode}`, true);
   },
   updateStudentData(studentId: string, data: { attendance_pct?: number; cgpa?: number; backlog_count?: number }): Promise<{ status: string }> {
-    return apiClient.put(`/crud_data/students/${studentId}`, data).then(r => r.data);
+    return apiClient.put(`/crud_data/students/${studentId}`, data).then(r => {
+      clearCache();
+      return r.data;
+    });
   }
 };
 

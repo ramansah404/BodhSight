@@ -51,8 +51,9 @@ def health_check_v1():
     }
 
 from app.api.v1.routes import dashboard, performance, trends, anomalies, insights, alerts, recommendations
-from app.api.routers import agent10, notifications, ingestion, crud_data, auth
+from app.api.routers import agent10, notifications, ingestion, crud_data, auth, chat
 
+app.include_router(chat.router, prefix=f"{settings.API_V1_STR}", tags=["Agent 10 Chat"])
 app.include_router(agent10.router, prefix=f"{settings.API_V1_STR}/agent10", tags=["Agent 10"])
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
 app.include_router(crud_data.router, prefix=f"{settings.API_V1_STR}/crud_data", tags=["CRUD"])

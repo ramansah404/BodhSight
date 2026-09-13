@@ -48,6 +48,7 @@ def filter_course_rows(rows: List[Dict[str, Any]], roster: List[Dict[str, Any]],
         return rows
         
     course_to_dept = {r["course_code"]: r["department_code"] for r in roster}
+    course_to_prog = {r["course_code"]: r["programme_code"] for r in roster}
     filtered = []
     
     for r in rows:
@@ -63,7 +64,11 @@ def filter_course_rows(rows: List[Dict[str, Any]], roster: List[Dict[str, Any]],
             if term != semester and str(term) != semester:
                 continue
                 
-        # Academic year or programme filtering can be added here based on schema
+        # Programme filter
+        if programme:
+            prog = str(course_to_prog.get(r.get("course_code"), "Unknown"))
+            if prog != programme:
+                continue
         
         filtered.append(r)
         
@@ -217,11 +222,12 @@ def get_course_section_roster(db: Session) -> List[Dict[str, Any]]:
             course_code,
             course_title,
             department_code,
+            programme_code,
             section_code,
             term_label,
             count(DISTINCT student_id) AS enrolled_students
         FROM academics.v_offering_roster
-        GROUP BY course_code, course_title, department_code, section_code, term_label
+        GROUP BY course_code, course_title, department_code, programme_code, section_code, term_label
         ORDER BY course_code, section_code
     """)
     result = db.execute(sql)
@@ -233,9 +239,19 @@ def get_course_section_roster(db: Session) -> List[Dict[str, Any]]:
 # Student profiles — people.v_student_profile
 # ---------------------------------------------------------------------------
 
-def get_student_profile_summary(db: Session) -> Dict[str, Any]:
+def get_student_profile_summary(db: Session, department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> Dict[str, Any]:
     """Aggregated student KPIs."""
-    sql = text("""
+    where_clause = " WHERE 1=1 "
+    params = {}
+    
+    if department:
+        where_clause += " AND department_code = :department "
+        params["department"] = department
+    if programme:
+        where_clause += " AND programme_code = :programme "
+        params["programme"] = programme
+        
+    sql = text(f"""
         SELECT
             count(*) AS total_students,
             count(*) FILTER (WHERE status = 'ACTIVE') AS active_students,
@@ -243,15 +259,33 @@ def get_student_profile_summary(db: Session) -> Dict[str, Any]:
             count(*) FILTER (WHERE backlog_count > 0 AND status = 'ACTIVE') AS students_with_backlogs,
             count(*) FILTER (WHERE backlog_count > 2 AND status = 'ACTIVE') AS students_high_backlogs
         FROM people.v_student_profile
+        {where_clause}
     """)
-    result = db.execute(sql)
+    result = db.execute(sql, params)
     row = result.fetchone()
     return dict(row._mapping) if row else {}
 
 
-def get_students_with_backlogs(db: Session, min_backlogs: int = 1) -> List[Dict[str, Any]]:
-    """Students with at least min_backlogs active backlogs."""
-    sql = text("""
+def get_students_by_context(db: Session, context: str, department: str = None, semester: str = None, programme: str = None) -> List[Dict[str, Any]]:
+    """Fetch students based on UI drilldown context."""
+    where_clause = " WHERE status = 'ACTIVE' "
+    params = {}
+    
+    if department:
+        where_clause += " AND department_code = :department "
+        params["department"] = department
+    if programme:
+        where_clause += " AND programme_code = :programme "
+        params["programme"] = programme
+
+    if context == "at_risk":
+        where_clause += " AND backlog_count > 0 "
+    elif context == "high_backlogs":
+        where_clause += " AND backlog_count > 2 "
+    elif context == "top_performers":
+        where_clause += " AND cgpa >= 8.5 "
+
+    sql = text(f"""
         SELECT
             student_id,
             roll_no,
@@ -263,11 +297,11 @@ def get_students_with_backlogs(db: Session, min_backlogs: int = 1) -> List[Dict[
             backlog_count,
             status
         FROM people.v_student_profile
-        WHERE backlog_count >= :min_backlogs
-        ORDER BY backlog_count DESC
-        LIMIT 50
+        {where_clause}
+        ORDER BY backlog_count DESC, cgpa ASC
+        LIMIT 100
     """)
-    result = db.execute(sql, {"min_backlogs": min_backlogs})
+    result = db.execute(sql, params)
     return [dict(row._mapping) for row in result]
 
 

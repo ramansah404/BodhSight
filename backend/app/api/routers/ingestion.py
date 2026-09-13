@@ -74,6 +74,19 @@ async def upload_document(
                             
                     if not student_id:
                         continue
+                        
+                    # RBAC Security: Enforce department boundaries
+                    if x_user_department and x_user_role in ["Faculty", "HOD"]:
+                        check_q = """
+                            SELECT 1 
+                            FROM people.v_student_profile p
+                            JOIN academics.v_offering_roster c ON c.section_code = p.section_code
+                            WHERE p.student_id = :sid AND c.department_code = :dept
+                        """
+                        res_auth = db.execute(text(check_q), {"sid": student_id, "dept": x_user_department}).fetchone()
+                        if not res_auth:
+                            logger.warning(f"User {x_user_name} attempted to modify unauthorized student {student_id}")
+                            continue
                     
                     updates = []
                     params = {"sid": student_id}

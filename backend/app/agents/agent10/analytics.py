@@ -59,7 +59,7 @@ def compute_dashboard_metrics(db: Session, department: str = None, semester: str
     """
     perf_summary = queries.get_course_performance_summary(db, department, semester, programme, academic_year)
     roster_summary = queries.get_offering_roster_summary(db)
-    student_summary = queries.get_student_profile_summary(db)
+    student_summary = queries.get_student_profile_summary(db, department, semester, programme, academic_year)
     open_flags_count = queries.get_open_flags_count(db)
 
     # Students evaluated: from assessment view
@@ -237,7 +237,7 @@ def compute_trends(db: Session, department: str = None, semester: str = None, pr
         department, semester, programme, academic_year
     )
     perf_summary = queries.get_course_performance_summary(db, department, semester, programme, academic_year)
-    student_summary = queries.get_student_profile_summary(db)
+    student_summary = queries.get_student_profile_summary(db, department, semester, programme, academic_year)
 
     # Improving / declining courses by pass_pct vs institutional mean
     avg_pp = _f(perf_summary.get("avg_pass_pct")) or 0.0
@@ -329,6 +329,7 @@ def compute_anomalies(db: Session, department: str = None, semester: str = None,
 
     # 1. Low pass rate anomalies (threshold: 70%)
     low_pass_rows = queries.get_low_pass_rate_courses(db, threshold=PASS_RATE_MEDIUM)
+    low_pass_rows = queries.filter_course_rows(low_pass_rows, roster, department, semester, programme, academic_year)
     for i, row in enumerate(low_pass_rows):
         pp = _f(row.get("pass_pct"))
         students = int(row.get("students_appeared") or 0)
@@ -359,6 +360,7 @@ def compute_anomalies(db: Session, department: str = None, semester: str = None,
 
     # 2. High standard deviation anomalies
     high_sd_rows = queries.get_high_stddev_courses(db, threshold=SD_HIGH_THRESHOLD)
+    high_sd_rows = queries.filter_course_rows(high_sd_rows, roster, department, semester, programme, academic_year)
     for i, row in enumerate(high_sd_rows):
         code = str(row.get("course_code", ""))
         sd = _f(row.get("sd_external"))
@@ -391,6 +393,7 @@ def compute_anomalies(db: Session, department: str = None, semester: str = None,
 
     # 3. Lenient internal marking anomalies (low corr)
     corr_rows = queries.get_corr_anomaly_courses(db, threshold=CORR_ANOMALY_THRESHOLD)
+    corr_rows = queries.filter_course_rows(corr_rows, roster, department, semester, programme, academic_year)
     for i, row in enumerate(corr_rows):
         code = str(row.get("course_code", ""))
         corr = _f(row.get("internal_external_corr"))
@@ -427,6 +430,7 @@ def compute_anomalies(db: Session, department: str = None, semester: str = None,
     # 4. Section disparity anomalies (same course, different section performance)
     try:
         disparity_rows = queries.get_section_disparity(db, disparity_threshold=20.0)
+        disparity_rows = queries.filter_course_rows(disparity_rows, roster, department, semester, programme, academic_year)
         # Group by course_code to produce one anomaly per course
         disp_by_course: Dict[str, list] = {}
         for row in disparity_rows:

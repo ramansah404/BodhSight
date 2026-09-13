@@ -153,7 +153,28 @@ def get_priorities(department: str = Depends(get_rbac_department), semester: str
 
 
 # ---------------------------------------------------------------------------
-# Course performance
+# Student Drilldown — matches frontend StudentProfile[] contract
+# ---------------------------------------------------------------------------
+@router.get("/students/drilldown")
+def get_students_drilldown(
+    context: str,
+    department: str = Depends(get_rbac_department),
+    semester: str = None,
+    programme: str = None,
+    academic_year: str = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Fetch student records based on context (e.g. at_risk, high_backlogs).
+    Used for dashboard modal drilldowns.
+    """
+    from app.db import queries
+    students = _safe(queries.get_students_by_context, db, context=context, department=department, semester=semester, programme=programme)
+    return students
+
+
+# ---------------------------------------------------------------------------
+# Roster & Departments
 # ---------------------------------------------------------------------------
 
 @router.get("/performance/courses")
