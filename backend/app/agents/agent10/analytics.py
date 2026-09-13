@@ -655,3 +655,98 @@ def compute_recommendations(db: Session, department: str = None, semester: str =
             "generated_at": _today(),
         })
     return recs
+
+def compute_weekly_briefing(
+    db: Session,
+    identity: Any,
+    department: Optional[str] = None,
+    semester: Optional[str] = None,
+    programme: Optional[str] = None,
+    academic_year: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Synthesize factual components for the Monday Morning Auto-Briefing.
+    Combines dashboards, anomalies, priorities, trends, and recommendations.
+    """
+    # 1. Overall Snapshot
+    dashboard_metrics = compute_dashboard_metrics(
+        db, department=department, semester=semester, programme=programme, academic_year=academic_year
+    )
+
+    # 2. Top Risks (Anomalies)
+    all_anomalies = compute_anomalies(db)
+    # Filter for the requested scope if necessary
+    if department:
+        all_anomalies = [a for a in all_anomalies if a.get("department") == department]
+    
+    # Sort by priority_score descending and take top 3
+    top_risks = sorted(all_anomalies, key=lambda x: x.get("priority_score", 0) or 0, reverse=True)[:3]
+    
+    # Clean up to minimal required fields
+    clean_risks = []
+    for r in top_risks:
+        clean_risks.append({
+            "anomaly_type": r.get("anomaly_type"),
+            "severity": r.get("severity"),
+            "title": r.get("title"),
+            "course_code": r.get("course_code"),
+            "department": r.get("department"),
+            "affected_students": r.get("affected_students", 0),
+            "priority_score": r.get("priority_score", 0),
+        })
+
+    # 3. Areas Requiring Attention (Priorities)
+    all_priorities = compute_priorities(
+        db, department=department, semester=semester, programme=programme, academic_year=academic_year
+    )
+    top_priorities = all_priorities[:3]
+    
+    clean_priorities = []
+    for p in top_priorities:
+        clean_priorities.append({
+            "course_code": p.get("course_code"),
+            "department": p.get("department"),
+            "priority": p.get("priority"),
+            "affected_students": p.get("affected_students", 0),
+            "recommended_intervention": p.get("recommended_intervention"),
+        })
+
+    # 4. Positive Signals
+    trends = compute_trends(
+        db, department=department, semester=semester, programme=programme, academic_year=academic_year
+    )
+    positive_signals = []
+    for c in trends.get("courses_above_mean", [])[:3]:
+        positive_signals.append({
+            "course_code": c.get("course_code"),
+            "course_title": c.get("course_title"),
+            "pass_pct": c.get("pass_pct"),
+            "delta_vs_mean": c.get("delta_vs_mean")
+        })
+
+    # 5. Recommended Actions
+    all_recommendations = compute_recommendations(
+        db, department=department, semester=semester, programme=programme, academic_year=academic_year
+    )
+    clean_actions = []
+    for action in all_recommendations[:3]:
+        clean_actions.append({
+            "course_code": action.get("course_code"),
+            "severity": action.get("severity"),
+            "recommended_action": action.get("recommended_action"),
+            "affected_students": action.get("affected_students", 0),
+        })
+
+    # Build the final dict matching WeeklyBriefing schema
+    return {
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "scope": department if department else "Institution",
+        "role": identity.role if hasattr(identity, 'role') else "Unknown",
+        "summary_narrative": "",  # Will be populated by LLM layer
+        "overall_snapshot": dashboard_metrics,
+        "top_risks": clean_risks,
+        "areas_requiring_attention": clean_priorities,
+        "positive_signals": positive_signals,
+        "recommended_actions": clean_actions,
+        "llm_used": False,
+    }

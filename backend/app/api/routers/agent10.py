@@ -43,6 +43,7 @@ trends_cache = SimpleTTLCache(300)
 summary_cache = SimpleTTLCache(300)
 sections_cache = SimpleTTLCache(300)
 recommendations_cache = SimpleTTLCache(300)
+briefing_cache = SimpleTTLCache(300)
 
 from app.db.session import get_db
 import app.agents.agent10 as agent10
@@ -50,7 +51,7 @@ from app.schemas.agent10 import (
     DashboardMetrics, AcademicException, InterventionPriority,
     ExecutiveSummary, LLMStatus, TrendSummary, RecommendationItem,
     CoursePerformanceItem, DepartmentPerformanceItem, SectionComparison,
-    AutoTutorRequest, AutoTutorResponse,
+    AutoTutorRequest, AutoTutorResponse, WeeklyBriefing,
 )
 from app.schemas.ingestion import MarkAnomaly
 from app.core.authorization import (
@@ -460,6 +461,62 @@ def get_executive_summary(
         "llm_used": agent10.llm_status()["llm_available"],
         "data_source": "database",
     }
+
+
+# ---------------------------------------------------------------------------
+# Monday Morning Auto-Briefing
+# ---------------------------------------------------------------------------
+
+@router.get("/weekly-briefing", response_model=WeeklyBriefing)
+async def get_weekly_briefing(
+    department: str = None,
+    semester: str = None,
+    programme: str = None,
+    academic_year: str = None,
+    db: Session = Depends(get_db),
+    identity: Agent10Identity = Depends(get_agent10_identity),
+):
+    """
+    Monday Morning Auto-Briefing for academic leadership.
+    Provides synthesized snapshot, risks, priorities, signals, and LLM narrative.
+    """
+    require_aggregate_access(identity)
+    department = allowed_department(identity, department)
+    
+    cache_key = f"briefing_{department}_{semester}_{programme}_{academic_year}"
+    cached = briefing_cache.get(cache_key)
+    if cached:
+        return cached
+
+    from app.agents.agent10.analytics import compute_weekly_briefing
+    from app.agents.agent10.llm import generate_weekly_briefing_narrative, _check_llm_available
+
+    # Compute raw facts deterministically
+    briefing_data = await run_in_threadpool(
+        _safe, 
+        compute_weekly_briefing, 
+        db, 
+        identity, 
+        department, 
+        semester, 
+        programme, 
+        academic_year
+    )
+    
+    # Generate humanized narrative
+    narrative = await run_in_threadpool(
+        _safe,
+        generate_weekly_briefing_narrative,
+        briefing_data
+    )
+    
+    briefing_data["summary_narrative"] = narrative
+    briefing_data["llm_used"] = _check_llm_available()
+
+    # Cache response
+    briefing_cache.set(cache_key, briefing_data)
+    
+    return briefing_data
 
 
 # ---------------------------------------------------------------------------

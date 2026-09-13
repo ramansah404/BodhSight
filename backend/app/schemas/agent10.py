@@ -178,3 +178,16 @@ class AutoTutorResponse(BaseModel):
     targeted_explanation: str
     practice_plan: str
     resources: List[str]
+
+
+class WeeklyBriefing(BaseModel):
+    generated_at: str
+    scope: str
+    role: str
+    summary_narrative: str
+    overall_snapshot: Dict[str, Any]
+    top_risks: List[Dict[str, Any]] = []
+    areas_requiring_attention: List[Dict[str, Any]] = []
+    positive_signals: List[Dict[str, Any]] = []
+    recommended_actions: List[Dict[str, Any]] = []
+    llm_used: bool = False

@@ -363,3 +363,41 @@ export interface StudentProfile {
   fee_outstanding: number | null;
   reason?: string;
 }
+
+// --- Monday Morning Auto-Briefing ---
+export interface WeeklyBriefing {
+  generated_at: string;
+  scope: string;
+  role: string;
+  summary_narrative: string;
+  overall_snapshot: AcademicDashboardMetrics;
+  top_risks: Array<{
+    anomaly_type: string;
+    severity: string;
+    title: string;
+    course_code?: string;
+    department?: string;
+    affected_students: number;
+    priority_score: number;
+  }>;
+  areas_requiring_attention: Array<{
+    course_code?: string;
+    department?: string;
+    priority: string;
+    affected_students: number;
+    recommended_intervention: string;
+  }>;
+  positive_signals: Array<{
+    course_code: string;
+    course_title: string;
+    pass_pct: number;
+    delta_vs_mean: number;
+  }>;
+  recommended_actions: Array<{
+    course_code?: string;
+    severity: string;
+    recommended_action: string;
+    affected_students: number;
+  }>;
+  llm_used: boolean;
+}

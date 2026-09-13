@@ -20,6 +20,7 @@ import type {
   InterventionPriorityItem,
   SectionComparison,
   MarkAnomaly,
+  WeeklyBriefing,
 } from "../types/agent10";
 import {
   mapBackendCourse as _mapCourse,
@@ -193,6 +194,11 @@ export const Agent10API = {
   /** Executive summary (uses LLM if available) */
   getSummary(filters?: Partial<FilterState>): Promise<Record<string, unknown>> {
     return get<Record<string, unknown>>(buildQuery("/agent10/summary", filters));
+  },
+
+  /** Monday Morning Auto-Briefing (uses LLM if available) */
+  getWeeklyBriefing(filters?: Partial<FilterState>): Promise<WeeklyBriefing> {
+    return get<WeeklyBriefing>(buildQuery("/agent10/weekly-briefing", filters));
   },
 
   /** Execute a recommendation (updates database status) */

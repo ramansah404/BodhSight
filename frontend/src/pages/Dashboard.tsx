@@ -11,6 +11,7 @@ import type { AcademicDashboardMetrics, DepartmentPerformance } from "../types/a
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 import CondonationWidget from "../components/dashboard/CondonationWidget";
+import WeeklyBriefingWidget from "../components/dashboard/WeeklyBriefingWidget";
 import StudentDrilldownModal from "../components/ui/StudentDrilldownModal";
 
 export default function Dashboard() {
@@ -193,6 +194,8 @@ export default function Dashboard() {
           />
         </div>
       </div>
+
+      <WeeklyBriefingWidget currentRole={currentRole} />
 
       {/* KPI Cards */}
       {metricsLoading ? (

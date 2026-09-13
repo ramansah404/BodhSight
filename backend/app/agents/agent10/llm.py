@@ -208,6 +208,22 @@ def humanize_anomaly(anomaly: Dict[str, Any]) -> str:
     return result if result else fallback
 
 
+SYSTEM_PROMPT_BRIEFING = """\
+You are the primary AI intelligence layer for a university's Monday Morning Auto-Briefing system.
+You receive structured JSON data containing performance metrics, top risks, priorities, and positive signals.
+
+Write a cohesive, 3-paragraph executive narrative for the university leadership that synthesizes this data.
+Paragraph 1: Overall academic health and key performance snapshot.
+Paragraph 2: The most critical risks and areas requiring attention.
+Paragraph 3: Positive trends and recommended immediate actions.
+
+RULES:
+1. Use ONLY the provided data — never invent metrics or names.
+2. Be concise but maintain an authoritative, professional tone.
+3. Keep the entire response under 250 words.
+4. Do NOT use any markdown formatting or bullet points; write in standard paragraphs.
+"""
+
 def generate_executive_summary(dashboard: Dict[str, Any], anomalies: List[Dict[str, Any]]) -> str:
     """
     Generate a short executive summary from dashboard + anomalies.
@@ -277,6 +293,49 @@ def generate_executive_summary(dashboard: Dict[str, Any], anomalies: List[Dict[s
         f"Write a 3-sentence executive summary for university senior leadership:\n{payload}"
     )
     return result if result else fallback
+
+
+def generate_weekly_briefing_narrative(briefing_data: Dict[str, Any]) -> str:
+    """
+    Generate a 3-paragraph Monday Morning Briefing narrative.
+    Falls back to a structured summary if LLM is unavailable.
+    """
+    # Create fallback narrative
+    snapshot = briefing_data.get("overall_snapshot", {})
+    pass_rate = snapshot.get("pass_rate", 0)
+    as_of = snapshot.get("as_of_date", "today")
+    
+    top_risks = briefing_data.get("top_risks", [])
+    areas = briefing_data.get("areas_requiring_attention", [])
+    
+    p1 = f"As of {as_of}, the overall pass rate is {pass_rate}%. A total of {snapshot.get('students_evaluated', 0)} students have been evaluated. The current data trust score stands at {snapshot.get('data_trust_score', 0)}/100."
+    
+    p2_parts = []
+    if top_risks:
+        p2_parts.append(f"The most critical anomaly is a {top_risks[0].get('anomaly_type')} detected in {top_risks[0].get('course_code', 'unknown course')}.")
+    if areas:
+        p2_parts.append(f"Top intervention priority: {areas[0].get('course_code', 'unknown course')} with an expected impact on {areas[0].get('affected_students', 0)} students.")
+    p2 = " ".join(p2_parts) if p2_parts else "No significant risks or attention areas have been identified."
+
+    p3 = "Review the recommended actions below to address these issues and improve overall academic performance."
+    
+    fallback = f"{p1}\n\n{p2}\n\n{p3}"
+
+    if not _check_llm_available():
+        return fallback
+
+    payload = json.dumps(briefing_data, default=str)[:3000]
+
+    result = _call_llm(
+        SYSTEM_PROMPT_BRIEFING,
+        f"Generate the Monday Morning Auto-Briefing narrative based on this data:\n{payload}"
+    )
+
+    if not result:
+        return fallback
+        
+    return result.strip()
+
 
 
 def llm_status() -> Dict[str, Any]:
