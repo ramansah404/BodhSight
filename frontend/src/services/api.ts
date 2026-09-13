@@ -59,7 +59,7 @@ interface CacheEntry {
 
 const cache = new Map<string, CacheEntry>();
 const inFlight = new Map<string, Promise<any>>();
-const CACHE_TTL = 0; // Disabled cache to ensure real-time data
+const CACHE_TTL = 10000; // 10 second cache to ensure instant component navigation
 
 async function get<T>(path: string, forceFresh = false): Promise<T> {
   if (!forceFresh) {

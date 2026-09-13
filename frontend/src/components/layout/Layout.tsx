@@ -31,13 +31,13 @@ export default function Layout() {
   return (
     <FilterProvider>
       <NotificationProvider>
-      <div className="flex h-screen bg-background overflow-hidden font-sans text-primary selection:bg-indigo-500/30 selection:text-indigo-200">
+      <div className="flex h-[100dvh] bg-background overflow-hidden font-sans text-primary selection:bg-indigo-500/30 selection:text-indigo-200">
         <Sidebar 
           isOpen={isMobileMenuOpen} 
           setIsOpen={setIsMobileMenuOpen} 
         />
         
-        <div className="flex-1 flex flex-col h-screen overflow-hidden w-full relative">
+        <div className="flex-1 flex flex-col h-[100dvh] overflow-hidden w-full relative">
           <Topbar 
             currentRole={currentRole} 
             onMenuToggle={() => setIsMobileMenuOpen(true)} 

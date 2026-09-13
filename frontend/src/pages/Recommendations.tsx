@@ -4,7 +4,7 @@ import { Agent10API } from "../services/api";
 import { getRolePermissions } from "../utils/rbac";
 import type { RecommendationItem } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
-import { exportToExcel } from "../utils/exportUtils";
+import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 
 type LoadState = "loading" | "success" | "error" | "empty";
 
@@ -78,8 +78,35 @@ export default function Recommendations() {
     exportToExcel(exportData, "Recommendations_Log");
   };
 
+  const handleExportPDF = () => {
+    exportToPDF("recommendations-content", "Recommendations_Log", "Actionable Recommendations & Interventions");
+  };
+
+  const handleExportWord = () => {
+    const paragraphs = [
+      `Actionable Recommendations & Interventions`,
+      `Generated for: ${rawRole} View`,
+      `Total Interventions: ${recommendations.length}`
+    ];
+    
+    const tableData = [
+      ["Priority", "Problem", "Recommendation", "Expected Impact", "Affected Population", "Course Code", "Status"],
+      ...recommendations.map(r => [
+        r.priority, 
+        r.problem, 
+        r.recommendation, 
+        String(r.expected_impact), 
+        String(r.affected_population), 
+        r.course_code || "N/A", 
+        r.status || "PENDING"
+      ])
+    ];
+
+    exportToWord(`Actionable Recommendations`, paragraphs, tableData, "Recommendations_Log");
+  };
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6" id="recommendations-content">
       <div className="bg-surface/80 backdrop-blur-sm border border-border/60 rounded-3xl p-8 text-primary shadow-sm">
         <div className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-bold border border-indigo-200 dark:border-indigo-500/20 mb-2">
           <Lightbulb size={14} /> Actionable Intelligence ({rawRole} Scope)
@@ -93,6 +120,8 @@ export default function Recommendations() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-4">
           <ExportMenu 
             onExportExcel={handleExportExcel}
+            onExportPDF={handleExportPDF}
+            onExportWord={handleExportWord}
             disabled={state !== "success" || recommendations.length === 0}
           />
         </div>

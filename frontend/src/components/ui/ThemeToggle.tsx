@@ -11,10 +11,10 @@ export default function ThemeToggle({ showLabel = false }: { showLabel?: boolean
       aria-label="Toggle Theme" 
       title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
     >
-      {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+      {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
       {showLabel && (
         <span className="ml-2 text-sm font-medium">
-          {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+          {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
         </span>
       )}
     </button>
