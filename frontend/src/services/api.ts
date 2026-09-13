@@ -92,12 +92,14 @@ async function get<T>(path: string, forceFresh = false): Promise<T> {
 // ---------------------------------------------------------------------------
 
 
-function buildQuery(path: string, filters?: Partial<FilterState>): string {
+function buildQuery(path: string, filters?: Record<string, any>): string {
   if (!filters) return path;
   const params = new URLSearchParams();
-  if (filters.department) params.append("department", filters.department);
-  if (filters.semester) params.append("semester", filters.semester);
-  if (filters.programme) params.append("programme", filters.programme);
+  for (const [key, value] of Object.entries(filters)) {
+    if (value !== undefined && value !== null && value !== "") {
+      params.append(key, String(value));
+    }
+  }
   
   const q = params.toString();
   return q ? `${path}?${q}` : path;

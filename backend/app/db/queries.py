@@ -240,8 +240,8 @@ def get_student_profile_summary(db: Session) -> Dict[str, Any]:
             count(*) AS total_students,
             count(*) FILTER (WHERE status = 'ACTIVE') AS active_students,
             round(avg(cgpa)::numeric, 2) AS avg_cgpa,
-            count(*) FILTER (WHERE backlog_count > 0) AS students_with_backlogs,
-            count(*) FILTER (WHERE backlog_count > 2) AS students_high_backlogs
+            count(*) FILTER (WHERE backlog_count > 0 AND status = 'ACTIVE') AS students_with_backlogs,
+            count(*) FILTER (WHERE backlog_count > 2 AND status = 'ACTIVE') AS students_high_backlogs
         FROM people.v_student_profile
     """)
     result = db.execute(sql)

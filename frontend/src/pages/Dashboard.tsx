@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import {
   Users, AlertTriangle, ShieldCheck, Sparkles,
-  BookOpen, ChevronRight, Activity, Building2, Award, Loader2
-} from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { motion } from "framer-motion";
 import { useFilters } from "../contexts/FilterContext";
 import { Agent10API } from "../services/api";
 import type { AcademicDashboardMetrics, DepartmentPerformance } from "../types/agent10";
@@ -123,6 +122,19 @@ export default function Dashboard() {
     exportToWord(`BodhSight Executive Overview - ${currentRole}`, paragraphs, tableData, "Institutional_Overview_Report");
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6" id="dashboard-content">
 
@@ -182,91 +194,100 @@ export default function Dashboard() {
       </div>
 
       {/* KPI Cards */}
-      {metricsLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-surface p-6 rounded-3xl border border-border/60 shadow-sm animate-pulse">
+      {/* Key Metrics */}
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+      >
+        {metricsLoading ? (
+          [...Array(4)].map((_, i) => (
+            <motion.div key={i} variants={itemVariants} className="bg-surface p-6 rounded-3xl border border-border/60 shadow-sm animate-pulse">
               <div className="h-3 bg-surface-secondary rounded w-3/4 mb-4" />
               <div className="h-8 bg-surface-secondary rounded w-1/2 mb-2" />
               <div className="h-3 bg-surface-secondary/50 rounded w-2/3" />
-            </div>
-          ))}
-        </div>
-      ) : metricsError ? (
-        <div className="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4 text-rose-600 dark:text-rose-400 font-medium text-sm">
-          ⚠ {metricsError} — Check backend connection at{" "}
-          {import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}
-        </div>
-      ) : metrics ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div 
-            onClick={() => setDrilldown({ isOpen: true, context: "evaluated", title: "Students Evaluated" })}
-            className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md cursor-pointer group"
-          >
-            <div className="flex justify-between items-start">
-              <div className="text-xs font-bold uppercase tracking-wider text-secondary group-hover:text-primary transition-colors mt-1">Students Evaluated</div>
-              <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl">
-                <Users size={16} className="text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold text-primary mt-3">
-              {metrics.students_evaluated.toLocaleString()}
-            </div>
-            <div className="text-xs text-secondary font-medium mt-1 group-hover:text-foreground transition-colors">
-              {metrics.total_students
-                ? `of ${metrics.total_students.toLocaleString()} registered`
-                : "Institutional active scope"}
-            </div>
+            </motion.div>
+          ))
+        ) : metricsError ? (
+          <div className="col-span-1 md:col-span-2 lg:col-span-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4 text-rose-600 dark:text-rose-400 font-medium text-sm">
+            ⚠ {metricsError} — Check backend connection at{" "}
+            {import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}
           </div>
+        ) : metrics ? (
+          <>
+            <motion.div 
+              variants={itemVariants}
+              onClick={() => setDrilldown({ isOpen: true, context: "evaluated", title: "Students Evaluated" })}
+              className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md cursor-pointer group"
+            >
+              <div className="flex justify-between items-start">
+                <div className="text-xs font-bold uppercase tracking-wider text-secondary group-hover:text-primary transition-colors mt-1">Students Evaluated</div>
+                <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl">
+                  <Users size={16} className="text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
+                </div>
+              </div>
+              <div className="text-3xl font-bold text-primary mt-3">
+                {metrics.students_evaluated.toLocaleString()}
+              </div>
+              <div className="text-xs text-secondary font-medium mt-1 group-hover:text-foreground transition-colors">
+                {metrics.total_students
+                  ? `of ${metrics.total_students.toLocaleString()} registered`
+                  : "Institutional active scope"}
+              </div>
+            </motion.div>
 
-          <div className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md">
-            <div className="flex justify-between items-start">
-              <div className="text-xs font-bold uppercase tracking-wider text-secondary mt-1">Pass Rate</div>
-              <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl">
-                <Activity size={16} className="text-emerald-600 dark:text-emerald-400" />
+            <motion.div variants={itemVariants} className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md">
+              <div className="flex justify-between items-start">
+                <div className="text-xs font-bold uppercase tracking-wider text-secondary mt-1">Pass Rate</div>
+                <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl">
+                  <Activity size={16} className="text-emerald-600 dark:text-emerald-400" />
+                </div>
               </div>
-            </div>
-            <div className="text-3xl font-bold text-primary mt-3">{metrics.pass_rate.toFixed(1)}%</div>
-            <div className="text-xs text-secondary font-medium mt-1">
-              Failure rate: {metrics.failure_rate.toFixed(1)}%
-            </div>
-          </div>
+              <div className="text-3xl font-bold text-primary mt-3">{metrics.pass_rate.toFixed(1)}%</div>
+              <div className="text-xs text-secondary font-medium mt-1">
+                Failure rate: {metrics.failure_rate.toFixed(1)}%
+              </div>
+            </motion.div>
 
-          <div className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md">
-            <div className="flex justify-between items-start">
-              <div className="text-xs font-bold uppercase tracking-wider text-secondary mt-1">Average Marks</div>
-              <div className="p-2 bg-blue-50 dark:bg-blue-500/10 rounded-xl">
-                <BookOpen size={16} className="text-blue-600 dark:text-blue-400" />
+            <motion.div variants={itemVariants} className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md">
+              <div className="flex justify-between items-start">
+                <div className="text-xs font-bold uppercase tracking-wider text-secondary mt-1">Average Marks</div>
+                <div className="p-2 bg-blue-50 dark:bg-blue-500/10 rounded-xl">
+                  <BookOpen size={16} className="text-blue-600 dark:text-blue-400" />
+                </div>
               </div>
-            </div>
-            <div className="text-3xl font-bold text-primary mt-3">
-              {metrics.average_marks.toFixed(1)}
-            </div>
-            <div className="text-xs text-secondary font-medium mt-1">
-              {metrics.average_gpa != null
-                ? `CGPA: ${metrics.average_gpa.toFixed(2)}`
-                : "CGPA: not available in views"}
-            </div>
-          </div>
+              <div className="text-3xl font-bold text-primary mt-3">
+                {metrics.average_marks.toFixed(1)}
+              </div>
+              <div className="text-xs text-secondary font-medium mt-1">
+                {metrics.average_gpa != null
+                  ? `CGPA: ${metrics.average_gpa.toFixed(2)}`
+                  : "CGPA: not available in views"}
+              </div>
+            </motion.div>
 
-          <div 
-            onClick={() => setDrilldown({ isOpen: true, context: "problems", title: "Active Problems" })}
-            className="bg-surface hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-all p-6 rounded-3xl border border-rose-100 dark:border-rose-900/30 shadow-sm hover:shadow-md relative overflow-hidden cursor-pointer group"
-          >
-            <div className="flex justify-between items-start relative z-10">
-              <div className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mt-1">Active Problems</div>
-              <div className="p-2 bg-rose-50 dark:bg-rose-500/10 rounded-xl">
-                <AlertTriangle size={16} className="text-rose-500 group-hover:scale-110 transition-transform" />
+            <motion.div 
+              variants={itemVariants}
+              onClick={() => setDrilldown({ isOpen: true, context: "problems", title: "Active Problems" })}
+              className="bg-surface hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-all p-6 rounded-3xl border border-rose-100 dark:border-rose-900/30 shadow-sm hover:shadow-md relative overflow-hidden cursor-pointer group"
+            >
+              <div className="flex justify-between items-start relative z-10">
+                <div className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mt-1">Active Problems</div>
+                <div className="p-2 bg-rose-50 dark:bg-rose-500/10 rounded-xl">
+                  <AlertTriangle size={16} className="text-rose-500 group-hover:scale-110 transition-transform" />
+                </div>
               </div>
-            </div>
-            <div className="text-3xl font-bold text-primary mt-3 relative z-10">
-              {metrics.active_anomalies ?? metrics.significant_deviations}
-            </div>
-            <div className="text-xs text-rose-600 dark:text-rose-400 font-medium mt-1 relative z-10 group-hover:text-rose-500 transition-colors">
-              Requires administrative attention
-            </div>
-          </div>
-        </div>
+              <div className="text-3xl font-bold text-primary mt-3 relative z-10">
+                {metrics.active_anomalies ?? metrics.significant_deviations}
+              </div>
+              <div className="text-xs text-rose-600 dark:text-rose-400 font-medium mt-1 relative z-10 group-hover:text-rose-500 transition-colors">
+                Requires administrative attention
+              </div>
+            </motion.div>
+          </>
+        ) : null}
+      </motion.div>
       ) : null}
 
       <StudentDrilldownModal
@@ -292,37 +313,39 @@ export default function Dashboard() {
           {deptChartData.length > 0 ? (
             <div style={{ width: "100%", height: 288 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={deptChartData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#334155" />
-                  <XAxis type="number" domain={[0, 100]} hide />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#94a3b8", fontWeight: "600", fontSize: 12 }}
-                    width={60}
+                <LineChart data={deptChartData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+                  <defs>
+                    <linearGradient id="colorPassRate" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#ec4899" stopOpacity={1}/>
+                      <stop offset="50%" stopColor="#8b5cf6" stopOpacity={1}/>
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={1}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: "#94a3b8", fontWeight: "600", fontSize: 12 }} 
+                    dy={10}
                   />
+                  <YAxis domain={[0, 100]} hide />
                   <Tooltip
-                    cursor={{ fill: "#1e293b" }}
+                    cursor={{ stroke: "#334155", strokeWidth: 1, strokeDasharray: "3 3" }}
                     contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#0f172a", color: "#f8fafc" }}
                   />
-                  <Bar
+                  <Line
+                    type="monotone"
                     dataKey="passRate"
-                    radius={[0, 4, 4, 0]}
-                    barSize={24}
+                    stroke="url(#colorPassRate)"
+                    strokeWidth={3}
+                    dot={{ fill: "#0f172a", stroke: "#8b5cf6", strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: "#ec4899", strokeWidth: 0 }}
                     name="Pass Rate %"
                     isAnimationActive={true}
-                    animationDuration={1500}
-                  >
-                    {deptChartData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.status === 'INTERVENTION_REQUIRED' ? '#ef4444' : entry.status === 'MONITORING' ? '#f59e0b' : '#10b981'} 
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
+                    animationDuration={2000}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           ) : metricsLoading ? (
@@ -449,8 +472,8 @@ export default function Dashboard() {
             </div>
             <ChevronRight className="text-indigo-600 dark:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" size={20} />
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }
