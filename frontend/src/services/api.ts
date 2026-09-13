@@ -309,6 +309,7 @@ export interface AuthResponse {
   full_name?: string;
   email?: string;
   department?: string;
+  requires_2fa?: boolean;
 }
 
 export const AuthAPI = {
@@ -331,5 +332,75 @@ export const AuthAPI = {
     const res = await apiClient.post<AuthResponse>("/auth/login", payload);
     return res.data;
   },
+  
+  async requestOtp(payload: { identifier: string }): Promise<{ success: boolean; message: string }> {
+    const res = await apiClient.post("/auth/request-otp", payload);
+    return res.data;
+  },
+  
+  async verifyOtp(payload: { identifier: string; otp: string }): Promise<AuthResponse> {
+    const res = await apiClient.post<AuthResponse>("/auth/verify-otp", payload);
+    return res.data;
+  },
+
+  async toggle2fa(payload: { identifier: string; enable: boolean }): Promise<{ success: boolean; message: string }> {
+    const res = await apiClient.post("/auth/toggle-2fa", payload);
+    return res.data;
+  },
+
+  async googleAuth(payload: { token: string; role?: string; department?: string }): Promise<AuthResponse> {
+    const res = await apiClient.post<AuthResponse>("/auth/google", payload);
+    return res.data;
+  }
+};
+
+export interface ProfileResponse {
+  success: boolean;
+  message: string;
+  email?: string;
+  phone_number?: string;
+  full_name: string;
+  role: string;
+  department?: string;
+  profile_image_url?: string;
+}
+
+export const ProfileAPI = {
+  async getProfile(identifier: string): Promise<ProfileResponse> {
+    const res = await apiClient.post<ProfileResponse>("/profile/me", { identifier });
+    return res.data;
+  },
+
+  async updateProfile(payload: { identifier: string; full_name?: string; phone_number?: string }): Promise<ProfileResponse> {
+    const res = await apiClient.put<ProfileResponse>("/profile/me", payload);
+    return res.data;
+  },
+
+  async uploadImage(identifier: string, file: File): Promise<{ success: boolean; message: string; profile_image_url: string }> {
+    const formData = new FormData();
+    formData.append("identifier", identifier);
+    formData.append("file", file);
+    const res = await apiClient.post("/profile/image", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+    return res.data;
+  }
+};
+
+export const AdminAPI = {
+  async getAllUsers(): Promise<any[]> {
+    const res = await apiClient.get("/admin/users");
+    return res.data;
+  },
+
+  async updateUserRole(userId: string, role: string, department: string | null): Promise<{ success: boolean; message: string }> {
+    const res = await apiClient.put(`/admin/users/${userId}/role`, { role, department });
+    return res.data;
+  },
+
+  async deleteUser(userId: string): Promise<{ success: boolean; message: string }> {
+    const res = await apiClient.delete(`/admin/users/${userId}`);
+    return res.data;
+  }
 };
 

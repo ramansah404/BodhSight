@@ -4,7 +4,7 @@ import { Agent10API } from "../services/api";
 import { useFilters } from "../contexts/FilterContext";
 import type { SectionComparison } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
-import { exportToExcel } from "../utils/exportUtils";
+import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 
 type LoadState = "loading" | "success" | "error" | "empty";
 

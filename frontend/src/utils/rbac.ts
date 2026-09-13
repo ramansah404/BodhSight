@@ -1,4 +1,4 @@
-export type InstitutionalRole = "Chairman" | "Dean" | "HOD" | "Faculty";
+export type InstitutionalRole = "Chairman" | "Dean" | "HOD" | "Faculty" | "Admin";
 
 export interface PermissionMatrix {
   canApproveMacroInterventions: boolean;
@@ -16,6 +16,18 @@ export const getRolePermissions = (roleString: string): PermissionMatrix => {
   const role = roleString ? roleString.trim() : "Chairman";
 
   switch (role) {
+    case "Admin":
+      return {
+        canApproveMacroInterventions: true,
+        canViewAllDepartments: true,
+        canExportOfficialReports: true,
+        canTriggerSystemAudit: true,
+        canCalibrateCourseDifficulty: true,
+        canCalibrateDifficulty: true,
+        canExecuteRecommendation: true,
+        canSubmitFacultyFeedback: true,
+        canOverrideStudentData: true,
+      };
     case "Chairman":
     case "Principal":
     case "Management":

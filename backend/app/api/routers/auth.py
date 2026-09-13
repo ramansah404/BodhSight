@@ -60,6 +60,11 @@ class LoginRequest(BaseModel):
     identifier: str = Field(..., description="Email or phone number")
     password: str = Field(...)
 
+class GoogleAuthRequest(BaseModel):
+    token: str
+    role: Optional[str] = "Student"
+    department: Optional[str] = None
+
 class AuthResponse(BaseModel):
     success: bool
     message: str
@@ -67,6 +72,7 @@ class AuthResponse(BaseModel):
     full_name: Optional[str] = None
     email: Optional[str] = None
     department: Optional[str] = None
+    requires_2fa: Optional[bool] = None
 
 
 # -------------------------------------------------------------------
@@ -169,7 +175,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     try:
         user = db.execute(
             text("""
-                SELECT id, full_name, email, phone_number, password_hash, role, department
+                SELECT id, full_name, email, phone_number, password_hash, role, department, two_factor_enabled
                 FROM core.user_account
                 WHERE email = :ident OR phone_number = :ident
             """),
@@ -187,6 +193,24 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
         # Success — clear any previous failure history
         _clear_failures(norm_id)
 
+        if getattr(user, 'two_factor_enabled', False):
+            # Send OTP for 2FA
+            import random
+            otp = str(random.randint(100000, 999999))
+            _mock_otps[norm_id] = otp
+            from app.services.communication import communication_service
+            if user.email:
+                communication_service.send_email(user.email, "BodhSight 2FA Code", f"Your 2FA code is {otp}")
+            elif user.phone_number:
+                communication_service.send_whatsapp(user.phone_number, f"Your BodhSight 2FA code is {otp}")
+            
+            return AuthResponse(
+                success=True,
+                message="2FA required.",
+                requires_2fa=True,
+                email=norm_id # Send back to frontend for step 2
+            )
+
         return AuthResponse(
             success=True,
             message="Login successful.",
@@ -194,6 +218,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
             full_name=user.full_name,
             email=user.email,
             department=user.department,
+            requires_2fa=False,
         )
 
     except HTTPException:
@@ -201,3 +226,96 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Login error: {e}")
         raise HTTPException(status_code=500, detail="Login failed. Please try again.")
+
+class Toggle2FARequest(BaseModel):
+    enable: bool
+    identifier: str
+
+@router.post("/toggle-2fa")
+def toggle_2fa(data: Toggle2FARequest, db: Session = Depends(get_db)):
+    try:
+        sql = text("UPDATE core.user_account SET two_factor_enabled = :en WHERE email = :id OR phone_number = :id")
+        db.execute(sql, {"en": data.enable, "id": data.identifier.strip()})
+        db.commit()
+        return {"success": True, "message": "2FA preferences updated."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to update 2FA preferences.")
+
+@router.post("/google", response_model=AuthResponse)
+def google_auth(data: GoogleAuthRequest, db: Session = Depends(get_db)):
+    try:
+        from google.oauth2 import id_token
+        from google.auth.transport import requests
+        import os
+        
+        # Verify the token
+        # Note: In production, pass GOOGLE_CLIENT_ID to verify_oauth2_token.
+        # If GOOGLE_CLIENT_ID is empty, verification might skip client_id check but we should provide it.
+        # However, for local testing if GOOGLE_CLIENT_ID isn't set, we might need a workaround or just expect it to be set.
+        client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
+        # To bypass verification when GOOGLE_CLIENT_ID is missing (e.g. mock mode):
+        if not client_id:
+            # ONLY FOR LOCAL MOCKING - Parse without verification
+            import jwt
+            idinfo = jwt.decode(data.token, options={"verify_signature": False})
+        else:
+            idinfo = id_token.verify_oauth2_token(data.token, requests.Request(), client_id)
+        
+        email = idinfo['email']
+        name = idinfo.get('name', 'User')
+        picture = idinfo.get('picture', None)
+        google_id = idinfo.get('sub', email)
+        
+        user = db.execute(
+            text("SELECT * FROM core.user_account WHERE email = :email"),
+            {"email": email}
+        ).fetchone()
+        
+        if not user:
+            # Create user
+            db.execute(
+                text("""
+                    INSERT INTO core.user_account 
+                    (email, full_name, role, department, google_id, profile_image_url)
+                    VALUES (:email, :name, :role, :dept, :google_id, :pic)
+                """),
+                {
+                    "email": email, "name": name, "role": data.role, 
+                    "dept": data.department, "google_id": google_id, "pic": picture
+                }
+            )
+            db.commit()
+            
+            user = db.execute(text("SELECT * FROM core.user_account WHERE email = :email"), {"email": email}).fetchone()
+            
+        elif not getattr(user, 'google_id', None):
+            # Link Google account to existing user
+            db.execute(
+                text("UPDATE core.user_account SET google_id = :google_id, profile_image_url = COALESCE(profile_image_url, :pic) WHERE email = :email"),
+                {"google_id": google_id, "pic": picture, "email": email}
+            )
+            db.commit()
+
+        # 2FA Check
+        if getattr(user, 'two_factor_enabled', False):
+            import random
+            otp = str(random.randint(100000, 999999))
+            _mock_otps[email] = otp
+            from app.services.communication import communication_service
+            communication_service.send_email(email, "BodhSight 2FA Code", f"Your 2FA code is {otp}")
+            return AuthResponse(
+                success=True, message="2FA required.", requires_2fa=True, email=email
+            )
+            
+        return AuthResponse(
+            success=True, message="Login successful.", role=user.role,
+            full_name=user.full_name, email=user.email, department=user.department,
+            requires_2fa=False
+        )
+
+    except ValueError as ve:
+        raise HTTPException(status_code=401, detail="Invalid Google token")
+    except Exception as e:
+        logger.error(f"Google auth error: {e}")
+        raise HTTPException(status_code=500, detail="Google authentication failed.")

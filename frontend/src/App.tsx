@@ -21,6 +21,7 @@ import Settings      from "./pages/Settings";
 import DataHub       from "./pages/DataHub";
 import ManualEntry   from "./pages/ManualEntry";
 import Exceptions    from "./pages/Exceptions";
+import AdminDashboard from "./pages/AdminDashboard";
 
 export default function App() {
   return (
@@ -69,10 +70,15 @@ export default function App() {
               <Route path="students"      element={<Students />} />
             </Route>
 
-            {/* DataHub & Manual Entry — HOD and Faculty only */}
-            <Route element={<ProtectedRoute allowedRoles={["HOD", "Faculty"]} />}>
+            {/* Data Hub — Data upload for faculty/HOD */}
+            <Route element={<ProtectedRoute allowedRoles={["HOD", "Faculty", "Chairman"]} />}>
               <Route path="data-hub"      element={<DataHub />} />
-              <Route path="manual-entry"  element={<ManualEntry />} />
+              <Route path="data-hub/manual-entry" element={<ManualEntry />} />
+            </Route>
+
+            {/* Admin User Management — Admin only */}
+            <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
+              <Route path="admin/users"   element={<AdminDashboard />} />
             </Route>
 
             {/* Reports — senior management */}

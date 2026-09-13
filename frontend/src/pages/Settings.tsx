@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, User, ShieldCheck, Server, Database, CheckCircle2, AlertCircle, Loader2, LogOut, RefreshCw, Lock, Sliders, Bell } from "lucide-react";
-import { Agent10API } from "../services/api";
+import { Settings as SettingsIcon, User, ShieldCheck, Server, Database, CheckCircle2, AlertCircle, Loader2, LogOut, RefreshCw, Lock, Sliders, Bell, Camera, Save } from "lucide-react";
+import { Agent10API, ProfileAPI, AuthAPI } from "../services/api";
 import { getRolePermissions } from "../utils/rbac";
 
 export default function Settings() {
@@ -18,6 +18,77 @@ export default function Settings() {
 
   const [healthStatus, setHealthStatus] = useState<"loading" | "ok" | "error">("loading");
   const [healthData, setHealthData] = useState<{ service?: string; environment?: string; agent?: string } | null>(null);
+  
+  const [profileData, setProfileData] = useState<{ full_name: string; phone_number: string; profile_image_url?: string } | null>(null);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchProfile = useCallback(async () => {
+    try {
+      const res = await ProfileAPI.getProfile(email);
+      if (res.success) {
+        setProfileData({
+          full_name: res.full_name,
+          phone_number: res.phone_number || "",
+          profile_image_url: res.profile_image_url
+        });
+      }
+    } catch (e) {
+      console.error("Failed to load profile", e);
+    }
+  }, [email]);
+
+  const handleProfileSave = async () => {
+    if (!profileData) return;
+    setProfileSaving(true);
+    try {
+      const res = await ProfileAPI.updateProfile({
+        identifier: email,
+        full_name: profileData.full_name,
+        phone_number: profileData.phone_number
+      });
+      if (res.success) {
+        setIsEditingProfile(false);
+        localStorage.setItem("bodhsight_name", res.full_name);
+      }
+    } catch (e) {
+      console.error("Failed to update profile", e);
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const res = await ProfileAPI.uploadImage(email, file);
+      if (res.success) {
+        setProfileData(prev => prev ? { ...prev, profile_image_url: res.profile_image_url } : null);
+      }
+    } catch (err) {
+      console.error("Failed to upload image", err);
+    }
+  };
+  
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [toggling2FA, setToggling2FA] = useState(false);
+
+  const handleToggle2FA = async () => {
+    setToggling2FA(true);
+    try {
+      const enable = !twoFactorEnabled;
+      const res = await AuthAPI.toggle2fa({ identifier: email, enable });
+      if (res.success) {
+        setTwoFactorEnabled(enable);
+      }
+    } catch (e) {
+      console.error("Failed to toggle 2FA", e);
+    } finally {
+      setToggling2FA(false);
+    }
+  };
 
   const apiBase = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
   const perms = getRolePermissions(role);
@@ -31,7 +102,8 @@ export default function Settings() {
 
   useEffect(() => {
     checkHealth();
-  }, [checkHealth]);
+    fetchProfile();
+  }, [checkHealth, fetchProfile]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -44,27 +116,91 @@ export default function Settings() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Session details */}
+        {/* Profile Management */}
         <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6 space-y-4">
-          <h2 className="text-lg font-bold text-primary flex items-center gap-2">
-            <User className="text-indigo-600 dark:text-indigo-400" size={20} />
-            Active Session
-          </h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-bold text-primary flex items-center gap-2">
+              <User className="text-indigo-600 dark:text-indigo-400" size={20} />
+              Profile Management
+            </h2>
+            {!isEditingProfile ? (
+              <button 
+                onClick={() => setIsEditingProfile(true)}
+                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
+                Edit Profile
+              </button>
+            ) : (
+              <button 
+                onClick={handleProfileSave}
+                disabled={profileSaving}
+                className="text-xs font-bold bg-indigo-600 text-white px-3 py-1 rounded-lg hover:bg-indigo-500 disabled:opacity-50 flex items-center gap-1"
+              >
+                {profileSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                Save
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-col items-center gap-4 py-2">
+            <div className="relative group">
+              <div className="w-24 h-24 rounded-full border-4 border-indigo-500/20 overflow-hidden bg-surface-secondary flex items-center justify-center">
+                {profileData?.profile_image_url ? (
+                  <img src={`${apiBase.replace("/api/v1", "")}${profileData.profile_image_url}`} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <User size={40} className="text-secondary" />
+                )}
+              </div>
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-0 right-0 p-2 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-500 transition-colors"
+                title="Change Avatar"
+              >
+                <Camera size={14} />
+              </button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleImageUpload} 
+                accept="image/*" 
+                className="hidden" 
+              />
+            </div>
+          </div>
+
           <div className="space-y-3 text-sm">
-            <div className="flex justify-between p-3 bg-surface/40 rounded-xl border border-border/60">
-              <span className="font-bold text-secondary">Authenticated User</span>
-              <span className="font-bold text-primary">{name}</span>
+            <div className="flex justify-between items-center p-3 bg-surface/40 rounded-xl border border-border/60">
+              <span className="font-bold text-secondary w-1/3">Full Name</span>
+              {isEditingProfile ? (
+                <input 
+                  type="text"
+                  value={profileData?.full_name || ""}
+                  onChange={(e) => setProfileData(p => p ? {...p, full_name: e.target.value} : null)}
+                  className="w-2/3 bg-background border border-border rounded px-2 py-1 text-sm font-medium focus:outline-none focus:border-indigo-500"
+                />
+              ) : (
+                <span className="font-bold text-primary">{profileData?.full_name || name}</span>
+              )}
             </div>
-            <div className="flex justify-between p-3 bg-surface/40 rounded-xl border border-border/60">
-              <span className="font-bold text-secondary">Email</span>
-              <span className="font-bold text-primary">{email}</span>
+            <div className="flex justify-between items-center p-3 bg-surface/40 rounded-xl border border-border/60">
+              <span className="font-bold text-secondary w-1/3">Phone Number</span>
+              {isEditingProfile ? (
+                <input 
+                  type="text"
+                  value={profileData?.phone_number || ""}
+                  onChange={(e) => setProfileData(p => p ? {...p, phone_number: e.target.value} : null)}
+                  className="w-2/3 bg-background border border-border rounded px-2 py-1 text-sm font-medium focus:outline-none focus:border-indigo-500"
+                />
+              ) : (
+                <span className="font-bold text-primary">{profileData?.phone_number || "—"}</span>
+              )}
             </div>
             <div className="flex justify-between p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
-              <span className="font-bold text-indigo-600 dark:text-indigo-400">Role Code</span>
-              <span className="font-bold text-indigo-600 dark:text-indigo-400">{role}</span>
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">Email</span>
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">{email}</span>
             </div>
             <div className="flex justify-between p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
-              <span className="font-bold text-indigo-600 dark:text-indigo-400">Display Role</span>
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">Role</span>
               <span className="font-bold text-indigo-600 dark:text-indigo-400">{displayRole}</span>
             </div>
           </div>
@@ -130,6 +266,61 @@ export default function Settings() {
             <div className="flex justify-between p-3 bg-surface/40 rounded-xl border border-border/60">
               <span className="font-bold text-secondary">Data Source</span>
               <span className="font-bold text-emerald-600 dark:text-emerald-400">PostgreSQL / Supabase (Live)</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Communication & Notifications */}
+        <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6 space-y-4">
+          <h2 className="text-lg font-bold text-primary flex items-center gap-2">
+            <Bell className="text-amber-500" size={20} />
+            Communication & Notifications
+          </h2>
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between items-center p-3 bg-surface/40 rounded-xl border border-border/60">
+              <div>
+                <span className="font-bold text-secondary block">Email Alerts</span>
+                <span className="text-xs text-secondary opacity-80">Weekly summaries & Actions</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" className="sr-only peer" defaultChecked />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500"></div>
+              </label>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-surface/40 rounded-xl border border-border/60">
+              <div>
+                <span className="font-bold text-secondary block">Two-Step Verification (2FA)</span>
+                <span className="text-xs text-secondary opacity-80">Require an OTP after password to log in</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={twoFactorEnabled} 
+                  onChange={handleToggle2FA}
+                  disabled={toggling2FA}
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500"></div>
+              </label>
+            </div>
+            
+            <div className="flex justify-between items-center p-3 bg-surface/40 rounded-xl border border-border/60">
+              <div>
+                <span className="font-bold text-secondary block">WhatsApp Notifications</span>
+                <span className="text-xs text-secondary opacity-80">Urgent Anomalies & Auth OTPs</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" className="sr-only peer" defaultChecked />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500"></div>
+              </label>
+            </div>
+
+            <div className="p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20 mt-2">
+              <span className="font-bold text-indigo-600 dark:text-indigo-400 block mb-1">Active Integrations</span>
+              <div className="flex gap-2">
+                <span className="bg-surface text-xs font-bold px-2 py-1 rounded border border-border">SendGrid</span>
+                <span className="bg-surface text-xs font-bold px-2 py-1 rounded border border-border">Twilio WhatsApp</span>
+              </div>
             </div>
           </div>
         </div>

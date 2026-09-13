@@ -79,7 +79,7 @@ export default function ChatWidget() {
       <AnimatePresence>
         {isOpen && (
           <>
-            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+            <div className="fixed inset-0 z-40" onClick={() => isMaximized ? setIsMaximized(false) : setIsOpen(false)} />
             <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -89,9 +89,9 @@ export default function ChatWidget() {
               {/* Header */}
               <div className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white p-4 flex justify-between items-center shadow-md z-10 relative">
                 <div className="flex items-center gap-3">
-                  <div className="relative flex items-center justify-center w-10 h-10 bg-white shadow-lg rounded-xl overflow-hidden">
-                    <Sparkles size={22} className="text-indigo-600 drop-shadow-sm" />
-                    <div className="absolute inset-0 bg-indigo-500/10 pointer-events-none" />
+                  <div className="relative flex items-center justify-center w-10 h-10 bg-white shadow-lg rounded-xl overflow-hidden group border border-white/20">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-violet-500 opacity-10 group-hover:opacity-20 transition-opacity" />
+                    <Bot size={22} className="text-indigo-600 drop-shadow-sm" />
                   </div>
                   <div>
                     <h3 className="font-bold text-sm tracking-wide">Agent 10</h3>
@@ -114,7 +114,7 @@ export default function ChatWidget() {
                 <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className={`flex max-w-[85%] gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${msg.role === "user" ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-300" : "bg-gradient-to-br from-indigo-500 to-violet-500 text-white"}`}>
-                      {msg.role === "user" ? <User size={16} /> : <Sparkles size={16} />}
+                      {msg.role === "user" ? <User size={16} /> : <Bot size={16} />}
                     </div>
                     <div className={`p-3 rounded-2xl text-sm shadow-sm ${msg.role === "user" ? "bg-indigo-600 text-white rounded-tr-none" : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-tl-none border border-slate-100 dark:border-slate-700"}`}>
                       {msg.role === "agent" ? (
@@ -132,7 +132,7 @@ export default function ChatWidget() {
                 <div className="flex justify-start">
                   <div className="flex gap-2 max-w-[85%] flex-row">
                     <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
-                      <Sparkles size={16} />
+                      <Bot size={16} />
                     </div>
                     <div className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 p-3 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-700 shadow-sm flex items-center gap-2">
                       <Loader2 size={16} className="animate-spin text-indigo-600" />

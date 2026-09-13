@@ -61,6 +61,11 @@ export default function Login() {
   const [newPassword, setNewPassword] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
 
+  // OTP Mode
+  const [isOtpMode, setIsOtpMode] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
+
   const selectedRole = ROLE_OPTIONS.find((r) => r.code === roleCode) ?? ROLE_OPTIONS[0];
   const needsDept = roleCode === "HOD" || roleCode === "Faculty";
 
@@ -158,6 +163,13 @@ export default function Login() {
         // --- SIGN IN: verify credentials against database ---
         const res = await AuthAPI.login({ identifier: identifier.trim(), password });
         if (res.success) {
+          if (res.requires_2fa) {
+            setSuccess("2FA Required. Please check your email or phone for the OTP.");
+            setIsOtpMode(true);
+            setOtpSent(true);
+            return;
+          }
+
           const role = ROLE_OPTIONS.find(r => r.code === res.role);
           startSession(
             res.role ?? "Faculty",
@@ -175,6 +187,84 @@ export default function Login() {
       } else {
         setError("Network error. Please check your connection and try again.");
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRequestOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(""); setSuccess("");
+    if (!identifier.trim()) { setError("Please enter your email or phone number."); return; }
+    
+    setLoading(true);
+    try {
+      const res = await AuthAPI.requestOtp({ identifier: identifier.trim() });
+      if (res.success) {
+        setSuccess(res.message);
+        setOtpSent(true);
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Failed to send OTP.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(""); setSuccess("");
+    if (!otp.trim()) { setError("Please enter the OTP."); return; }
+    
+    setLoading(true);
+    try {
+      const res = await AuthAPI.verifyOtp({ identifier: identifier.trim(), otp: otp.trim() });
+      if (res.success) {
+        const role = ROLE_OPTIONS.find(r => r.code === res.role);
+        startSession(
+          res.role ?? "Faculty",
+          role?.label ?? res.role ?? "User",
+          res.full_name ?? "User",
+          res.email ?? identifier,
+          res.department,
+        );
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Invalid or expired OTP.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    if (!credentialResponse.credential) return;
+    setLoading(true);
+    try {
+      const res = await AuthAPI.googleAuth({ 
+        token: credentialResponse.credential, 
+        role: roleCode,
+        department
+      });
+      if (res.success) {
+        if (res.requires_2fa) {
+          setSuccess("2FA Required. Please check your email or phone for the OTP.");
+          setIsOtpMode(true);
+          setOtpSent(true);
+          setIdentifier(res.email!);
+          return;
+        }
+
+        const role = ROLE_OPTIONS.find(r => r.code === res.role);
+        startSession(
+          res.role ?? "Faculty",
+          role?.label ?? res.role ?? "User",
+          res.full_name ?? "User",
+          res.email ?? identifier,
+          res.department,
+        );
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Google authentication failed.");
     } finally {
       setLoading(false);
     }
@@ -466,42 +556,111 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Password */}
-            <div>
-              <label className="block text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
-                Password {isSignUp && <span className="text-secondary/60 font-normal normal-case">(min 8 characters)</span>}
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-3 text-secondary" size={16} />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className={`${inputClass} pr-10`}
-                  required
-                  autoComplete={isSignUp ? "new-password" : "current-password"}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-3 text-secondary hover:text-primary transition-colors cursor-pointer"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-              {!isSignUp && (
-                <div className="flex justify-end mt-2">
+            {/* Password or OTP */}
+            {!isOtpMode ? (
+              <div>
+                <label className="block text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
+                  Password {isSignUp && <span className="text-secondary/60 font-normal normal-case">(min 8 characters)</span>}
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-3 text-secondary" size={16} />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className={`${inputClass} pr-10`}
+                    required
+                    autoComplete={isSignUp ? "new-password" : "current-password"}
+                  />
                   <button
                     type="button"
-                    onClick={() => { setForgotEmail(identifier); setForgotStep(1); setNewPassword(""); setShowForgotModal(true); }}
-                    className="text-xs font-medium text-secondary hover:text-indigo-600 dark:hover:text-indigo-600 dark:text-indigo-400 transition-colors cursor-pointer"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-3 text-secondary hover:text-primary transition-colors cursor-pointer"
                   >
-                    Forgot Password?
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-              )}
-            </div>
+                {!isSignUp && (
+                  <div className="flex justify-between items-center mt-2">
+                    <button
+                      type="button"
+                      onClick={() => { setIsOtpMode(true); setOtpSent(false); setOtp(""); setError(""); setSuccess(""); }}
+                      className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                    >
+                      Login with OTP instead
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setForgotEmail(identifier); setForgotStep(1); setNewPassword(""); setShowForgotModal(true); }}
+                      className="text-xs font-medium text-secondary hover:text-indigo-600 dark:hover:text-indigo-600 dark:text-indigo-400 transition-colors cursor-pointer"
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <AnimatePresence>
+                {!otpSent ? (
+                  <motion.button
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    type="button"
+                    onClick={handleRequestOtp}
+                    disabled={loading || !identifier.trim()}
+                    className="w-full py-3 mt-4 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-all shadow flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Mail size={18} /> {loading ? "Sending..." : "Send OTP"}
+                  </motion.button>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-4"
+                  >
+                    <div>
+                      <label className="block text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
+                        Enter 6-digit OTP
+                      </label>
+                      <div className="relative">
+                        <KeyRound className="absolute left-3.5 top-3 text-secondary" size={16} />
+                        <input
+                          type="text"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          placeholder="123456"
+                          className={inputClass}
+                          maxLength={6}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      type="button"
+                      onClick={handleVerifyOtp}
+                      disabled={loading || otp.length !== 6}
+                      className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <ShieldCheck size={18} /> {loading ? "Verifying..." : "Verify OTP & Login"}
+                    </motion.button>
+                  </motion.div>
+                )}
+                <div className="flex justify-center mt-4">
+                  <button
+                    type="button"
+                    onClick={() => { setIsOtpMode(false); setError(""); setSuccess(""); }}
+                    className="text-xs font-medium text-secondary hover:text-primary transition-colors cursor-pointer"
+                  >
+                    Back to Password Login
+                  </button>
+                </div>
+              </AnimatePresence>
+            )}
 
             {/* Confirm Password — Sign Up only */}
             <AnimatePresence>
@@ -531,21 +690,23 @@ export default function Login() {
               )}
             </AnimatePresence>
 
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 mt-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {isSignUp ? <UserPlus size={18} /> : <ShieldCheck size={18} />}
-              {loading
-                ? (isSignUp ? "Creating Account…" : "Verifying Credentials…")
-                : isSignUp
-                  ? `Register as ${selectedRole.display}`
-                  : "Sign In to Dashboard"
-              }
-            </motion.button>
+            {!isOtpMode && (
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 mt-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isSignUp ? <UserPlus size={18} /> : <ShieldCheck size={18} />}
+                {loading
+                  ? (isSignUp ? "Creating Account…" : "Verifying Credentials…")
+                  : isSignUp
+                    ? `Register as ${selectedRole.display}`
+                    : "Sign In to Dashboard"
+                }
+              </motion.button>
+            )}
 
             {!isSignUp && (
               <p className="text-center text-xs text-secondary pt-1">
@@ -555,6 +716,7 @@ export default function Login() {
                 </button>
               </p>
             )}
+
           </form>
         </div>
       </motion.div>

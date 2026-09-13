@@ -1,9 +1,16 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from app.core.config import settings
+import os
 
 app = FastAPI(title=settings.APP_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json")
+
+# Mount static folder for profile images
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "../../uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # Guarantee required production origins regardless of Render environment overrides
 required_origins = [
@@ -51,11 +58,13 @@ def health_check_v1():
     }
 
 from app.api.v1.routes import dashboard, performance, trends, anomalies, insights, alerts, recommendations
-from app.api.routers import agent10, notifications, ingestion, crud_data, auth, chat
+from app.api.routers import agent10, notifications, ingestion, crud_data, auth, chat, profile, admin
 
 app.include_router(chat.router, prefix=f"{settings.API_V1_STR}", tags=["Agent 10 Chat"])
+app.include_router(admin.router, prefix=f"{settings.API_V1_STR}", tags=["Admin"])
 app.include_router(agent10.router, prefix=f"{settings.API_V1_STR}/agent10", tags=["Agent 10"])
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
+app.include_router(profile.router, prefix=f"{settings.API_V1_STR}", tags=["Profile"])
 app.include_router(crud_data.router, prefix=f"{settings.API_V1_STR}/crud_data", tags=["CRUD"])
 app.include_router(notifications.router, prefix=f"{settings.API_V1_STR}/notifications", tags=["Notifications"])
 app.include_router(ingestion.router, prefix=f"{settings.API_V1_STR}/ingestion", tags=["Ingestion"])
