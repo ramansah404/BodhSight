@@ -671,7 +671,7 @@ def get_student_drilldown(
 # Auto-Tutor Feature
 # ---------------------------------------------------------------------------
 
-def get_weakest_question(db: Session, student_id: str) -> Optional[Dict[str, Any]]:
+def get_weakest_question(db: Session, student_id: str, **kwargs) -> Optional[Dict[str, Any]]:
     """Finds the weakest question for a given student based on marks_obtained / marks."""
     sql = text("""
         SELECT

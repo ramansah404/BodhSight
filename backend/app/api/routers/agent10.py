@@ -50,6 +50,7 @@ from app.schemas.agent10 import (
     DashboardMetrics, AcademicException, InterventionPriority,
     ExecutiveSummary, LLMStatus, TrendSummary, RecommendationItem,
     CoursePerformanceItem, DepartmentPerformanceItem, SectionComparison,
+    AutoTutorRequest, AutoTutorResponse,
 )
 from app.schemas.ingestion import MarkAnomaly
 from app.core.authorization import (
@@ -504,30 +505,41 @@ def trigger_audit(db: Session = Depends(get_db), identity: Agent10Identity = Dep
     return {"success": True, "message": "Audit ingestion check triggered successfully."}
 
 
-@router.post("/autotutor")
+@router.post("/autotutor", response_model=AutoTutorResponse)
 async def generate_autotutor(
-    request: dict,
+    request: AutoTutorRequest,
     db: Session = Depends(get_db),
     identity: Agent10Identity = Depends(get_agent10_identity)
 ):
     """
     Generate targeted Auto-Tutor intervention based on the student's weakest question.
     """
-    student_id = request.get("student_id")
-    if not student_id:
-        raise HTTPException(status_code=400, detail="student_id is required")
+    student_id = request.student_id
 
     # Authorize: Only allowed roles can use this.
     if identity.role not in {"FACULTY", "HOD", "DEAN", "PRINCIPAL", "CHAIRMAN", "IQAC"}:
         raise HTTPException(status_code=403, detail="Unauthorized scope for Auto-Tutor.")
 
+    if request.course_code:
+        require_course_access(identity, db, request.course_code)
+
     from app.db import queries
     from app.agents.agent10.llm import generate_auto_tutor
 
-    weakest_q = await run_in_threadpool(_safe, queries.get_weakest_question, db, student_id=student_id)
+    kwargs = {"course_codes": None, "department_ids": None}
+    if identity.role == "FACULTY":
+        kwargs["course_codes"] = list(identity.course_codes)
+    elif identity.role == "HOD":
+        kwargs["department_ids"] = list(identity.department_ids)
+
+    weakest_q = await run_in_threadpool(_safe, queries.get_weakest_question, db, student_id=student_id, **kwargs)
 
     if not weakest_q:
         raise HTTPException(status_code=404, detail="No question marks found for this student.")
+
+    found_course_code = weakest_q.get("course_code")
+    if found_course_code:
+        require_course_access(identity, db, found_course_code)
 
     # Call LLM logic
     ai_response = await run_in_threadpool(generate_auto_tutor, weakest_q)
