@@ -38,6 +38,14 @@ export default function Landing() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Auto-redirect already logged-in users to their dashboard
+  useEffect(() => {
+    if (localStorage.getItem("bodhsight_role")) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate]);
+
+
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (el) {

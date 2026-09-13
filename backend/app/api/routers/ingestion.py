@@ -6,6 +6,7 @@ import asyncio
 import logging
 import csv
 import io
+import json
 
 from app.db.session import get_db
 
@@ -34,6 +35,12 @@ async def upload_document(
         file_size_kb = len(file_content) / 1024
         
         # 2. Add to database audit log to track who uploaded what
+        meta_dict = {
+            "filename": file.filename,
+            "size_kb": round(file_size_kb, 1),
+            "type": document_type,
+            "uploader": x_user_name
+        }
         db.execute(
             text("""
                 INSERT INTO agentops.system_logs 
@@ -43,7 +50,7 @@ async def upload_document(
             """),
             {
                 "role": x_user_role,
-                "meta": f'{{"filename": "{file.filename}", "size_kb": {file_size_kb:.1f}, "type": "{document_type}", "uploader": "{x_user_name}"}}'
+                "meta": json.dumps(meta_dict)
             }
         )
         db.commit()

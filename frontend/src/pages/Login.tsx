@@ -75,6 +75,14 @@ export default function Login() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // If already logged in, skip the login page entirely
+  useEffect(() => {
+    if (localStorage.getItem("bodhsight_role")) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate]);
+
+
   // Clear form when switching modes
   useEffect(() => {
     setIdentifier("");

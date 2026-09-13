@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 from passlib.context import CryptContext
 from typing import Optional
 import logging
+import time
+from collections import defaultdict
 
 from app.db.session import get_db
 
@@ -15,6 +17,32 @@ logger = logging.getLogger(__name__)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 VALID_ROLES = ["Chairman", "Principal", "Dean", "HOD", "Faculty", "IQAC"]
+
+# -------------------------------------------------------------------
+# Brute-force protection: track failed login attempts per identifier
+# -------------------------------------------------------------------
+_login_attempts: dict = defaultdict(list)  # identifier -> [timestamp, ...]
+MAX_ATTEMPTS = 5
+LOCKOUT_SECONDS = 600  # 10 minutes
+
+def _check_rate_limit(identifier: str):
+    """Raise 429 if too many failed attempts in the lockout window."""
+    now = time.time()
+    attempts = _login_attempts[identifier]
+    # Prune old attempts outside the window
+    _login_attempts[identifier] = [t for t in attempts if now - t < LOCKOUT_SECONDS]
+    if len(_login_attempts[identifier]) >= MAX_ATTEMPTS:
+        remaining = int(LOCKOUT_SECONDS - (now - _login_attempts[identifier][0]))
+        raise HTTPException(
+            status_code=429,
+            detail=f"Too many failed login attempts. Please try again in {remaining // 60} minutes."
+        )
+
+def _record_failure(identifier: str):
+    _login_attempts[identifier].append(time.time())
+
+def _clear_failures(identifier: str):
+    _login_attempts.pop(identifier, None)
 
 
 # -------------------------------------------------------------------
@@ -128,23 +156,32 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     if not data.identifier or not data.password:
         raise HTTPException(status_code=422, detail="Email/phone and password are required.")
 
+    identifier = data.identifier.strip()
+    norm_id = identifier.lower() if "@" in identifier else identifier
+
+    # Check rate limit before hitting the database
+    _check_rate_limit(norm_id)
+
     try:
-        identifier = data.identifier.strip()
-        # Check email or phone number
         user = db.execute(
             text("""
                 SELECT id, full_name, email, phone_number, password_hash, role, department
                 FROM core.user_account
                 WHERE email = :ident OR phone_number = :ident
             """),
-            {"ident": identifier.lower() if "@" in identifier else identifier}
+            {"ident": norm_id}
         ).fetchone()
 
         if not user:
+            _record_failure(norm_id)
             raise HTTPException(status_code=401, detail="No account found with these credentials.")
 
         if not verify_password(data.password, user.password_hash):
+            _record_failure(norm_id)
             raise HTTPException(status_code=401, detail="Incorrect password. Please try again.")
+
+        # Success — clear any previous failure history
+        _clear_failures(norm_id)
 
         return AuthResponse(
             success=True,

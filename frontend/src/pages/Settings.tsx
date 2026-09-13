@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
-import { Settings as SettingsIcon, User, ShieldCheck, Server, Database, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Settings as SettingsIcon, User, ShieldCheck, Server, Database, CheckCircle2, AlertCircle, Loader2, LogOut } from "lucide-react";
 import { Agent10API } from "../services/api";
 
 export default function Settings() {
+  const navigate = useNavigate();
   const role = localStorage.getItem("bodhsight_role") || "Dean";
   const displayRole = localStorage.getItem("bodhsight_display_role") || role;
   const name = localStorage.getItem("bodhsight_name") || "User";
   const email = localStorage.getItem("bodhsight_email") || "—";
+
+  const handleSignOut = () => {
+    localStorage.clear();
+    navigate("/login", { replace: true });
+  };
 
   const [healthStatus, setHealthStatus] = useState<"loading" | "ok" | "error">("loading");
   const [healthData, setHealthData] = useState<{ service?: string; environment?: string; agent?: string } | null>(null);
@@ -59,11 +66,13 @@ export default function Settings() {
               <span className="font-bold text-indigo-600 dark:text-indigo-400">{displayRole}</span>
             </div>
           </div>
-          <div className="pt-2 border-t border-border/60">
-            <p className="text-xs text-secondary font-medium">
-              Session is stored in localStorage. No JWT tokens are used.
-              Role determines RBAC permissions for all UI actions.
-            </p>
+          <div className="pt-4 border-t border-border/60">
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-xl text-sm font-bold transition-all cursor-pointer"
+            >
+              <LogOut size={16} /> Sign Out of BodhSight
+            </button>
           </div>
         </div>
 

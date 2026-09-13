@@ -13,7 +13,9 @@ import {
   ShieldAlert,
   X,
   Menu,
-  Database
+  Database,
+  FileWarning,
+  ClipboardEdit
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
@@ -36,9 +38,11 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     { name: "Batches", path: "/batches", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: Users },
     { name: "Students (At-Risk)", path: "/students", roles: ["Chairman", "Principal", "Dean", "HOD", "Faculty"], icon: ShieldAlert },
     { name: "Problems", path: "/anomalies", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: AlertTriangle },
+    { name: "Exceptions", path: "/exceptions", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: FileWarning },
     { name: "Recommendations", path: "/recommendations", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: Lightbulb },
     { name: "Executive Reports", path: "/reports", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: FileText },
     { name: "Data Hub", path: "/data-hub", roles: ["HOD", "Faculty"], icon: Database },
+    { name: "Manual Entry", path: "/manual-entry", roles: ["HOD", "Faculty"], icon: ClipboardEdit },
   ];
 
   const navItems = allNavItems.filter(item => item.roles.includes(currentRole));
