@@ -1,4 +1,4 @@
-import { Filter, Calendar, Building, Book } from "lucide-react";
+import { Filter, Calendar, Building } from "lucide-react";
 import { useFilters } from "../../contexts/FilterContext";
 import { getRolePermissions } from "../../utils/rbac";
 
@@ -21,17 +21,11 @@ export default function GlobalFilterBar() {
         </span>
       </div>
 
-      {/* Semester — hardcoded to Term 1 since backend only has one active term */}
+      {/* Semester/term values are not discoverable from a current backend endpoint. */}
       <div className="glass-control flex items-center gap-2 px-3 py-1.5 rounded-lg">
         <Calendar size={14} className="text-secondary" />
-        <select
-          value={filters.semester}
-          onChange={(e) => setFilters({ semester: e.target.value })}
-          className="bg-transparent text-sm font-semibold text-primary focus:outline-none cursor-pointer [&>option]:bg-surface"
-        >
-          <option value="">All Semesters</option>
-          <option value="T1">Semester: Term 1 (Active)</option>
-        </select>
+        <span className="text-sm font-semibold text-primary">{activeTerm ? `AY ${activeTerm}` : "Academic term"}</span>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-secondary">Context only</span>
       </div>
 
       {/* Department — populated from real backend data or locked by RBAC */}
@@ -65,18 +59,8 @@ export default function GlobalFilterBar() {
         )}
       </div>
 
-      {/* Programme — no backend endpoint yet; kept as UI control */}
-      <div className="glass-control flex items-center gap-2 px-3 py-1.5 rounded-lg">
-        <Book size={14} className="text-secondary" />
-        <select
-          value={filters.programme}
-          onChange={(e) => setFilters({ programme: e.target.value })}
-          className="bg-transparent text-sm font-semibold text-primary focus:outline-none cursor-pointer [&>option]:bg-surface"
-        >
-          <option value="">All Programmes</option>
-          <option value="BTech">B.Tech</option>
-          <option value="MTech">M.Tech</option>
-        </select>
+      <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-secondary" title="Gender, admission route, entry qualification, and programme option discovery are not exposed by the current API.">
+        Demographic slicers pending backend support
       </div>
     </div>
   );

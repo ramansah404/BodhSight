@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import {
   Users, AlertTriangle, ShieldCheck, Sparkles,
-  BookOpen, ChevronRight, Activity, Building2, Award, Loader2
+  BookOpen, ChevronRight, ArrowRight, Target, Activity, Building2, Award, Loader2
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { useFilters } from "../contexts/FilterContext";
 import { Agent10API } from "../services/api";
-import type { AcademicDashboardMetrics, DepartmentPerformance, CoursePerformance } from "../types/agent10";
+import type { AcademicDashboardMetrics, DepartmentPerformance, CoursePerformance, InterventionPriorityItem } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 import CondonationWidget from "../components/dashboard/CondonationWidget";
@@ -23,6 +23,8 @@ export default function Dashboard() {
   const [metrics, setMetrics] = useState<AcademicDashboardMetrics | null>(null);
   const [departments, setDepartments] = useState<DepartmentPerformance[]>([]);
   const [courses, setCourses] = useState<CoursePerformance[]>([]);
+  const [priorities, setPriorities] = useState<InterventionPriorityItem[]>([]);
+  const [briefing, setBriefing] = useState<{ summary?: string; llm_used?: boolean } | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(true);
   const [metricsError, setMetricsError] = useState("");
   
@@ -45,7 +47,8 @@ export default function Dashboard() {
       Agent10API.getDashboard(filters),
       Agent10API.getDepartments(filters),
       Agent10API.getCourses(filters),
-    ]).then(([metricsResult, deptsResult, coursesResult]) => {
+      ...(currentRole === "HOD" ? [Agent10API.getPriorities(filters)] : []),
+    ]).then(([metricsResult, deptsResult, coursesResult, prioritiesResult]) => {
       if (cancelled) return;
 
       if (metricsResult.status === "fulfilled") {
@@ -64,6 +67,10 @@ export default function Dashboard() {
         setCourses(coursesResult.value.slice(0, 12)); // top 12 for chart
       }
 
+      if (currentRole === "HOD" && prioritiesResult?.status === "fulfilled") {
+        setPriorities(prioritiesResult.value as InterventionPriorityItem[]);
+      }
+
       setMetricsLoading(false);
 
       // Silently warm the cache for adjacent tabs after dashboard renders
@@ -73,7 +80,22 @@ export default function Dashboard() {
     });
 
     return () => { cancelled = true; };
-  }, [filters]);
+  }, [filters, currentRole]);
+
+  useEffect(() => {
+    const leadershipRole = ["Dean", "Principal", "Chairman", "IQAC"].includes(currentRole);
+    if (!leadershipRole) {
+      setBriefing(null);
+      return;
+    }
+    let cancelled = false;
+    Agent10API.getSummary(filters).then((summary) => {
+      if (!cancelled) setBriefing({ summary: typeof summary.summary === "string" ? summary.summary : undefined, llm_used: summary.llm_used === true });
+    }).catch(() => {
+      if (!cancelled) setBriefing(null);
+    });
+    return () => { cancelled = true; };
+  }, [filters, currentRole]);
 
   // Dynamic chart data based on Role
   // Top level roles see Departments. HOD/Faculty see Courses because they only have 1 department.
@@ -356,23 +378,22 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Pass rate chart — dept for senior roles, courses for Faculty/HOD */}
-        <div className="lg:col-span-2 bg-surface rounded-3xl border border-border/60 shadow-sm p-6">
-          <h2 className="text-lg font-bold text-primary mb-6">
+        <div className="lg:col-span-2 bg-surface rounded-xl border border-border shadow-sm p-6">
+          <div className="flex items-end justify-between gap-4 mb-6"><div><div className="text-[10px] font-bold uppercase tracking-[0.16em] text-teal-700 dark:text-teal-300">Primary signal</div><h2 className="text-lg font-bold text-primary mt-1">
             {isDepartmentLevel ? "Department Pass Rate Comparison" : "Course Pass Rate Overview"}
-          </h2>
+          </h2></div><span className="text-xs text-secondary">Live current scope</span></div>
           {chartData.length > 0 ? (
             <div style={{ width: "100%", height: 288 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
                   <defs>
                     <linearGradient id="colorPassRate" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#0f766e" stopOpacity={0.28}/>
+                      <stop offset="95%" stopColor="#0f766e" stopOpacity={0}/>
                     </linearGradient>
                     <linearGradient id="lineColor" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#ec4899" stopOpacity={1}/>
-                      <stop offset="50%" stopColor="#8b5cf6" stopOpacity={1}/>
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={1}/>
+                      <stop offset="0%" stopColor="#0f766e" stopOpacity={1}/>
+                      <stop offset="100%" stopColor="#14b8a6" stopOpacity={1}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
@@ -392,11 +413,11 @@ export default function Dashboard() {
                     type="monotone"
                     dataKey="passRate"
                     stroke="url(#lineColor)"
-                    strokeWidth={4}
+                    strokeWidth={2.5}
                     fillOpacity={1}
                     fill="url(#colorPassRate)"
-                    dot={{ fill: "#0f172a", stroke: "#8b5cf6", strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, fill: "#ec4899", strokeWidth: 0 }}
+                    dot={{ fill: "#ffffff", stroke: "#0f766e", strokeWidth: 2, r: 3 }}
+                    activeDot={{ r: 5, fill: "#0f766e", strokeWidth: 0 }}
                     name="Pass Rate %"
                     isAnimationActive={true}
                     animationDuration={2000}
@@ -464,7 +485,7 @@ export default function Dashboard() {
         </div>
 
         {/* Courses analyzed sidebar */}
-        <div className="bg-surface rounded-3xl border border-border/60 shadow-sm p-6">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-6">
           <h2 className="text-lg font-bold text-primary mb-4">
             {currentRole === "Chairman" || currentRole === "Principal" ? "Campus Overview" : currentRole === "Faculty" ? "My Sections Summary" : currentRole === "HOD" ? "Department Summary" : "College Overview"}
           </h2>
@@ -472,7 +493,7 @@ export default function Dashboard() {
             <div className="space-y-4">
               <div className="p-4 rounded-2xl bg-surface border border-border">
                 <div className="text-xs font-bold text-secondary uppercase mb-1">Courses Analyzed</div>
-                <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{metrics.courses_analyzed ?? "—"}</div>
+                <div className="text-2xl font-bold text-teal-700 dark:text-teal-300">{metrics.courses_analyzed ?? "—"}</div>
               </div>
               <div className="p-4 rounded-2xl bg-surface border border-border">
                 <div className="text-xs font-bold text-secondary uppercase mb-1">Data Source</div>
@@ -517,11 +538,33 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]" aria-labelledby="risk-center-title">
+        <div className="rounded-xl border border-border bg-surface p-6 shadow-sm">
+          <div className="flex items-start justify-between"><div><div className="text-[10px] font-bold uppercase tracking-[0.16em] text-amber-700 dark:text-amber-300">Academic risk center</div><h2 id="risk-center-title" className="mt-1 text-lg font-bold text-primary">What needs attention</h2></div><AlertTriangle size={19} className="text-amber-600" /></div>
+          <div className="mt-6 space-y-3"><div className="flex items-center justify-between rounded-lg border border-rose-200 bg-rose-50/60 px-4 py-3 dark:border-rose-500/20 dark:bg-rose-500/10"><div><div className="text-sm font-bold text-primary">Open anomaly signals</div><div className="mt-1 text-xs text-secondary">Statistical deviations requiring review</div></div><span className="text-xl font-bold text-rose-700 dark:text-rose-300">{metrics?.active_anomalies ?? metrics?.significant_deviations ?? "—"}</span></div><div className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 dark:border-amber-500/20 dark:bg-amber-500/10"><div><div className="text-sm font-bold text-primary">Pass rate signal</div><div className="mt-1 text-xs text-secondary">Current institutional performance</div></div><span className="text-xl font-bold text-amber-700 dark:text-amber-300">{metrics ? `${metrics.pass_rate.toFixed(1)}%` : "—"}</span></div></div>
+          <button onClick={() => navigate("/anomalies")} className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-teal-800 hover:text-teal-700 dark:text-teal-300">Open problems console <ArrowRight size={15} /></button>
+        </div>
+        <div className="rounded-xl border border-border bg-surface p-6 shadow-sm"><div className="flex items-start justify-between"><div><div className="text-[10px] font-bold uppercase tracking-[0.16em] text-teal-700 dark:text-teal-300">Decision queue</div><h2 className="mt-1 text-lg font-bold text-primary">What happens next</h2></div><Target size={19} className="text-teal-700 dark:text-teal-300" /></div><div className="mt-6 grid gap-3 md:grid-cols-3">{[["Review evidence", "Inspect the source and validation trail", "/anomalies", "Review console"], ["Prioritize support", "Move a detected issue toward intervention", "/recommendations", "See recommendations"], ["Compare scope", "Understand the course or department pattern", "/courses", "Open performance"]].map(([title, desc, path, action]) => <button key={title} onClick={() => navigate(path)} className="group rounded-lg border border-border bg-background p-4 text-left hover:border-teal-700/40 hover:bg-teal-50/50 dark:hover:bg-teal-500/5"><div className="text-sm font-bold text-primary">{title}</div><div className="mt-2 text-xs leading-5 text-secondary">{desc}</div><div className="mt-4 flex items-center gap-1 text-xs font-bold text-teal-800 dark:text-teal-300">{action}<ChevronRight size={13} className="transition-transform group-hover:translate-x-1" /></div></button>)}</div></div>
+      </section>
+
+      {briefing?.summary && (
+        <section className="rounded-xl border border-teal-200 bg-teal-50/60 p-6 shadow-sm dark:border-teal-500/20 dark:bg-teal-500/5" aria-labelledby="briefing-title">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"><div><div className="text-[10px] font-bold uppercase tracking-[0.16em] text-teal-800 dark:text-teal-300">Decision support · current scope</div><h2 id="briefing-title" className="mt-1 text-lg font-bold text-primary">Monday morning briefing</h2><p className="mt-1 text-xs text-secondary">Executive summary generated from the current Agent 10 metrics and anomaly evidence.</p></div><span className="inline-flex w-fit items-center gap-2 rounded-md border border-teal-200 bg-surface px-2.5 py-1.5 text-[10px] font-bold text-teal-800 dark:border-teal-500/20 dark:text-teal-300">{briefing.llm_used ? "LLM explanation layer" : "Structured backend summary"}</span></div><p className="mt-5 max-w-4xl text-sm leading-7 text-primary">{briefing.summary}</p><div className="mt-5 grid gap-2 text-xs text-secondary sm:grid-cols-3"><div className="rounded-lg border border-border/70 bg-surface/70 p-3"><span className="font-bold text-primary">FACT</span><br />Current metrics and detected exceptions</div><div className="rounded-lg border border-border/70 bg-surface/70 p-3"><span className="font-bold text-primary">INSIGHT</span><br />Backend-generated interpretation</div><div className="rounded-lg border border-border/70 bg-surface/70 p-3"><span className="font-bold text-primary">ACTION</span><br />Review recommendations and evidence</div></div>
+        </section>
+      )}
+
+      {currentRole === "HOD" && (
+        <section className="rounded-xl border border-border bg-surface p-6 shadow-sm" aria-labelledby="priority-watchlist-title">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><div className="text-[10px] font-bold uppercase tracking-[0.16em] text-teal-700 dark:text-teal-300">Departmental command center</div><h2 id="priority-watchlist-title" className="mt-1 text-lg font-bold text-primary">Intervention priority watchlist</h2><p className="mt-1 text-xs text-secondary">Ranked by Agent 10 severity scoring. Historical comparison is unavailable in the current API.</p></div><button onClick={() => navigate("/recommendations")} className="inline-flex items-center gap-2 text-sm font-bold text-teal-800 dark:text-teal-300">Open recommendations <ArrowRight size={15} /></button></div>
+          {priorities.length > 0 ? <div className="mt-5 overflow-x-auto"><table className="w-full min-w-[680px] text-left"><thead><tr className="border-b border-border text-[10px] uppercase tracking-wider text-secondary"><th className="px-3 py-3">Course</th><th className="px-3 py-3">Current performance</th><th className="px-3 py-3">Risk</th><th className="px-3 py-3">Affected</th><th className="px-3 py-3">Why it matters</th></tr></thead><tbody>{priorities.slice(0, 6).map((item) => <tr key={`${item.rank}-${item.course_code}`} className="border-b border-border/70 last:border-0"><td className="px-3 py-3"><div className="text-sm font-bold text-primary">{item.course_code}</div><div className="text-xs text-secondary">{item.course_name}</div></td><td className="px-3 py-3"><div className="text-sm font-bold text-primary">{item.pass_rate.toFixed(1)}% pass</div><div className="text-xs text-secondary">{item.failure_rate.toFixed(1)}% failure</div></td><td className="px-3 py-3"><span className={`rounded-md border px-2 py-1 text-[10px] font-bold uppercase ${item.priority === "CRITICAL" ? "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300" : item.priority === "HIGH" ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300" : "border-border bg-surface-secondary text-secondary"}`}>{item.priority}</span></td><td className="px-3 py-3 text-sm font-semibold text-primary">{item.affected_students}</td><td className="max-w-xs px-3 py-3 text-xs leading-5 text-secondary">{item.recommended_intervention}</td></tr>)}</tbody></table></div> : <div className="mt-5 rounded-lg border border-dashed border-border p-8 text-center text-sm text-secondary">No intervention priorities returned for the current department scope.</div>}
+        </section>
+      )}
+
       {/* Agent 10 Quick Actions */}
-      <div className="bg-indigo-50/30 dark:bg-indigo-950/20 rounded-3xl p-6 border border-indigo-100 dark:border-indigo-900/50 shadow-sm relative overflow-hidden">
+      <div className="bg-surface rounded-xl p-6 border border-border shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
         <h2 className="text-lg font-bold flex items-center gap-2 mb-4 text-primary relative z-10">
-          <Sparkles className="text-indigo-600 dark:text-indigo-400" size={20} />
+          <Sparkles className="text-teal-700 dark:text-teal-300" size={20} />
           Agent 10 Quick Navigation ({displayRole} Scope)
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">

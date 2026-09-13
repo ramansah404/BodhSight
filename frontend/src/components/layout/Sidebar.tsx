@@ -26,11 +26,13 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   const currentRole = localStorage.getItem("bodhsight_role") || "Chairman";
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
+  const overviewLabel = currentRole === "Faculty" ? "Course Overview" : currentRole === "HOD" ? "Department Overview" : currentRole === "Chairman" ? "Strategic Health" : currentRole === "IQAC" ? "Quality Overview" : "Academic Health";
+  const coursesLabel = currentRole === "Faculty" ? "My Courses" : "Courses";
   
   const allNavItems = [
-    { name: "Overview", path: "/dashboard", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: LayoutDashboard },
+    { name: overviewLabel, path: "/dashboard", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: LayoutDashboard },
     { name: "Trends", path: "/trends", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: TrendingUp },
-    { name: "Courses", path: "/courses", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: BookOpen },
+    { name: coursesLabel, path: "/courses", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: BookOpen },
     { name: "Departments", path: "/departments", roles: ["Chairman", "Principal", "IQAC", "Dean"], icon: Building2 },
     { name: "Sections", path: "/sections", roles: ["Chairman", "Principal", "Dean", "HOD", "Faculty"], icon: Layers },
     { name: "Students (At-Risk)", path: "/students", roles: ["Chairman", "Principal", "Dean", "HOD", "Faculty"], icon: ShieldAlert },
@@ -38,7 +40,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     { name: "Exceptions", path: "/exceptions", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: FileWarning },
     { name: "Recommendations", path: "/recommendations", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: Lightbulb },
     { name: "Executive Reports", path: "/reports", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: FileText },
-    { name: "Data Hub", path: "/data-hub", roles: ["HOD", "Faculty"], icon: Database },
+    { name: "Ingestion workspace", path: "/data-hub", roles: ["HOD", "Faculty"], icon: Database },
   ];
 
   const navItems = allNavItems.filter(item => item.roles.includes(currentRole));
@@ -62,7 +64,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
       <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-5">
         {!collapsed && <div className="px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-secondary">Workspace</div>}
-        {navItems.filter((item) => ["Overview", "Trends", "Courses", "Departments", "Sections"].includes(item.name)).map((item) => {
+        {navItems.filter((item) => [overviewLabel, "Trends", coursesLabel, "Courses", "Departments", "Sections"].includes(item.name)).map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
@@ -87,7 +89,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
           );
         })}
         {!collapsed && <div className="px-3 pt-1 text-[10px] font-bold uppercase tracking-[0.18em] text-secondary">Action & Evidence</div>}
-        {navItems.filter((item) => ["Students (At-Risk)", "Problems", "Exceptions", "Recommendations", "Executive Reports", "Data Hub"].includes(item.name)).map((item) => {
+        {navItems.filter((item) => ["Students (At-Risk)", "Problems", "Exceptions", "Recommendations", "Executive Reports", "Ingestion workspace"].includes(item.name)).map((item) => {
           const Icon = item.icon;
           return (
             <NavLink

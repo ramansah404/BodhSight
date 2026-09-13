@@ -96,7 +96,7 @@ export default function DataHub() {
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-indigo-950 dark:text-indigo-100">Document Ingestion & Uploads</h1>
           <p className="text-indigo-800/80 dark:text-indigo-200/70 text-sm mt-1">
-            Upload raw Excel, Word, or PDF documents. Agent 10 will automatically extract, validate, and queue the data into the database.
+            Upload raw documents to the Agent 10 ingestion queue. The current backend acknowledges the file, records an audit event, and processes supported CSV rows when available.
           </p>
         </div>
         <div className="flex bg-surface-hover/50 p-1 rounded-xl border border-border mt-4 md:mt-0">
@@ -196,7 +196,7 @@ export default function DataHub() {
             
             {uploadState === "success" && (
               <div className="mt-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3 text-emerald-600 dark:text-emerald-400 text-sm font-medium">
-                <CheckCircle2 size={18} /> Document queued for Agent 10 processing successfully!
+                <CheckCircle2 size={18} /> Backend acknowledged the upload. Validation and operational approval are not exposed by the current ingestion API.
               </div>
             )}
 
