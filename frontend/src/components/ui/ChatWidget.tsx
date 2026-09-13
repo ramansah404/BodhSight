@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageSquare, X, Send, Loader2, Bot, User } from "lucide-react";
+import { MessageSquare, X, Send, Loader2, Bot, User, Sparkles, Maximize2, Minimize2 } from "lucide-react";
 import { Agent10API } from "../../services/api";
 import { useFilters } from "../../contexts/FilterContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,6 +13,7 @@ interface Message {
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { id: "1", role: "agent", text: "Hello! I am Agent 10. How can I assist you with BodhSight today?" }
   ]);
@@ -77,35 +78,43 @@ export default function ChatWidget() {
       {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 w-96 h-[32rem] max-w-[calc(100vw-3rem)] bg-surface rounded-2xl shadow-2xl border border-border z-50 flex flex-col overflow-hidden"
-          >
-            {/* Header */}
-            <div className="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md z-10 relative">
-              <div className="flex items-center gap-2">
-                <div className="bg-white/20 p-1.5 rounded-lg">
-                  <Bot size={20} />
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              className={`fixed ${isMaximized ? 'inset-4 w-auto h-auto max-w-none max-h-none' : 'bottom-6 right-6 w-96 h-[32rem] max-w-[calc(100vw-3rem)]'} bg-surface rounded-3xl shadow-2xl border border-border/80 z-50 flex flex-col overflow-hidden transition-all duration-300 ease-in-out`}
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white p-4 flex justify-between items-center shadow-md z-10 relative">
+                <div className="flex items-center gap-3">
+                  <div className="relative flex items-center justify-center w-10 h-10 bg-white shadow-lg rounded-xl overflow-hidden">
+                    <Sparkles size={22} className="text-indigo-600 drop-shadow-sm" />
+                    <div className="absolute inset-0 bg-indigo-500/10 pointer-events-none" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm tracking-wide">Agent 10</h3>
+                    <p className="text-[10px] text-indigo-100 font-medium">Logged in as {userRole}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-sm">Agent 10 Assistant</h3>
-                  <p className="text-[10px] text-white/80 font-medium">Logged in as {userRole}</p>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setIsMaximized(!isMaximized)} className="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors">
+                    {isMaximized ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                  </button>
+                  <button onClick={() => setIsOpen(false)} className="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors">
+                    <X size={18} />
+                  </button>
                 </div>
               </div>
-              <button onClick={() => setIsOpen(false)} className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded-full transition-colors">
-                <X size={20} />
-              </button>
-            </div>
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-slate-900/50">
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className={`flex max-w-[85%] gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === "user" ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-300" : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-300"}`}>
-                      {msg.role === "user" ? <User size={16} /> : <Bot size={16} />}
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${msg.role === "user" ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-300" : "bg-gradient-to-br from-indigo-500 to-violet-500 text-white"}`}>
+                      {msg.role === "user" ? <User size={16} /> : <Sparkles size={16} />}
                     </div>
                     <div className={`p-3 rounded-2xl text-sm shadow-sm ${msg.role === "user" ? "bg-indigo-600 text-white rounded-tr-none" : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-tl-none border border-slate-100 dark:border-slate-700"}`}>
                       {msg.role === "agent" ? (
@@ -122,11 +131,11 @@ export default function ChatWidget() {
               {loading && (
                 <div className="flex justify-start">
                   <div className="flex gap-2 max-w-[85%] flex-row">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-300 flex items-center justify-center flex-shrink-0">
-                      <Bot size={16} />
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                      <Sparkles size={16} />
                     </div>
                     <div className="bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 p-3 rounded-2xl rounded-tl-none border border-slate-100 dark:border-slate-700 shadow-sm flex items-center gap-2">
-                      <Loader2 size={16} className="animate-spin text-emerald-600" />
+                      <Loader2 size={16} className="animate-spin text-indigo-600" />
                       <span className="text-xs font-medium">Thinking...</span>
                     </div>
                   </div>
@@ -157,6 +166,7 @@ export default function ChatWidget() {
               </div>
             </div>
           </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>

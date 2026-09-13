@@ -51,18 +51,22 @@ async def chat_with_agent10(
             
         rbac_context += "\\nYour responses should be concise, professional, and directly address their questions. Format your response with basic markdown."
 
+        # Enforce RBAC on the requested department for the DB query
+        from app.api.routers.agent10 import get_rbac_department
+        safe_department = get_rbac_department(req.department, x_user_role, x_user_department)
+
         # RAG / Data Injection: Fetch Real-Time Data from DB based on filters
         try:
             perf_summary = queries.get_course_performance_summary(
                 db, 
-                department=req.department, 
+                department=safe_department, 
                 semester=req.semester, 
                 programme=req.programme, 
                 academic_year=None
             )
             student_summary = queries.get_student_profile_summary(
                 db, 
-                department=req.department, 
+                department=safe_department, 
                 semester=req.semester, 
                 programme=req.programme, 
                 academic_year=None
@@ -80,7 +84,7 @@ async def chat_with_agent10(
             rbac_context += "\\n\\n(Note: Live database context is temporarily unavailable. Answer based on general knowledge)."
         
         completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="openai/gpt-oss-20b",
             messages=[
                 {"role": "system", "content": rbac_context},
                 {"role": "user", "content": req.message}
