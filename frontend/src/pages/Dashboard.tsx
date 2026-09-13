@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import {
   Users, AlertTriangle, ShieldCheck, Sparkles,
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+  BookOpen, ChevronRight, Activity, Building2, Award, Loader2
+} from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
 import { useFilters } from "../contexts/FilterContext";
 import { Agent10API } from "../services/api";
@@ -102,7 +104,20 @@ export default function Dashboard() {
   };
 
   const handleExportPDF = () => {
-    exportToPDF("dashboard-content", "Institutional_Overview_Report", `BodhSight Executive Overview - ${currentRole}`);
+    const paragraphs = [
+      `Institutional Macro Governance Report`,
+      `Students Evaluated: ${metrics?.students_evaluated || 0} (out of ${metrics?.total_students || 0})`,
+      `Institutional Pass Rate: ${metrics?.pass_rate?.toFixed(1) || 0}%`,
+      `Average Marks: ${metrics?.average_marks?.toFixed(1) || 0}`,
+      `Active Problems Requiring Attention: ${metrics?.active_anomalies || metrics?.significant_deviations || 0}`
+    ];
+    
+    const tableData = [
+      ["Department", "Pass Rate (%)", "Status"],
+      ...departments.map(d => [d.department_code, String(d.pass_rate), d.status])
+    ];
+
+    exportToPDF(`BodhSight Executive Overview - ${currentRole}`, paragraphs, tableData, "Institutional_Overview_Report");
   };
 
   const handleExportWord = () => {
@@ -288,8 +303,6 @@ export default function Dashboard() {
           </>
         ) : null}
       </motion.div>
-      ) : null}
-
       <StudentDrilldownModal
         isOpen={drilldown.isOpen}
         onClose={() => setDrilldown({ ...drilldown, isOpen: false })}
@@ -313,9 +326,13 @@ export default function Dashboard() {
           {deptChartData.length > 0 ? (
             <div style={{ width: "100%", height: 288 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={deptChartData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
+                <AreaChart data={deptChartData} margin={{ top: 20, right: 20, left: 20, bottom: 20 }}>
                   <defs>
-                    <linearGradient id="colorPassRate" x1="0" y1="0" x2="1" y2="0">
+                    <linearGradient id="colorPassRate" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="lineColor" x1="0" y1="0" x2="1" y2="0">
                       <stop offset="0%" stopColor="#ec4899" stopOpacity={1}/>
                       <stop offset="50%" stopColor="#8b5cf6" stopOpacity={1}/>
                       <stop offset="100%" stopColor="#3b82f6" stopOpacity={1}/>
@@ -334,18 +351,20 @@ export default function Dashboard() {
                     cursor={{ stroke: "#334155", strokeWidth: 1, strokeDasharray: "3 3" }}
                     contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#0f172a", color: "#f8fafc" }}
                   />
-                  <Line
+                  <Area
                     type="monotone"
                     dataKey="passRate"
-                    stroke="url(#colorPassRate)"
-                    strokeWidth={3}
+                    stroke="url(#lineColor)"
+                    strokeWidth={4}
+                    fillOpacity={1}
+                    fill="url(#colorPassRate)"
                     dot={{ fill: "#0f172a", stroke: "#8b5cf6", strokeWidth: 2, r: 4 }}
                     activeDot={{ r: 6, fill: "#ec4899", strokeWidth: 0 }}
                     name="Pass Rate %"
                     isAnimationActive={true}
                     animationDuration={2000}
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           ) : metricsLoading ? (
@@ -472,8 +491,8 @@ export default function Dashboard() {
             </div>
             <ChevronRight className="text-indigo-600 dark:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" size={20} />
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

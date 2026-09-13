@@ -27,78 +27,93 @@ export const exportToExcel = (data: any[], filename: string, sheetName = "Data")
   XLSX.writeFile(workbook, `${filename}.xlsx`);
 };
 
+import autoTable from 'jspdf-autotable';
+
 /**
- * Export a DOM element to a professional PDF
- * @param elementId ID of the DOM element to capture
+ * Export structured data to a professional PDF document
+ * @param title Document title
+ * @param paragraphs Array of text paragraphs
+ * @param tableData Optional 2D array of strings for a data table [[Header1, Header2], [Val1, Val2]]
  * @param filename Name of the file without extension
- * @param title Optional title to place at the top of the PDF
  */
-export const exportToPDF = async (elementId: string, filename: string, title?: string) => {
-  const element = document.getElementById(elementId);
-  if (!element) {
-    console.error(`Element with id ${elementId} not found.`);
-    alert("Could not generate PDF. Content not found.");
-    return;
-  }
-
+export const exportToPDF = (title: string, paragraphs: string[], tableData: string[][] | null, filename: string) => {
   try {
-    // We add a tiny delay to ensure all re-renders/animations (like charts) are done
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const canvas = await html2canvas(element, {
-      scale: 2, // Higher quality
-      useCORS: true,
-      logging: false,
-      backgroundColor: document.documentElement.classList.contains("dark") ? "#020817" : "#ffffff"
-    });
-
-    const imgData = canvas.toDataURL('image/png');
-    
-    // A4 dimensions in mm
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4'
     });
+
+    let currentY = 15;
+    const margin = 14;
+    const pageWidth = pdf.internal.pageSize.getWidth();
+
+    // 1. Add Title
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(16);
+    pdf.setTextColor(15, 23, 42); // slate-900
     
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
+    // Split title if it's too long
+    const splitTitle = pdf.splitTextToSize(title, pageWidth - (margin * 2));
+    pdf.text(splitTitle, margin, currentY);
+    currentY += (splitTitle.length * 7) + 5;
+
+    // 2. Add Meta information (date generated)
+    pdf.setFontSize(10);
+    pdf.setFont("helvetica", "normal");
+    pdf.setTextColor(100, 116, 139); // slate-500
+    pdf.text(`Generated on: ${new Date().toLocaleString()}`, margin, currentY);
+    currentY += 10;
+
+    // 3. Add Paragraphs
+    pdf.setFontSize(11);
+    pdf.setTextColor(51, 65, 85); // slate-700
     
-    const imgProps = pdf.getImageProperties(imgData);
-    
-    // Calculate aspect ratio
-    const margin = 10;
-    const availableWidth = pdfWidth - (margin * 2);
-    const imgHeight = (imgProps.height * availableWidth) / imgProps.width;
-    
-    let currentY = margin;
-    
-    // Add title if provided
-    if (title) {
-      pdf.setFont("helvetica", "bold");
-      pdf.setFontSize(16);
-      pdf.text(title, margin, currentY + 5);
-      
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "normal");
-      pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, currentY + 12);
-      
-      currentY += 20;
+    paragraphs.forEach(p => {
+      if (!p.trim()) return;
+      const splitText = pdf.splitTextToSize(p, pageWidth - (margin * 2));
+      pdf.text(splitText, margin, currentY);
+      currentY += (splitText.length * 5) + 3;
+    });
+
+    currentY += 5; // Extra padding before table
+
+    // 4. Add Table if provided
+    if (tableData && tableData.length > 0) {
+      // First row is assumed to be headers
+      const headers = tableData[0];
+      const body = tableData.slice(1);
+
+      autoTable(pdf, {
+        startY: currentY,
+        head: [headers],
+        body: body,
+        theme: 'grid',
+        styles: {
+          font: 'helvetica',
+          fontSize: 10,
+          cellPadding: 4,
+          textColor: [51, 65, 85],
+          lineColor: [226, 232, 240], // slate-200
+          lineWidth: 0.1,
+        },
+        headStyles: {
+          fillColor: [248, 250, 252], // slate-50
+          textColor: [15, 23, 42], // slate-900
+          fontStyle: 'bold',
+          lineColor: [203, 213, 225], // slate-300
+        },
+        alternateRowStyles: {
+          fillColor: [250, 250, 250]
+        },
+        margin: { left: margin, right: margin }
+      });
     }
-    
-    // Add image
-    if (currentY + imgHeight > pdfHeight) {
-      // It's taller than one page, scale it down
-      const scaleFactor = (pdfHeight - currentY - margin) / imgHeight;
-      pdf.addImage(imgData, 'PNG', margin, currentY, availableWidth * scaleFactor, imgHeight * scaleFactor);
-    } else {
-      pdf.addImage(imgData, 'PNG', margin, currentY, availableWidth, imgHeight);
-    }
-    
+
     pdf.save(`${filename}.pdf`);
   } catch (error) {
     console.error("PDF generation failed:", error);
-    alert("Failed to generate PDF. Please try again.");
+    alert("Failed to generate PDF document. Please try again.");
   }
 };
 

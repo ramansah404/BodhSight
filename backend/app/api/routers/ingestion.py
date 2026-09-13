@@ -64,13 +64,21 @@ async def upload_document(
                 
                 for row in reader:
                     student_id = row.get("student_id")
+                    roll_no = row.get("roll_no") or row.get("roll") or row.get("Roll No")
+                    
+                    if not student_id and roll_no:
+                        # Lookup student_id by roll_no
+                        res = db.execute(text("SELECT student_id FROM people.student WHERE roll_no = :roll"), {"roll": roll_no}).fetchone()
+                        if res:
+                            student_id = str(res[0])
+                            
                     if not student_id:
                         continue
                     
                     updates = []
                     params = {"sid": student_id}
                     
-                    att_str = row.get("attendance_pct") or row.get("attendance")
+                    att_str = row.get("attendance_pct") or row.get("attendance") or row.get("Attendance")
                     if att_str:
                         try:
                             params["att"] = float(att_str)
@@ -78,7 +86,7 @@ async def upload_document(
                         except ValueError:
                             pass
                             
-                    cgpa_str = row.get("cgpa") or row.get("marks")
+                    cgpa_str = row.get("cgpa") or row.get("marks") or row.get("CGPA")
                     if cgpa_str:
                         try:
                             params["cgpa"] = float(cgpa_str)
@@ -86,7 +94,7 @@ async def upload_document(
                         except ValueError:
                             pass
                             
-                    backlogs_str = row.get("backlogs") or row.get("backlog_count")
+                    backlogs_str = row.get("backlogs") or row.get("backlog_count") or row.get("Backlogs")
                     if backlogs_str:
                         try:
                             params["backlogs"] = int(float(backlogs_str))
@@ -96,7 +104,6 @@ async def upload_document(
                             
                     if updates:
                         update_q = "UPDATE people.student SET " + ", ".join(updates) + " WHERE student_id = :sid"
-                        # Note: Strict line-by-line RBAC can be enforced here, but read-time RBAC already limits visibility.
                         db.execute(text(update_q), params)
                         rows_updated += 1
                         

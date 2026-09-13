@@ -24,28 +24,24 @@ export default function Students() {
     title: "",
   });
 
-  useEffect(() => {
-    let cancelled = false;
-    setState("loading");
-
+  const fetchTrends = () => {
     Agent10API.getTrends()
       .then((data) => {
-        if (cancelled) return;
-        if (!data) {
-          setState("empty");
-        } else {
-          setTrendsData(data);
-          setState("success");
-        }
+        if (!data) setState("empty");
+        else { setTrendsData(data); setState("success"); }
       })
       .catch((err) => {
-        if (cancelled) return;
         setErrorMsg(err?.message ?? "Failed to load student data.");
         setState("error");
       });
+  };
 
-    return () => { cancelled = true; };
-  }, []);
+  useEffect(() => {
+    if (!drilldown.isOpen) {
+      if (state === "loading") setState("loading");
+      fetchTrends();
+    }
+  }, [drilldown.isOpen]);
 
   const backlog = trendsData?.student_backlog_trend;
 
@@ -70,7 +66,24 @@ export default function Students() {
   };
 
   const handleExportPDF = () => {
-    exportToPDF("students-content", "At_Risk_Intervention_Report", "At-Risk Intervention Report");
+    if (!backlog) return;
+    const paragraphs = [
+      `At-Risk Student Cohort Management Report`,
+      `Total Students Active: ${backlog.total_students}`,
+      `Students with Backlogs: ${backlog.students_with_backlogs} (${((backlog.students_with_backlogs / backlog.total_students) * 100).toFixed(1)}%)`,
+      `Critical High Backlog Students (>=3): ${backlog.students_high_backlogs}`,
+      ``,
+      `Recommended Interventions:`,
+      `- Critical Risk: Mandatory academic counselling. Assign peer mentor. HOD review.`,
+      `- Moderate Risk: Supplemental tutorial sessions. Faculty advisory.`
+    ];
+    
+    const tableData = [
+      ["Risk Level", "Description", "Number of Students"],
+      ...pieData.map(d => [d.name.split(" ")[0], d.name, String(d.value)])
+    ];
+
+    exportToPDF(`At-Risk Student Cohort Management`, paragraphs, tableData, "At_Risk_Intervention_Report");
   };
 
   const handleExportWord = () => {
@@ -215,8 +228,6 @@ export default function Students() {
                       paddingAngle={5}
                       dataKey="value"
                       stroke="none"
-                      label={{ fill: "var(--color-text-primary)", fontSize: 12, fontWeight: 600 }}
-                      labelLine={{ stroke: "var(--color-border)", strokeWidth: 1 }}
                       isAnimationActive={true}
                       animationDuration={1500}
                     >

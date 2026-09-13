@@ -79,7 +79,26 @@ export default function Recommendations() {
   };
 
   const handleExportPDF = () => {
-    exportToPDF("recommendations-content", "Recommendations_Log", "Actionable Recommendations & Interventions");
+    const paragraphs = [
+      `Actionable Recommendations & Interventions`,
+      `Generated for: ${rawRole} View`,
+      `Total Interventions: ${recommendations.length}`
+    ];
+    
+    const tableData = [
+      ["Priority", "Problem", "Recommendation", "Expected Impact", "Affected Population", "Course Code", "Status"],
+      ...recommendations.map(r => [
+        r.priority, 
+        r.problem, 
+        r.recommendation, 
+        String(r.expected_impact), 
+        String(r.affected_population), 
+        r.course_code || "N/A", 
+        r.status || "PENDING"
+      ])
+    ];
+
+    exportToPDF(`Actionable Recommendations`, paragraphs, tableData, "Recommendations_Log");
   };
 
   const handleExportWord = () => {

@@ -53,7 +53,22 @@ export default function Trends() {
   };
 
   const handleExportPDF = () => {
-    exportToPDF("trends-content", "Institutional_Trends_Report", "Institutional Trend Analysis");
+    if (!data) return;
+    
+    const paragraphs = [
+      `Institutional Trend Analysis`,
+      `Average Pass Rate: ${data.current_term_summary?.avg_pass_rate?.toFixed(1) || 0}%`,
+      `Average Marks: ${data.current_term_summary?.avg_marks?.toFixed(1) || 0}`,
+      `Students Evaluated: ${data.current_term_summary?.students_evaluated || 0}`
+    ];
+    
+    const tableData = [
+      ["Course Code", "Title", "Pass Rate (%)", "Delta vs Mean (pp)"],
+      ...data.courses_above_mean.map(c => [c.course_code, c.course_title, String(c.pass_pct), `+${c.delta_vs_mean.toFixed(1)}`]),
+      ...data.courses_below_mean.map(c => [c.course_code, c.course_title, String(c.pass_pct), String(c.delta_vs_mean.toFixed(1))])
+    ];
+
+    exportToPDF(`Institutional Trend Analysis`, paragraphs, tableData, "Institutional_Trends_Report");
   };
 
   const handleExportWord = () => {

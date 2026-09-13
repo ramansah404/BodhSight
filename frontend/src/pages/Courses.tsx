@@ -61,7 +61,20 @@ export default function Courses() {
   };
 
   const handleExportPDF = () => {
-    exportToPDF("courses-content", `Course_Performance_${filters.department || 'All'}`, "Course Performance Audit");
+    const paragraphs = [
+      `Course Performance Audit`,
+      `Department Filter: ${filters.department || 'All Departments'}`,
+      `Total Courses Analysed: ${visible.length}`
+    ];
+    
+    const tableData = [
+      ["Course Code", "Department", "Students", "Pass Rate (%)", "Risk Status"],
+      ...visible.map(c => [
+        c.course_code, c.department, String(c.students_appeared), String(c.pass_rate), c.priority
+      ])
+    ];
+
+    exportToPDF(`Course Performance Audit`, paragraphs, tableData, `Course_Performance_${filters.department || 'All'}`);
   };
 
   const handleExportWord = () => {

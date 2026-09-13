@@ -55,7 +55,19 @@ export default function Departments() {
   };
 
   const handleExportPDF = () => {
-    exportToPDF("departments-content", "Department_Academic_Health_Report", "Department Academic Health");
+    const paragraphs = [
+      `Department Academic Health Report`,
+      insight ? `Key Insight: ${insight.text}` : `No insights available.`
+    ];
+    
+    const tableData = [
+      ["Dept Code", "Department Name", "Students", "Pass Rate (%)", "Avg GPA", "Exceptions", "Status"],
+      ...departments.map(d => [
+        d.department_code, d.department_name, String(d.total_students), String(d.pass_rate), String(d.avg_gpa), String(d.active_exceptions), d.status
+      ])
+    ];
+
+    exportToPDF(`Department Academic Health`, paragraphs, tableData, "Department_Academic_Health_Report");
   };
 
   const handleExportWord = () => {

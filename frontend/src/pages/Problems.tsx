@@ -74,7 +74,25 @@ export default function Problems() {
   };
 
   const handleExportPDF = () => {
-    exportToPDF("problems-content", "Statistical_Anomalies_Log", "Anomaly Center & Evidence Explorer");
+    const paragraphs = [
+      `Anomaly Center & Evidence Explorer`,
+      `Generated for: ${rawRole} View`,
+      `Total Anomalies Detected: ${anomalies.length}`
+    ];
+    
+    const tableData = [
+      ["Anomaly Title", "Severity", "Course", "Department", "Deviation (pp)", "Status"],
+      ...anomalies.map(a => [
+        a.title, 
+        a.severity, 
+        a.course_code !== "—" ? a.course_code : "N/A", 
+        a.department !== "—" ? a.department : "N/A", 
+        String(a.deviation), 
+        a.is_overdue ? "OVERDUE" : "Active"
+      ])
+    ];
+
+    exportToPDF(`Statistical Anomalies Log`, paragraphs, tableData, "Statistical_Anomalies_Log");
   };
 
   const handleExportWord = () => {

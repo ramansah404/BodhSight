@@ -9,14 +9,15 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 def apply_patch():
-    with engine.begin() as conn:
-        # 1. Add column to people.student
-        try:
+    # 1. Add column to people.student
+    try:
+        with engine.begin() as conn:
             conn.execute(text("ALTER TABLE people.student ADD COLUMN demo_backlog_override INT;"))
-            logging.info("Added demo_backlog_override column.")
-        except Exception as e:
-            logging.info(f"Column might already exist: {e}")
-            
+        logging.info("Added demo_backlog_override column.")
+    except Exception as e:
+        logging.info(f"Column might already exist: {e}")
+        
+    with engine.begin() as conn:
         view_def = """
         CREATE OR REPLACE VIEW people.v_student_profile AS
            SELECT s.student_id,
