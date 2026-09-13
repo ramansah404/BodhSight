@@ -5,6 +5,7 @@ import { useState } from 'react';
 import NotificationPanel from '../ui/NotificationPanel';
 import { useNotifications } from '../../contexts/NotificationContext';
 import ThemeToggle from '../ui/ThemeToggle';
+import { getRoleConfig } from '../../utils/roleConfig';
 interface TopbarProps {
   currentRole: string;
   onMenuToggle: () => void;
@@ -31,7 +32,9 @@ export default function Topbar({ currentRole, onMenuToggle }: TopbarProps) {
     "/data-hub": ["Academic data workspace", "Inspect the sources behind institutional intelligence"],
     "/settings": ["Settings", "Session, health, and role permissions"],
   };
-  const [pageTitle, pageSubtitle] = pageTitles[location.pathname] ?? ["BodhSight", "Academic intelligence platform"];
+  const [pageTitle, pageSubtitle] = location.pathname === "/dashboard"
+    ? [getRoleConfig(currentRole).title, getRoleConfig(currentRole).purpose]
+    : pageTitles[location.pathname] ?? ["BodhSight", "Academic intelligence platform"];
   
   const getInitials = (name: string) => {
     const parts = name.split(" ").filter(n => n.length > 0);
