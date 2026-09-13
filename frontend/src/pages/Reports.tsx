@@ -202,7 +202,7 @@ export default function Reports() {
                 <YAxis domain={[0, 100]} axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `${v}%`} />
                 <Tooltip
                   contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#1e293b", color: "#f8fafc" }}
-                  formatter={(val: number) => [`${val.toFixed(1)}%`, "Pass Rate"]}
+                  formatter={(val) => [`${Number(val ?? 0).toFixed(1)}%`, "Pass Rate"]}
                 />
                 <Bar dataKey="passRate" radius={[6, 6, 0, 0]} maxBarSize={60}>
                   {deptChartData.map((entry, index) => (

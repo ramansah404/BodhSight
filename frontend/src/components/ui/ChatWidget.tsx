@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageSquare, X, Send, Loader2, Bot, User, Sparkles, Maximize2, Minimize2 } from "lucide-react";
+import { MessageSquare, X, Send, Loader2, User, Sparkles, Maximize2, Minimize2 } from "lucide-react";
 import { Agent10API } from "../../services/api";
 import { useFilters } from "../../contexts/FilterContext";
 import { motion, AnimatePresence } from "framer-motion";

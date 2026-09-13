@@ -8,8 +8,8 @@ export default function GlobalFilterBar() {
   const { canViewAllDepartments } = getRolePermissions(currentRole);
 
   return (
-    <div className="glass-panel border-b border-border/60 px-6 py-3 flex flex-wrap items-center gap-4 shadow-sm z-10 relative">
-      <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 font-bold text-sm bg-indigo-50 dark:bg-indigo-500/10 px-3 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-500/20">
+    <div className="bg-surface border-b border-border px-4 md:px-8 py-2.5 flex flex-wrap items-center gap-2.5 shadow-sm z-10 relative">
+      <div className="flex items-center gap-2 text-teal-800 dark:text-teal-300 font-bold text-xs uppercase tracking-wider bg-teal-50 dark:bg-teal-500/10 px-3 py-1.5 rounded-md border border-teal-200 dark:border-teal-500/20">
         <Filter size={16} /> Global Scope
       </div>
 

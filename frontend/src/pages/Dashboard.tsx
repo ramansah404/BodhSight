@@ -4,8 +4,9 @@ import {
   Users, AlertTriangle, ShieldCheck, Sparkles,
   BookOpen, ChevronRight, Activity, Building2, Award, Loader2
 } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
 import { useFilters } from "../contexts/FilterContext";
 import { Agent10API } from "../services/api";
 import type { AcademicDashboardMetrics, DepartmentPerformance, CoursePerformance } from "../types/agent10";
@@ -86,7 +87,7 @@ export default function Dashboard() {
       }))
     : courses.map((c) => ({
         name: c.course_code,
-        passRate: c.pass_pct ?? 0,
+        passRate: c.pass_rate ?? 0,
         status: "MONITORING"
       }));
 
@@ -153,7 +154,7 @@ export default function Dashboard() {
     exportToWord(`BodhSight Executive Overview - ${currentRole}`, paragraphs, tableData, "Institutional_Overview_Report");
   };
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -161,7 +162,7 @@ export default function Dashboard() {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
   };
@@ -170,9 +171,9 @@ export default function Dashboard() {
     <div className="max-w-7xl mx-auto space-y-6" id="dashboard-content">
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-surface p-6 rounded-3xl border border-border/60 shadow-lg">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-surface p-6 rounded-xl border border-border shadow-sm border-l-4 border-l-teal-700">
         <div>
-          <div className="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-bold border border-indigo-500/20 mb-3">
+          <div className="inline-flex items-center gap-2 bg-teal-50 text-teal-800 dark:bg-teal-500/10 dark:text-teal-300 px-3 py-1 rounded-md text-xs font-bold border border-teal-200 dark:border-teal-500/20 mb-3">
             {displayRole === "Principal" || displayRole === "Management" ? (
               <Award size={14} />
             ) : currentRole === "HOD" ? (
@@ -184,7 +185,7 @@ export default function Dashboard() {
           </div>
           <h1 className="text-3xl font-bold text-primary tracking-tight">
             {currentRole === "Chairman" || currentRole === "Principal"
-              ? "Executive Board Overview"
+              ? "Academic Performance Overview"
               : currentRole === "Dean"
               ? "Institutional Macro Governance"
               : currentRole === "HOD"
@@ -224,6 +225,24 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <section className="bg-surface rounded-xl border border-border shadow-sm p-5" aria-labelledby="operating-model-title">
+        <div className="flex flex-col gap-1 mb-4">
+          <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-teal-700 dark:text-teal-300">BodhSight operating model</span>
+          <h2 id="operating-model-title" className="text-base font-bold text-primary">From academic data to timely action</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
+          {["Raw data", "AI extraction", "Staging", "Validation", "Commit", "Analytics", "Detection", "Intervention"].map((step, index) => (
+            <div key={step} className="flex items-center gap-2 min-w-0">
+              <div className="min-w-0 flex-1 rounded-lg bg-surface-secondary border border-border px-2.5 py-2">
+                <div className="text-[10px] font-bold text-teal-700 dark:text-teal-300">0{index + 1}</div>
+                <div className="text-xs font-semibold text-primary truncate mt-1">{step}</div>
+              </div>
+              {index < 7 && <ChevronRight size={14} className="hidden lg:block text-secondary shrink-0" aria-hidden="true" />}
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* KPI Cards */}
       {/* Key Metrics */}
       <motion.div 
@@ -234,7 +253,7 @@ export default function Dashboard() {
       >
         {metricsLoading ? (
           [...Array(4)].map((_, i) => (
-            <motion.div key={i} variants={itemVariants} className="bg-surface p-6 rounded-3xl border border-border/60 shadow-sm animate-pulse">
+            <motion.div key={i} variants={itemVariants} className="bg-surface p-5 rounded-xl border border-border shadow-sm animate-pulse">
               <div className="h-3 bg-surface-secondary rounded w-3/4 mb-4" />
               <div className="h-8 bg-surface-secondary rounded w-1/2 mb-2" />
               <div className="h-3 bg-surface-secondary/50 rounded w-2/3" />
@@ -393,7 +412,7 @@ export default function Dashboard() {
             <div style={{ width: "100%", height: 288 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart 
-                  data={courses.map(c => ({ name: c.course_code, passRate: c.pass_rate ?? 0, status: c.status }))} 
+                  data={courses.map(c => ({ name: c.course_code, passRate: c.pass_rate ?? 0 }))}
                   margin={{ top: 10, right: 10, left: -20, bottom: 40 }}
                 >
                   <defs>
@@ -419,7 +438,7 @@ export default function Dashboard() {
                   <Tooltip 
                     cursor={{ stroke: "#334155", strokeWidth: 1, strokeDasharray: "3 3" }}
                     contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#0f172a", color: "#f8fafc" }} 
-                    formatter={(val: number) => [`${val.toFixed(1)}%`, "Pass Rate"]} 
+                    formatter={(val) => [`${Number(val ?? 0).toFixed(1)}%`, "Pass Rate"]}
                   />
                   <Area
                     type="monotone"
