@@ -38,7 +38,7 @@ def get_rbac_department(
 
 
 _QUERY_CACHE = {}
-_CACHE_TTL = 0 # Disabled for hackathon to ensure real-time RBAC updates
+_CACHE_TTL = 5 # 5 seconds deduplicates simultaneous frontend widget requests
 
 def _safe(fn, db, *args, **kwargs):
     """Wrap a computation; return 500 with useful message on failure. Includes in-memory caching for performance."""

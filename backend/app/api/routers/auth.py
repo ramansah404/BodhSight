@@ -176,7 +176,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     try:
         user = db.execute(
             text("""
-                SELECT id, full_name, email, phone_number, password_hash, role, department, two_factor_enabled
+                SELECT id, full_name, email, phone_number, password_hash, role, department, two_factor_enabled, is_active
                 FROM core.user_account
                 WHERE email = :ident OR phone_number = :ident
             """),
@@ -186,6 +186,10 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
         if not user:
             _record_failure(norm_id)
             raise HTTPException(status_code=401, detail="No account found with these credentials.")
+
+        if hasattr(user, 'is_active') and not getattr(user, 'is_active', True):
+            _record_failure(norm_id)
+            raise HTTPException(status_code=403, detail="Your account has been deactivated. Contact administration.")
 
         if not verify_password(data.password, user.password_hash):
             _record_failure(norm_id)
