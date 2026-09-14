@@ -176,7 +176,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     try:
         user = db.execute(
             text("""
-                SELECT id, full_name, email, phone_number, password_hash, role, department, two_factor_enabled
+                SELECT id, full_name, email, phone_number, password_hash, role, department, two_factor_enabled, is_active
                 FROM core.user_account
                 WHERE email = :ident OR phone_number = :ident
             """),

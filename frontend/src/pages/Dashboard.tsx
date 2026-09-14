@@ -116,8 +116,13 @@ export default function Dashboard() {
 
     fetchDashboardData(isUserChange || !metrics);
     
+    const interval = setInterval(() => {
+      fetchDashboardData(false);
+    }, 60000); // 60s silent polling
+
     return () => { 
       cancelled = true; 
+      clearInterval(interval);
     };
   }, [filters]);
 
