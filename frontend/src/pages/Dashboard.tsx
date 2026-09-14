@@ -148,14 +148,10 @@ export default function Dashboard() {
 
       }))
 
-    : courses.map((c) => ({
-
+    : courses.map((c: any) => ({
         name: c.course_code,
-
-        passRate: c.pass_pct ?? 0,
-
+        passRate: c.pass_rate ?? 0,
         status: "MONITORING"
-
       }));
 
 
@@ -378,7 +374,7 @@ export default function Dashboard() {
 
                 <span className="text-emerald-700 dark:text-emerald-500 font-normal ml-1">
 
-                  ΓÇó Trust Score: {metrics.data_trust_score}/100
+                  • Trust Score: {metrics.data_trust_score}/100
 
                 </span>
 
@@ -444,7 +440,7 @@ export default function Dashboard() {
 
           <div className="col-span-1 md:col-span-2 lg:col-span-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4 text-rose-600 dark:text-rose-400 font-medium text-sm">
 
-            ΓÜá {metricsError} ΓÇö Check backend connection at{" "}
+            ⚠️ {metricsError} — Check backend connection at{" "}
 
             {import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}
 
@@ -632,7 +628,7 @@ export default function Dashboard() {
 
 
 
-        {/* Pass rate chart ΓÇö dept for senior roles, courses for Faculty/HOD */}
+        {/* Pass rate chart — dept for senior roles, courses for Faculty/HOD */}
 
         <div className="lg:col-span-2 bg-surface rounded-3xl border border-border/60 shadow-sm p-6">
 
@@ -734,91 +730,15 @@ export default function Dashboard() {
 
             <div className="h-72 flex items-center justify-center gap-2 text-secondary">
 
-              <Loader2 size={18} className="animate-spin" /> Loading dataΓÇª
-
-            </div>
-
-          ) : courses.length > 0 ? (
-
-            <div style={{ width: "100%", height: 288 }}>
-
-              <ResponsiveContainer width="100%" height="100%">
-
-                <AreaChart 
-
-                  data={courses.map(c => ({ name: c.course_code, passRate: c.pass_rate ?? 0, status: c.status }))} 
-                  margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
-                >
-
-                  <defs>
-                    <linearGradient id="colorPassRateCourse" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-
-                    </linearGradient>
-                    <linearGradient id="lineColorCourse" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#ec4899" stopOpacity={1}/>
-                      <stop offset="50%" stopColor="#8b5cf6" stopOpacity={1}/>
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={1}/>
-                    </linearGradient>
-
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
-                  <XAxis 
-
-                    dataKey="name" 
-
-                    axisLine={false} 
-
-                    tickLine={false} 
-                    tick={{ fill: "#94a3b8", fontWeight: "600", fontSize: 12 }} 
-                    dy={10}
-                    angle={-20}
-                    textAnchor="end"
-                  />
-                  <YAxis domain={[0, 100]} hide />
-                  <Tooltip 
-
-                    cursor={{ stroke: "#334155", strokeWidth: 1, strokeDasharray: "3 3" }}
-
-                    contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#0f172a", color: "#f8fafc" }} 
-                    formatter={(val: any) => [`${Number(val).toFixed(1)}%`, "Pass Rate"]} 
-                  />
-
-                  <Area
-
-                    type="monotone"
-
-                    dataKey="passRate"
-                    stroke="url(#lineColorCourse)"
-                    strokeWidth={4}
-
-                    fillOpacity={1}
-                    fill="url(#colorPassRateCourse)"
-                    dot={{ fill: "#0f172a", stroke: "#8b5cf6", strokeWidth: 2, r: 4 }}
-
-                    activeDot={{ r: 6, fill: "#ec4899", strokeWidth: 0 }}
-
-                    name="Pass Rate %"
-
-                    isAnimationActive={true}
-
-                    animationDuration={2000}
-
-                  />
-
-                </AreaChart>
-
-              </ResponsiveContainer>
+              <Loader2 size={18} className="animate-spin" /> Loading data…
 
             </div>
 
           ) : (
 
-            <div className="h-72 flex items-center justify-center text-sm text-secondary font-medium">
-
-              No data available for current scope.
-
+            <div className="h-72 flex flex-col items-center justify-center gap-3 text-secondary">
+              <Activity size={32} className="opacity-20" />
+              <p>No performance data available for this term</p>
             </div>
 
           )}

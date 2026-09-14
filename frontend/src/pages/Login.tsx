@@ -60,12 +60,15 @@ export default function Login() {
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotStep, setForgotStep] = useState<1 | 2 | 3>(1);
   const [newPassword, setNewPassword] = useState("");
+  const [forgotOtp, setForgotOtp] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState("");
 
   // OTP Mode
   const [isOtpMode, setIsOtpMode] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
+  const [otpContext, setOtpContext] = useState<"login" | "signup">("login");
 
   const selectedRole = ROLE_OPTIONS.find((r) => r.code === roleCode) ?? ROLE_OPTIONS[0];
   const needsDept = roleCode === "HOD" || roleCode === "Faculty";
@@ -153,17 +156,11 @@ export default function Login() {
         else payload.phone_number = identifier.trim();
 
         const res = await AuthAPI.signup(payload);
-        if (res.success) {
-          setSuccess("Account created! Signing you in…");
-          setTimeout(() => {
-            startSession(
-              res.role ?? roleCode,
-              selectedRole.label,
-              res.full_name ?? name.trim(),
-              res.email ?? identifier,
-              res.department,
-            );
-          }, 800);
+        if (res.success && res.requires_2fa) {
+          setSuccess("OTP sent! Please verify to complete registration.");
+          setIsOtpMode(true);
+          setOtpSent(true);
+          setOtpContext("signup");
         }
       } else {
         // --- SIGN IN: verify credentials against database ---
@@ -173,6 +170,7 @@ export default function Login() {
             setSuccess("2FA Required. Please check your email or phone for the OTP.");
             setIsOtpMode(true);
             setOtpSent(true);
+            setOtpContext("login");
             return;
           }
 
@@ -224,16 +222,30 @@ export default function Login() {
     
     setLoading(true);
     try {
-      const res = await AuthAPI.verifyOtp({ identifier: identifier.trim(), otp: otp.trim() });
-      if (res.success) {
-        const role = ROLE_OPTIONS.find(r => r.code === res.role);
-        startSession(
-          res.role ?? "Faculty",
-          role?.label ?? res.role ?? "User",
-          res.full_name ?? "User",
-          res.email ?? identifier,
-          res.department,
-        );
+      if (otpContext === "login") {
+        const res = await AuthAPI.verifyOtp({ identifier: identifier.trim(), otp: otp.trim() });
+        if (res.success) {
+          const role = ROLE_OPTIONS.find(r => r.code === res.role);
+          startSession(
+            res.role ?? "Faculty",
+            role?.label ?? res.role ?? "User",
+            res.full_name ?? "User",
+            res.email ?? identifier,
+            res.department,
+          );
+        }
+      } else {
+        const res = await AuthAPI.verifySignup({ identifier: identifier.trim(), otp: otp.trim() });
+        if (res.success) {
+          const role = ROLE_OPTIONS.find(r => r.code === res.role);
+          startSession(
+            res.role ?? "Faculty",
+            role?.label ?? res.role ?? "User",
+            res.full_name ?? "User",
+            res.email ?? identifier,
+            res.department,
+          );
+        }
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || "Invalid or expired OTP.");
@@ -248,18 +260,35 @@ export default function Login() {
     startSession(code, label, demoName, demoEmail, dept);
   };
 
-  const handleSendResetLink = (e: React.FormEvent) => {
+  const handleSendResetLink = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!forgotEmail) { alert("Please enter your registered email address."); return; }
+    setForgotError("");
+    if (!forgotEmail) { setForgotError("Please enter your registered email address."); return; }
     setForgotLoading(true);
-    setTimeout(() => { setForgotLoading(false); setForgotStep(2); }, 800);
+    try {
+      await AuthAPI.forgotPassword({ identifier: forgotEmail.trim() });
+      setForgotStep(2);
+    } catch (err: any) {
+      setForgotError(err.response?.data?.detail || "Failed to send reset link.");
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
-  const handleUpdatePassword = (e: React.FormEvent) => {
+  const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPassword) { alert("Please enter a new password."); return; }
+    setForgotError("");
+    if (!forgotOtp) { setForgotError("Please enter the OTP."); return; }
+    if (!newPassword || newPassword.length < 8) { setForgotError("Password must be at least 8 characters."); return; }
     setForgotLoading(true);
-    setTimeout(() => { setForgotLoading(false); setForgotStep(3); }, 800);
+    try {
+      await AuthAPI.resetPassword({ identifier: forgotEmail.trim(), otp: forgotOtp.trim(), new_password: newPassword });
+      setForgotStep(3);
+    } catch (err: any) {
+      setForgotError(err.response?.data?.detail || "Failed to reset password.");
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
   const inputClass = "w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-primary placeholder:text-secondary/50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm";
@@ -557,14 +586,14 @@ export default function Login() {
                   <div className="flex justify-between items-center mt-2">
                     <button
                       type="button"
-                      onClick={() => { setIsOtpMode(true); setOtpSent(false); setOtp(""); setError(""); setSuccess(""); }}
+                      onClick={() => { setIsOtpMode(true); setOtpSent(false); setOtp(""); setError(""); setSuccess(""); setOtpContext("login"); }}
                       className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
                     >
                       Login with OTP instead
                     </button>
                     <button
                       type="button"
-                      onClick={() => { setForgotEmail(identifier); setForgotStep(1); setNewPassword(""); setShowForgotModal(true); }}
+                      onClick={() => { setForgotEmail(identifier); setForgotStep(1); setNewPassword(""); setForgotOtp(""); setForgotError(""); setShowForgotModal(true); }}
                       className="text-xs font-medium text-secondary hover:text-indigo-600 dark:hover:text-indigo-600 dark:text-indigo-400 transition-colors cursor-pointer"
                     >
                       Forgot Password?
@@ -610,7 +639,7 @@ export default function Login() {
                         />
                       </div>
                     </div>
-                    <motion.button
+                      <motion.button
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
                       type="button"
@@ -618,7 +647,7 @@ export default function Login() {
                       disabled={loading || otp.length !== 6}
                       className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      <ShieldCheck size={18} /> {loading ? "Verifying..." : "Verify OTP & Login"}
+                      <ShieldCheck size={18} /> {loading ? "Verifying..." : otpContext === "signup" ? "Verify OTP & Create Account" : "Verify OTP & Login"}
                     </motion.button>
                   </motion.div>
                 )}
@@ -721,6 +750,11 @@ export default function Login() {
               </div>
 
               <div className="p-6">
+                {forgotError && (
+                  <div className="mb-4 px-4 py-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-sm font-medium text-rose-600">
+                    {forgotError}
+                  </div>
+                )}
                 <AnimatePresence mode="wait">
                   {forgotStep === 1 && (
                     <motion.form key="s1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleSendResetLink} className="space-y-5">
@@ -745,11 +779,11 @@ export default function Login() {
                   {forgotStep === 2 && (
                     <motion.form key="s2" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleUpdatePassword} className="space-y-5">
                       <div className="bg-indigo-500/10 p-3.5 rounded-xl border border-indigo-500/20 text-sm text-indigo-700 dark:text-indigo-300 font-medium">
-                        Code sent to <strong>{forgotEmail}</strong>.<br/>(Demo code: <strong>4892</strong>)
+                        OTP sent to <strong>{forgotEmail}</strong>.
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-secondary uppercase mb-2">Security Code</label>
-                        <input type="text" defaultValue="4892" className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-base font-bold tracking-[0.2em] text-center text-primary focus:border-indigo-500 focus:outline-none shadow-sm" required />
+                        <input type="text" value={forgotOtp} onChange={(e) => setForgotOtp(e.target.value)} placeholder="123456" maxLength={6} className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-base font-bold tracking-[0.2em] text-center text-primary focus:border-indigo-500 focus:outline-none shadow-sm" required />
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-secondary uppercase mb-2">New Password</label>

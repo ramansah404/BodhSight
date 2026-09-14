@@ -238,7 +238,7 @@ export default function Courses() {
 
       {/* Course Detail Modal */}
       {selectedCourse && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[90] p-4">
           <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border/60 animate-in zoom-in-95">
             <div className="px-6 py-4 bg-surface-secondary/50 border-b border-border/60 flex justify-between items-center text-primary">
               <div>

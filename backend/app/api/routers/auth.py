@@ -22,6 +22,7 @@ VALID_ROLES = ["Admin", "Chairman", "Principal", "Dean", "HOD", "Faculty", "IQAC
 # -------------------------------------------------------------------
 _login_attempts: dict = defaultdict(list)  # identifier -> [timestamp, ...]
 _otps: dict = {}  # identifier -> otp
+_pending_signups: dict = {} # identifier -> SignupRequest
 MAX_ATTEMPTS = 5
 LOCKOUT_SECONDS = 60  # 1 minute
 
@@ -83,6 +84,14 @@ class VerifyOtpRequest(BaseModel):
     identifier: str
     otp: str
 
+class ForgotPasswordRequest(BaseModel):
+    identifier: str
+
+class ResetPasswordRequest(BaseModel):
+    identifier: str
+    otp: str
+    new_password: str = Field(..., min_length=8)
+
 
 # -------------------------------------------------------------------
 # Helper functions
@@ -105,8 +114,8 @@ def verify_password(plain: str, hashed: str) -> bool:
 # -------------------------------------------------------------------
 
 @router.post("/signup", response_model=AuthResponse)
-def signup(data: SignupRequest, db: Session = Depends(get_db)):
-    """Register a new institutional user."""
+async def signup(data: SignupRequest, db: Session = Depends(get_db)):
+    """Initiates registration by sending an OTP. Account is NOT created yet."""
     # Validation
     if not data.email and not data.phone_number:
         raise HTTPException(status_code=422, detail="Either email or phone number is required.")
@@ -114,59 +123,168 @@ def signup(data: SignupRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=422, detail=f"Invalid role. Must be one of: {VALID_ROLES}")
     if data.role in ["HOD", "Faculty"] and not data.department:
         raise HTTPException(status_code=422, detail="Department is required for HOD and Faculty roles.")
+    if len(data.password) < 8:
+        raise HTTPException(status_code=422, detail="Password must be at least 8 characters long.")
 
     try:
         # Check if email already exists
+        identifier = ""
         if data.email:
+            identifier = data.email.lower().strip()
             exists = db.execute(
                 text("SELECT id FROM core.user_account WHERE email = :email"),
-                {"email": data.email.lower().strip()}
+                {"email": identifier}
             ).fetchone()
             if exists:
                 raise HTTPException(status_code=409, detail="An account with this email already exists.")
-
+        
         # Check if phone already exists
-        if data.phone_number:
+        if data.phone_number and not identifier:
+            identifier = data.phone_number.strip()
             exists = db.execute(
                 text("SELECT id FROM core.user_account WHERE phone_number = :phone"),
-                {"phone": data.phone_number.strip()}
+                {"phone": identifier}
             ).fetchone()
             if exists:
                 raise HTTPException(status_code=409, detail="An account with this phone number already exists.")
 
+        # Store pending signup and send OTP
+        import random
+        from app.services.notification import send_email_otp, send_whatsapp_otp
+        
+        otp = str(random.randint(100000, 999999))
+        _otps[identifier] = otp
+        _pending_signups[identifier] = data
+
+        if '@' in identifier and data.email:
+            await send_email_otp(data.email, otp)
+        elif data.phone_number:
+            await send_whatsapp_otp(data.phone_number, otp)
+
+        return AuthResponse(
+            success=True,
+            message="OTP sent. Please verify to complete account creation.",
+            requires_2fa=True, # Signal frontend to ask for OTP
+            email=identifier
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Signup error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to initiate account creation. Please try again.")
+
+@router.post("/verify-signup", response_model=AuthResponse)
+def verify_signup(data: VerifyOtpRequest, db: Session = Depends(get_db)):
+    """Verifies OTP and creates the account."""
+    identifier = data.identifier.strip().lower()
+    
+    if _otps.get(identifier) != data.otp:
+        raise HTTPException(status_code=401, detail="Invalid or expired OTP.")
+        
+    pending_data = _pending_signups.get(identifier)
+    if not pending_data:
+        raise HTTPException(status_code=400, detail="No pending signup found for this identifier.")
+
+    try:
+        # Clear the OTP & Pending Data
+        _otps.pop(identifier, None)
+        _pending_signups.pop(identifier, None)
+        
         # Hash password and insert user
-        password_hash = hash_password(data.password)
+        password_hash = hash_password(pending_data.password)
         db.execute(
             text("""
                 INSERT INTO core.user_account (email, phone_number, full_name, password_hash, role, department)
                 VALUES (:email, :phone, :name, :hash, :role, :dept)
             """),
             {
-                "email": data.email.lower().strip() if data.email else None,
-                "phone": data.phone_number.strip() if data.phone_number else None,
-                "name": data.full_name.strip(),
+                "email": pending_data.email.lower().strip() if pending_data.email else None,
+                "phone": pending_data.phone_number.strip() if pending_data.phone_number else None,
+                "name": pending_data.full_name.strip(),
                 "hash": password_hash,
-                "role": data.role,
-                "dept": data.department,
+                "role": pending_data.role,
+                "dept": pending_data.department,
             }
         )
         db.commit()
 
         return AuthResponse(
             success=True,
-            message="Account created successfully. You can now sign in.",
-            role=data.role,
-            full_name=data.full_name,
-            email=data.email,
-            department=data.department,
+            message="Account created successfully. Login successful.",
+            role=pending_data.role,
+            full_name=pending_data.full_name,
+            email=pending_data.email,
+            department=pending_data.department,
+            requires_2fa=False,
         )
-
-    except HTTPException:
-        raise
     except Exception as e:
         db.rollback()
-        logger.error(f"Signup error: {e}")
+        logger.error(f"Signup verification error: {e}")
         raise HTTPException(status_code=500, detail="Failed to create account. Please try again.")
+
+@router.post("/forgot-password")
+async def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    identifier = data.identifier.strip().lower()
+    
+    user = db.execute(
+        text("SELECT email, phone_number FROM core.user_account WHERE email = :ident OR phone_number = :ident"),
+        {"ident": identifier}
+    ).fetchone()
+    
+    if not user:
+        # Prevent user enumeration
+        return {"success": True, "message": "If the account exists, an OTP has been sent."}
+        
+    import random
+    from app.services.notification import send_email_otp, send_whatsapp_otp
+    
+    otp = str(random.randint(100000, 999999))
+    _otps[identifier] = otp
+    
+    if '@' in identifier and user.email:
+        await send_email_otp(user.email, otp)
+    elif user.phone_number:
+        await send_whatsapp_otp(user.phone_number, otp)
+        
+    return {"success": True, "message": "If the account exists, an OTP has been sent."}
+
+@router.post("/reset-password", response_model=AuthResponse)
+def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+    identifier = data.identifier.strip().lower()
+    
+    if _otps.get(identifier) != data.otp:
+        raise HTTPException(status_code=401, detail="Invalid or expired OTP.")
+        
+    user = db.execute(
+        text("SELECT id FROM core.user_account WHERE email = :ident OR phone_number = :ident"),
+        {"ident": identifier}
+    ).fetchone()
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Account not found.")
+        
+    try:
+        # Clear the OTP
+        _otps.pop(identifier, None)
+        
+        # Update Password
+        password_hash = hash_password(data.new_password)
+        db.execute(
+            text("UPDATE core.user_account SET password_hash = :hash WHERE id = :id"),
+            {"hash": password_hash, "id": user.id}
+        )
+        db.commit()
+
+        return AuthResponse(
+            success=True,
+            message="Password reset successfully. You can now login.",
+            requires_2fa=False,
+        )
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Reset password error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to reset password. Please try again.")
 
 
 @router.post("/login", response_model=AuthResponse)

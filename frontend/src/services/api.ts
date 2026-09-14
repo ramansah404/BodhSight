@@ -35,6 +35,19 @@ export const apiClient = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+// Global state for mock data
+export let mockDataEnabled = true;
+export const syncSystemConfig = async () => {
+  try {
+    const res = await apiClient.get("/admin/config");
+    mockDataEnabled = res.data.mock_data_enabled;
+  } catch (e) {
+    console.warn("Failed to sync system config");
+  }
+};
+// Sync immediately
+syncSystemConfig();
+
 // Attach role headers to every request
 apiClient.interceptors.request.use((config) => {
   const role = localStorage.getItem("bodhsight_role") || "Dean";
@@ -117,9 +130,13 @@ export const Agent10API = {
     const dept = localStorage.getItem("bodhsight_department") || undefined;
     try {
       const data = await get<AcademicDashboardMetrics>(buildQuery("/agent10/dashboard", filters));
-      if (!data || data.total_students === 0) return Mocks.getDynamicMockDashboard(role, dept) as any;
+      if (!data || data.total_students === 0) {
+        if (!mockDataEnabled) throw new Error("No data available");
+        return Mocks.getDynamicMockDashboard(role, dept) as any;
+      }
       return data;
     } catch {
+      if (!mockDataEnabled) throw new Error("No real data available for dashboard");
       return Mocks.getDynamicMockDashboard(role, dept) as any;
     }
   },
@@ -130,9 +147,13 @@ export const Agent10API = {
     const dept = localStorage.getItem("bodhsight_department") || undefined;
     try {
       const raw = await get<Record<string, unknown>[]>(buildQuery("/agent10/performance/courses", filters));
-      if (!raw || raw.length === 0) return Mocks.getDynamicMockCourses(role, dept) as any;
+      if (!raw || raw.length === 0) {
+        if (!mockDataEnabled) return [];
+        return Mocks.getDynamicMockCourses(role, dept) as any;
+      }
       return raw.map(_mapCourse);
     } catch {
+      if (!mockDataEnabled) return [];
       return Mocks.getDynamicMockCourses(role, dept) as any;
     }
   },
@@ -143,11 +164,12 @@ export const Agent10API = {
     const dept = localStorage.getItem("bodhsight_department") || undefined;
     try {
       const data = await get<DepartmentPerformance[]>(buildQuery("/agent10/performance/departments", filters));
-      if (!data || data.length === 0) return Mocks.getDynamicMockDepartments(role, dept) as any;
+      if (!data || data.length === 0) { if (!mockDataEnabled) return ([] as any); return Mocks.getDynamicMockDepartments(role, dept) as any; }
       return data;
     } catch {
+      if (!mockDataEnabled) return ([] as any);
       return Mocks.getDynamicMockDepartments(role, dept) as any;
-    }
+      }
   },
 
   /**
@@ -159,11 +181,12 @@ export const Agent10API = {
     const dept = localStorage.getItem("bodhsight_department") || undefined;
     try {
       const data = await get<TrendsResponse>(buildQuery("/agent10/trends", filters));
-      if (!data || !data.current_term_summary || data.current_term_summary.total_sections === 0) return Mocks.getDynamicMockTrends(role, dept) as any;
+      if (!data || !data.current_term_summary || data.current_term_summary.total_sections === 0) { if (!mockDataEnabled) return ([] as any); return Mocks.getDynamicMockTrends(role, dept) as any; }
       return data;
     } catch {
+      if (!mockDataEnabled) return ([] as any);
       return Mocks.getDynamicMockTrends(role, dept) as any;
-    }
+      }
   },
 
   /** Problems / exceptions sorted by priority score */
@@ -172,11 +195,12 @@ export const Agent10API = {
     const dept = localStorage.getItem("bodhsight_department") || undefined;
     try {
       const data = await get<AcademicException[]>(buildQuery("/agent10/exceptions", filters));
-      if (!data || data.length === 0) return Mocks.getDynamicMockExceptions(role, dept) as any;
+      if (!data || data.length === 0) { if (!mockDataEnabled) return ([] as any); return Mocks.getDynamicMockExceptions(role, dept) as any; }
       return data;
     } catch {
+      if (!mockDataEnabled) return ([] as any);
       return Mocks.getDynamicMockExceptions(role, dept) as any;
-    }
+      }
   },
 
   /** Recommendations derived from detected anomalies */
@@ -185,11 +209,12 @@ export const Agent10API = {
     const dept = localStorage.getItem("bodhsight_department") || undefined;
     try {
       const raw = await get<BackendRecommendation[]>(buildQuery("/agent10/recommendations", filters));
-      if (!raw || raw.length === 0) return Mocks.getDynamicMockRecommendations(role, dept) as any;
+      if (!raw || raw.length === 0) { if (!mockDataEnabled) return ([] as any); return Mocks.getDynamicMockRecommendations(role, dept) as any; }
       return raw.map(_mapRec);
     } catch {
+      if (!mockDataEnabled) return ([] as any);
       return Mocks.getDynamicMockRecommendations(role, dept) as any;
-    }
+      }
   },
 
   /** Section-level comparison with disparity flags */
@@ -198,11 +223,12 @@ export const Agent10API = {
     const dept = localStorage.getItem("bodhsight_department") || undefined;
     try {
       const data = await get<SectionComparison[]>(buildQuery("/agent10/sections", filters));
-      if (!data || data.length === 0) return Mocks.getDynamicMockSections(role, dept) as any;
+      if (!data || data.length === 0) { if (!mockDataEnabled) return ([] as any); return Mocks.getDynamicMockSections(role, dept) as any; }
       return data;
     } catch {
+      if (!mockDataEnabled) return ([] as any);
       return Mocks.getDynamicMockSections(role, dept) as any;
-    }
+      }
   },
 
   /** Ranked intervention priorities */
@@ -211,11 +237,12 @@ export const Agent10API = {
     const dept = localStorage.getItem("bodhsight_department") || undefined;
     try {
       const data = await get<InterventionPriorityItem[]>(buildQuery("/agent10/priorities", filters));
-      if (!data || data.length === 0) return Mocks.getDynamicMockPriorities(role, dept) as any;
+      if (!data || data.length === 0) { if (!mockDataEnabled) return ([] as any); return Mocks.getDynamicMockPriorities(role, dept) as any; }
       return data;
     } catch {
+      if (!mockDataEnabled) return ([] as any);
       return Mocks.getDynamicMockPriorities(role, dept) as any;
-    }
+      }
   },
 
   /** Condonation risk & revenue forecast */
@@ -428,6 +455,21 @@ export const AuthAPI = {
     const res = await apiClient.post<AuthResponse>("/auth/signup", payload);
     return res.data;
   },
+  
+  async verifySignup(payload: { identifier: string; otp: string }): Promise<AuthResponse> {
+    const res = await apiClient.post<AuthResponse>("/auth/verify-signup", payload);
+    return res.data;
+  },
+
+  async forgotPassword(payload: { identifier: string }): Promise<{ success: boolean; message: string }> {
+    const res = await apiClient.post("/auth/forgot-password", payload);
+    return res.data;
+  },
+
+  async resetPassword(payload: { identifier: string; otp: string; new_password: string }): Promise<AuthResponse> {
+    const res = await apiClient.post<AuthResponse>("/auth/reset-password", payload);
+    return res.data;
+  },
 
   async login(payload: {
     identifier: string;
@@ -530,6 +572,18 @@ export const AdminAPI = {
   async updatePermissions(role: string, permissions: string[]): Promise<{ success: boolean; message: string }> {
     const res = await apiClient.put(`/admin/permissions/${role}`, { permissions });
     return res.data;
+  },
+
+  async getSystemConfig(): Promise<{ mock_data_enabled: boolean }> {
+    const res = await apiClient.get("/admin/config");
+    return res.data;
+  },
+
+  async updateSystemConfig(mockDataEnabled: boolean): Promise<{ success: boolean; message: string }> {
+    const res = await apiClient.put("/admin/config", { mock_data_enabled: mockDataEnabled });
+    syncSystemConfig();
+    return res.data;
   }
 };
+
 

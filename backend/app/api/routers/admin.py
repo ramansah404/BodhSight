@@ -210,6 +210,42 @@ def update_role_permissions(role_name: str, data: RolePermissionsRequest, db: Se
         logger.error(f"Error updating permissions: {e}")
         raise HTTPException(status_code=500, detail="Failed to update permissions")
 
+class SystemConfigRequest(BaseModel):
+    mock_data_enabled: bool
+
+@router.get("/config")
+def get_system_config(db: Session = Depends(get_db)):
+    """Fetch global system config. Publicly accessible so UI knows mode."""
+    try:
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS core.system_config (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )
+        """))
+        db.commit()
+        row = db.execute(text("SELECT value FROM core.system_config WHERE key = 'mock_data_enabled'")).fetchone()
+        return {"mock_data_enabled": row.value == "true" if row else True} # Default True for demo
+    except Exception as e:
+        logger.error(f"Error fetching config: {e}")
+        return {"mock_data_enabled": True}
+
+@router.put("/config")
+def update_system_config(data: SystemConfigRequest, db: Session = Depends(get_db), _: str = Depends(verify_admin)):
+    """Update global system config."""
+    try:
+        val = "true" if data.mock_data_enabled else "false"
+        db.execute(text("""
+            INSERT INTO core.system_config (key, value) VALUES ('mock_data_enabled', :val)
+            ON CONFLICT (key) DO UPDATE SET value = :val
+        """), {"val": val})
+        db.commit()
+        return {"success": True, "message": "System config updated"}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating config: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update config")
+
 
 class BroadcastNotificationRequest(BaseModel):
     title: str

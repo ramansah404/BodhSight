@@ -158,7 +158,7 @@ export default function Students() {
 
       {state === "success" && backlog && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-surface p-6 rounded-3xl border border-border shadow-sm">
               <div className="flex justify-between items-start">
                 <div className="text-xs font-bold uppercase tracking-wider text-secondary">Total Students</div>
@@ -200,6 +200,20 @@ export default function Students() {
                 {backlog.students_high_backlogs.toLocaleString()}
               </div>
               <div className="text-xs text-rose-600 dark:text-rose-500 font-medium mt-1">Critical intervention needed</div>
+            </div>
+
+            <div 
+              onClick={() => canDrilldown && setDrilldown({ isOpen: true, context: "low_risk", title: "Low Risk Students" })}
+              className={`bg-surface p-6 rounded-3xl border border-amber-500/20 shadow-sm transition-colors group ${canDrilldown ? 'cursor-pointer hover:bg-surface/80' : 'opacity-90'}`}
+            >
+              <div className="flex justify-between items-start">
+                <div className="text-xs font-bold uppercase tracking-wider text-amber-500 group-hover:text-amber-600 transition-colors">Low Backlogs (1-2)</div>
+                <AlertCircle size={16} className="text-amber-500 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="text-3xl font-black text-amber-500 mt-2">
+                {(backlog.students_with_backlogs - backlog.students_high_backlogs).toLocaleString()}
+              </div>
+              <div className="text-xs text-amber-600 dark:text-amber-500 font-medium mt-1">Early intervention recommended</div>
             </div>
           </div>
 

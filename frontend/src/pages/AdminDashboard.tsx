@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ShieldCheck, Trash2, Edit2, Loader2, AlertTriangle, Plus, Key, Power, X, Users, Lock, Bell, Send } from "lucide-react";
+import { ShieldCheck, Trash2, Edit2, Loader2, AlertTriangle, Plus, Key, Power, X, Users, Lock, Bell, Send, Database } from "lucide-react";
 import { AdminAPI, NotificationAPI } from "../services/api";
 
 type AdminUser = {
@@ -65,6 +65,10 @@ export default function AdminDashboard() {
   const [notifSending, setNotifSending] = useState(false);
   const [notifSuccess, setNotifSuccess] = useState("");
 
+  // System Config State
+  const [mockDataEnabled, setMockDataEnabled] = useState(true);
+  const [configLoading, setConfigLoading] = useState(false);
+
   const fetchUsers = async () => {
     try {
       const data = await AdminAPI.getAllUsers();
@@ -92,6 +96,12 @@ export default function AdminDashboard() {
 
     loadData();
     loadRbac();
+    
+    // Load config
+    AdminAPI.getSystemConfig().then(cfg => {
+      if (!cancelled) setMockDataEnabled(cfg.mock_data_enabled);
+    }).catch(() => {});
+
     const interval = setInterval(loadData, 30000);
 
     return () => {
@@ -220,6 +230,19 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleToggleMockData = async () => {
+    try {
+      setConfigLoading(true);
+      await AdminAPI.updateSystemConfig(!mockDataEnabled);
+      setMockDataEnabled(!mockDataEnabled);
+      alert(`Mock Data Fallback ${!mockDataEnabled ? 'Enabled' : 'Disabled'}`);
+    } catch (err: any) {
+      alert("Failed to update system config: " + (err.response?.data?.detail || ""));
+    } finally {
+      setConfigLoading(false);
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>;
   }
@@ -269,6 +292,14 @@ export default function AdminDashboard() {
           }`}
         >
           <Bell size={16} /> Send Notification
+        </button>
+        <button
+          onClick={() => setActiveTab("settings")}
+          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+            activeTab === "settings" ? "border-indigo-600 text-indigo-600" : "border-transparent text-secondary hover:text-primary"
+          }`}
+        >
+          <Database size={16} /> System Settings
         </button>
       </div>
 
@@ -578,6 +609,33 @@ export default function AdminDashboard() {
               {notifSending ? "Sending..." : "Send Notification"}
             </button>
           </form>
+        </div>
+      )}
+
+      {activeTab === "settings" as any && (
+        <div className="bg-surface border border-border/60 rounded-3xl shadow-sm overflow-hidden p-6">
+          <h2 className="text-lg font-bold text-primary flex items-center gap-2 mb-4">
+            <Database className="text-indigo-600" size={20} />
+            Global System Settings
+          </h2>
+          <div className="flex items-center justify-between bg-surface-secondary/50 p-4 rounded-xl border border-border/60">
+            <div>
+              <h3 className="font-bold text-primary text-sm">Allow Mock Data Fallbacks</h3>
+              <p className="text-secondary text-xs mt-1 max-w-md">
+                When enabled, the application will display realistic mock data if real backend analytical data is empty or unavailable. 
+                Disable this to enforce strict real-time data views only.
+              </p>
+            </div>
+            <button
+              onClick={handleToggleMockData}
+              disabled={configLoading}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${mockDataEnabled ? 'bg-indigo-600' : 'bg-slate-400 dark:bg-slate-600'}`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${mockDataEnabled ? 'translate-x-6' : 'translate-x-1'}`}
+              />
+            </button>
+          </div>
         </div>
       )}
 

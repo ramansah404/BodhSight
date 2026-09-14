@@ -243,17 +243,30 @@ def compute_trends(db: Session, department: str = None, semester: str = None, pr
     avg_pp = _f(perf_summary.get("avg_pass_pct")) or 0.0
     avg_marks = _f(perf_summary.get("avg_marks")) or 0.0
 
+    # Aggregate by course_code first to avoid duplicates for multi-section courses
+    course_aggs = {}
+    for row in perf_rows:
+        code = row.get("course_code")
+        pp = _f(row.get("pass_pct"))
+        if not code or pp is None:
+            continue
+        if code not in course_aggs:
+            course_aggs[code] = {
+                "course_code": code,
+                "course_title": row.get("course_title"),
+                "pass_pcts": []
+            }
+        course_aggs[code]["pass_pcts"].append(pp)
+
     improving = []
     declining = []
-    for row in perf_rows:
-        pp = _f(row.get("pass_pct"))
-        if pp is None:
-            continue
-        delta = round(pp - avg_pp, 2)
+    for code, data in course_aggs.items():
+        avg_course_pp = sum(data["pass_pcts"]) / len(data["pass_pcts"])
+        delta = round(avg_course_pp - avg_pp, 2)
         entry = {
-            "course_code": row.get("course_code"),
-            "course_title": row.get("course_title"),
-            "pass_pct": round(pp, 2),
+            "course_code": code,
+            "course_title": data["course_title"],
+            "pass_pct": round(avg_course_pp, 2),
             "delta_vs_mean": delta,
         }
         if delta > 5:
