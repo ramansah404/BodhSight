@@ -73,7 +73,7 @@ export default function ExportMenu({ onExportExcel, onExportPDF, onExportWord, c
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full right-0 mt-2 w-48 bg-surface border border-border rounded-xl shadow-xl overflow-hidden z-50 flex flex-col p-1"
+            className="absolute top-full right-0 mt-2 w-48 bg-surface border border-border rounded-xl shadow-xl overflow-hidden z-[200] flex flex-col p-1"
           >
             {/* EXCEL */}
             {onExportExcel && (

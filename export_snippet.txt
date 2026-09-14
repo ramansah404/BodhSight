@@ -1,0 +1,53 @@
+ Secure
+
+              {metrics && (
+
+                <span className="text-emerald-700 dark:text-emerald-500 font-normal ml-1">
+
+                  ΓÇó Trust Score: {metrics.data_trust_score}/100
+
+                </span>
+
+              )}
+
+            </div>
+
+          </div>
+
+          
+
+          <ExportMenu 
+
+            onExportExcel={handleExportExcel}
+
+            onExportPDF={handleExportPDF}
+
+            onExportWord={handleExportWord}
+
+            disabled={metricsLoading || !!metricsError}
+
+          />
+
+        </div>
+
+      </div>
+
+
+
+      {/* KPI Cards */}
+
+      {/* Key Metrics */}
+
+      <motion.div 
+
+        variants={containerVariants}
+
+        initial="hidden"
+
+        animate="show"
+
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+
+      >
+
+     
