@@ -60,6 +60,14 @@ export const ROLE_CONFIG: Record<RuntimeRole, RoleConfig> = {
     primaryQuestion: "Where are the academic quality signals, risks, and evidence areas?",
     composition: "iqac",
   },
+  Admin: {
+    role: "Admin" as RuntimeRole,
+    title: "System Administration",
+    purpose: "Global configuration and access control",
+    scopeLabel: "System scope",
+    primaryQuestion: "What is the global system status?",
+    composition: "iqac", // Fallback, could map to a specific admin dashboard if it exists
+  },
 };
 
 export function getRoleConfig(role: string): RoleConfig {

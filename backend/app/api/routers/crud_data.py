@@ -66,6 +66,10 @@ def get_students_by_section(section_code: str, department: str = Depends(get_rba
         """
         params = {"section": section_code}
         
+        if department:
+            query += " AND department_code = :dept"
+            params["dept"] = department
+        
         query += " ORDER BY roll_no ASC"
             
         result = db.execute(text(query), params).fetchall()
