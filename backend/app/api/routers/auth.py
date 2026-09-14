@@ -21,6 +21,7 @@ VALID_ROLES = ["Admin", "Chairman", "Principal", "Dean", "HOD", "Faculty", "IQAC
 # Brute-force protection: track failed login attempts per identifier
 # -------------------------------------------------------------------
 _login_attempts: dict = defaultdict(list)  # identifier -> [timestamp, ...]
+_otps: dict = {}  # identifier -> otp
 MAX_ATTEMPTS = 5
 LOCKOUT_SECONDS = 60  # 1 minute
 
@@ -74,6 +75,13 @@ class AuthResponse(BaseModel):
     email: Optional[str] = None
     department: Optional[str] = None
     requires_2fa: Optional[bool] = None
+
+class OtpRequest(BaseModel):
+    identifier: str
+
+class VerifyOtpRequest(BaseModel):
+    identifier: str
+    otp: str
 
 
 # -------------------------------------------------------------------
@@ -201,13 +209,16 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
         if getattr(user, 'two_factor_enabled', False):
             # Send OTP for 2FA
             import random
+            from app.services.notification import send_email_otp, send_whatsapp_otp
+            
             otp = str(random.randint(100000, 999999))
-            _mock_otps[norm_id] = otp
-            from app.services.communication import communication_service
-            if user.email:
-                communication_service.send_email(user.email, "BodhSight 2FA Code", f"Your 2FA code is {otp}")
+            _otps[norm_id] = otp
+            
+            import asyncio
+            if user.email and '@' in norm_id:
+                asyncio.create_task(send_email_otp(user.email, otp))
             elif user.phone_number:
-                communication_service.send_whatsapp(user.phone_number, f"Your BodhSight 2FA code is {otp}")
+                asyncio.create_task(send_whatsapp_otp(user.phone_number, otp))
             
             return AuthResponse(
                 success=True,
@@ -231,6 +242,64 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Login error: {e}")
         raise HTTPException(status_code=500, detail="Login failed. Please try again.")
+
+@router.post("/request-otp")
+async def request_otp(data: OtpRequest, db: Session = Depends(get_db)):
+    identifier = data.identifier.strip().lower()
+    
+    user = db.execute(
+        text("SELECT email, phone_number FROM core.user_account WHERE email = :ident OR phone_number = :ident"),
+        {"ident": identifier}
+    ).fetchone()
+    
+    if not user:
+        # Don't reveal user existence
+        return {"success": True, "message": "If the account exists, an OTP has been sent."}
+        
+    import random
+    from app.services.notification import send_email_otp, send_whatsapp_otp
+    
+    otp = str(random.randint(100000, 999999))
+    _otps[identifier] = otp
+    
+    if '@' in identifier and user.email:
+        await send_email_otp(user.email, otp)
+    elif user.phone_number:
+        await send_whatsapp_otp(user.phone_number, otp)
+        
+    return {"success": True, "message": "OTP sent successfully."}
+
+@router.post("/verify-otp", response_model=AuthResponse)
+def verify_otp(data: VerifyOtpRequest, db: Session = Depends(get_db)):
+    identifier = data.identifier.strip().lower()
+    
+    if _otps.get(identifier) != data.otp:
+        raise HTTPException(status_code=401, detail="Invalid or expired OTP.")
+        
+    # Clear the OTP
+    _otps.pop(identifier, None)
+    
+    user = db.execute(
+        text("""
+            SELECT id, full_name, email, phone_number, role, department, two_factor_enabled, is_active
+            FROM core.user_account
+            WHERE email = :ident OR phone_number = :ident
+        """),
+        {"ident": identifier}
+    ).fetchone()
+    
+    if not user or (hasattr(user, 'is_active') and not getattr(user, 'is_active', True)):
+        raise HTTPException(status_code=401, detail="Authentication failed.")
+        
+    return AuthResponse(
+        success=True,
+        message="Verification successful.",
+        role=user.role,
+        full_name=user.full_name,
+        email=user.email,
+        department=user.department,
+        requires_2fa=False,
+    )
 
 class Toggle2FARequest(BaseModel):
     enable: bool
@@ -305,10 +374,13 @@ def google_auth(data: GoogleAuthRequest, db: Session = Depends(get_db)):
         # 2FA Check
         if getattr(user, 'two_factor_enabled', False):
             import random
+            from app.services.notification import send_email_otp
+            import asyncio
+            
             otp = str(random.randint(100000, 999999))
-            _mock_otps[email] = otp
-            from app.services.communication import communication_service
-            communication_service.send_email(email, "BodhSight 2FA Code", f"Your 2FA code is {otp}")
+            _otps[email] = otp
+            asyncio.create_task(send_email_otp(email, otp))
+            
             return AuthResponse(
                 success=True, message="2FA required.", requires_2fa=True, email=email
             )

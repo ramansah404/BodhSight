@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { ShieldCheck, Trash2, Edit2, Loader2, AlertTriangle, Plus, Key, Power, X, Users, Lock } from "lucide-react";
-import { AdminAPI } from "../services/api";
+import { ShieldCheck, Trash2, Edit2, Loader2, AlertTriangle, Plus, Key, Power, X, Users, Lock, Bell, Send } from "lucide-react";
+import { AdminAPI, NotificationAPI } from "../services/api";
 
 type AdminUser = {
   id: string;
@@ -25,8 +25,14 @@ const generatePassword = () => {
   return pwd;
 };
 
+const AVAILABLE_PERMISSIONS = [
+  "view_overview", "view_trends", "view_courses", "view_departments", 
+  "view_sections", "view_students", "view_reports", "view_data_hub", 
+  "manage_exceptions", "manage_users"
+];
+
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<"users" | "rbac">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "rbac" | "notify">("users");
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -42,6 +48,22 @@ export default function AdminDashboard() {
   // Reset Password Modal State
   const [resetId, setResetId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
+
+  // RBAC State
+  const [rolePermissions, setRolePermissions] = useState<{ role: string; permissions: string[] }[]>([]);
+  const [rbacLoading, setRbacLoading] = useState(false);
+  const [pendingRbacChanges, setPendingRbacChanges] = useState<Record<string, string[]>>({});
+
+  // Broadcast Notification State
+  const [notifTitle, setNotifTitle] = useState("");
+  const [notifMessage, setNotifMessage] = useState("");
+  const [notifType, setNotifType] = useState<"INFO" | "WARNING" | "CRITICAL" | "SUCCESS">("INFO");
+  const [notifRole, setNotifRole] = useState("");
+  const [notifDept, setNotifDept] = useState("");
+  const [notifEmail, setNotifEmail] = useState(false);
+  const [notifWhatsApp, setNotifWhatsApp] = useState(false);
+  const [notifSending, setNotifSending] = useState(false);
+  const [notifSuccess, setNotifSuccess] = useState("");
 
   const fetchUsers = async () => {
     try {
@@ -69,6 +91,7 @@ export default function AdminDashboard() {
     };
 
     loadData();
+    loadRbac();
     const interval = setInterval(loadData, 30000);
 
     return () => {
@@ -76,6 +99,18 @@ export default function AdminDashboard() {
       clearInterval(interval);
     };
   }, []);
+
+  const loadRbac = async () => {
+    try {
+      setRbacLoading(true);
+      const data = await AdminAPI.getPermissions();
+      setRolePermissions(data);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || "Failed to fetch RBAC matrix");
+    } finally {
+      setRbacLoading(false);
+    }
+  };
 
   const handleUpdateRole = async (userId: string) => {
     try {
@@ -134,6 +169,57 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleTogglePermission = (roleName: string, permission: string) => {
+    const roleData = pendingRbacChanges[roleName] || rolePermissions.find(r => r.role === roleName)?.permissions || [];
+    let updated: string[];
+    if (roleData.includes(permission)) {
+      updated = roleData.filter(p => p !== permission);
+    } else {
+      updated = [...roleData, permission];
+    }
+    setPendingRbacChanges(prev => ({ ...prev, [roleName]: updated }));
+  };
+
+  const handleSaveRbac = async () => {
+    try {
+      setRbacLoading(true);
+      for (const [roleName, perms] of Object.entries(pendingRbacChanges)) {
+        await AdminAPI.updatePermissions(roleName, perms);
+      }
+      setPendingRbacChanges({});
+      await loadRbac();
+      alert("RBAC Matrix updated successfully");
+    } catch (err: any) {
+      alert("Failed to update RBAC: " + (err.response?.data?.detail || ""));
+    } finally {
+      setRbacLoading(false);
+    }
+  };
+
+  const handleSendNotification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNotifSending(true);
+    setNotifSuccess("");
+    try {
+      await NotificationAPI.createNotification({
+        title: notifTitle,
+        message: notifMessage,
+        type: notifType,
+        role: notifRole || undefined,
+        department: notifDept || undefined,
+        send_email: notifEmail,
+        send_whatsapp: notifWhatsApp,
+      });
+      setNotifSuccess(`Notification sent to ${notifRole || "all roles"}${notifDept ? ` / ${notifDept}` : ""}.`);
+      setNotifTitle("");
+      setNotifMessage("");
+    } catch (err: any) {
+      alert("Failed to send notification: " + (err.response?.data?.detail || ""));
+    } finally {
+      setNotifSending(false);
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>;
   }
@@ -175,6 +261,14 @@ export default function AdminDashboard() {
           }`}
         >
           <Lock size={16} /> RBAC Matrix
+        </button>
+        <button
+          onClick={() => setActiveTab("notify")}
+          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+            activeTab === "notify" ? "border-indigo-600 text-indigo-600" : "border-transparent text-secondary hover:text-primary"
+          }`}
+        >
+          <Bell size={16} /> Send Notification
         </button>
       </div>
 
@@ -304,68 +398,186 @@ export default function AdminDashboard() {
       </div>
       ) : (
         <div className="bg-surface border border-border/60 rounded-3xl overflow-hidden shadow-sm">
-          <div className="p-6 border-b border-border/60">
-            <h2 className="text-lg font-bold text-primary">Role-Based Access Control (RBAC) Permissions</h2>
-            <p className="text-sm text-secondary mt-1">
-              Below is the strictly enforced permission matrix for the BodhSight platform. As Admin, you assign these roles via the User Management tab to strictly control access.
-            </p>
+          <div className="p-6 border-b border-border/60 flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-bold text-primary">Role-Based Access Control (RBAC) Permissions</h2>
+              <p className="text-sm text-secondary mt-1">
+                Dynamically manage which roles have access to specific pages and actions. Changes apply immediately upon saving.
+              </p>
+            </div>
+            {Object.keys(pendingRbacChanges).length > 0 && (
+              <button 
+                onClick={handleSaveRbac} 
+                disabled={rbacLoading}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-md disabled:opacity-50 flex items-center gap-2"
+              >
+                {rbacLoading && <Loader2 className="animate-spin" size={16} />}
+                Save Changes
+              </button>
+            )}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-secondary text-secondary text-xs uppercase tracking-wider border-b border-border/60">
-                  <th className="p-4 font-bold">Role</th>
-                  <th className="p-4 font-bold">Scope</th>
-                  <th className="p-4 font-bold">Permitted Pages</th>
-                  <th className="p-4 font-bold">Actions</th>
+                  <th className="p-4 font-bold sticky left-0 bg-surface-secondary z-10">Role</th>
+                  {AVAILABLE_PERMISSIONS.map(p => (
+                    <th key={p} className="p-4 font-bold text-center whitespace-nowrap">
+                      {p.replace("view_", "").replace("manage_", "").replace("_", " ")}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60 text-sm">
-                <tr className="hover:bg-surface-secondary/50">
-                  <td className="p-4 font-semibold text-primary"><span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">Chairman</span></td>
-                  <td className="p-4 text-secondary">Institution-wide (Macro)</td>
-                  <td className="p-4 text-secondary">Overview, Trends, Courses, Depts, Sections, Students, Reports</td>
-                  <td className="p-4 text-secondary">View all institution data, executive reporting</td>
-                </tr>
-                <tr className="hover:bg-surface-secondary/50">
-                  <td className="p-4 font-semibold text-primary"><span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">Principal</span></td>
-                  <td className="p-4 text-secondary">Institution-wide</td>
-                  <td className="p-4 text-secondary">Overview, Trends, Courses, Depts, Sections, Students, Reports</td>
-                  <td className="p-4 text-secondary">View all institution data, academic reporting</td>
-                </tr>
-                <tr className="hover:bg-surface-secondary/50">
-                  <td className="p-4 font-semibold text-primary"><span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">Dean</span></td>
-                  <td className="p-4 text-secondary">Institution-wide</td>
-                  <td className="p-4 text-secondary">Overview, Trends, Courses, Depts, Sections, Students, Reports</td>
-                  <td className="p-4 text-secondary">Monitor college health, exceptions, trust audits</td>
-                </tr>
-                <tr className="hover:bg-surface-secondary/50">
-                  <td className="p-4 font-semibold text-primary"><span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">HOD</span></td>
-                  <td className="p-4 text-secondary">Department-Specific</td>
-                  <td className="p-4 text-secondary">Overview, Trends, Courses, Sections, Students, Data Hub</td>
-                  <td className="p-4 text-secondary">View department anomalies, manage manual entries</td>
-                </tr>
-                <tr className="hover:bg-surface-secondary/50">
-                  <td className="p-4 font-semibold text-primary"><span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">Faculty</span></td>
-                  <td className="p-4 text-secondary">Course-Specific</td>
-                  <td className="p-4 text-secondary">Overview, Courses, Sections, Students, Data Hub</td>
-                  <td className="p-4 text-secondary">View assigned course telemetry, student support</td>
-                </tr>
-                <tr className="hover:bg-surface-secondary/50">
-                  <td className="p-4 font-semibold text-primary"><span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">IQAC</span></td>
-                  <td className="p-4 text-secondary">Institution-wide Quality</td>
-                  <td className="p-4 text-secondary">Overview, Trends, Courses, Depts, Reports</td>
-                  <td className="p-4 text-secondary">Monitor quality metrics, reporting</td>
-                </tr>
-                <tr className="hover:bg-surface-secondary/50">
-                  <td className="p-4 font-semibold text-primary"><span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">Admin</span></td>
-                  <td className="p-4 text-secondary">System-wide Settings</td>
-                  <td className="p-4 text-secondary">Admin Dashboard (User Management, RBAC)</td>
-                  <td className="p-4 text-secondary">Create/Suspend Users, Assign Roles, Reset Passwords</td>
-                </tr>
+                {rolePermissions.map(rp => {
+                  const currentPerms = pendingRbacChanges[rp.role] || rp.permissions;
+                  return (
+                    <tr key={rp.role} className="hover:bg-surface-secondary/50">
+                      <td className="p-4 font-semibold text-primary sticky left-0 bg-surface z-10 group-hover:bg-surface-secondary/50">
+                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">
+                          {rp.role}
+                        </span>
+                      </td>
+                      {AVAILABLE_PERMISSIONS.map(p => (
+                        <td key={p} className="p-4 text-center">
+                          <input 
+                            type="checkbox" 
+                            checked={currentPerms.includes(p)}
+                            onChange={() => handleTogglePermission(rp.role, p)}
+                            className="w-4 h-4 text-indigo-600 border-border/60 rounded focus:ring-indigo-500 cursor-pointer"
+                          />
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+                {rolePermissions.length === 0 && (
+                  <tr>
+                    <td colSpan={AVAILABLE_PERMISSIONS.length + 1} className="p-8 text-center text-secondary">
+                      No roles defined in the database.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {activeTab === "notify" && (
+        <div className="bg-surface border border-border/60 rounded-3xl shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-border/60">
+            <h2 className="text-lg font-bold text-primary flex items-center gap-2">
+              <Bell className="text-indigo-600" size={20} />
+              Broadcast Notification
+            </h2>
+            <p className="text-sm text-secondary mt-1">
+              Send targeted in-app notifications to specific roles or departments. Optionally deliver via WhatsApp and Email.
+            </p>
+          </div>
+          <form onSubmit={handleSendNotification} className="p-6 space-y-5 max-w-2xl">
+            {notifSuccess && (
+              <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 rounded-xl p-3 text-sm">
+                ✓ {notifSuccess}
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-secondary mb-1">Target Role</label>
+                <select
+                  value={notifRole}
+                  onChange={e => setNotifRole(e.target.value)}
+                  className="w-full bg-background border border-border rounded-lg p-2 text-primary outline-none focus:border-indigo-500"
+                >
+                  <option value="">All Roles</option>
+                  {ROLES.filter(r => r !== "Admin").map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-secondary mb-1">Target Department</label>
+                <select
+                  value={notifDept}
+                  onChange={e => setNotifDept(e.target.value)}
+                  className="w-full bg-background border border-border rounded-lg p-2 text-primary outline-none focus:border-indigo-500"
+                >
+                  <option value="">All Departments</option>
+                  {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-secondary mb-1">Notification Type</label>
+              <div className="flex gap-2 flex-wrap">
+                {(["INFO", "WARNING", "CRITICAL", "SUCCESS"] as const).map(t => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setNotifType(t)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
+                      notifType === t
+                        ? t === "CRITICAL" ? "bg-rose-600 text-white border-rose-600"
+                          : t === "WARNING" ? "bg-amber-500 text-white border-amber-500"
+                          : t === "SUCCESS" ? "bg-emerald-600 text-white border-emerald-600"
+                          : "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-background text-secondary border-border"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-secondary mb-1">Title</label>
+              <input
+                required
+                type="text"
+                value={notifTitle}
+                onChange={e => setNotifTitle(e.target.value)}
+                placeholder="e.g. Assessment Data Updated"
+                className="w-full bg-background border border-border rounded-lg p-2 text-primary outline-none focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-secondary mb-1">Message</label>
+              <textarea
+                required
+                value={notifMessage}
+                onChange={e => setNotifMessage(e.target.value)}
+                rows={3}
+                placeholder="Enter the notification body..."
+                className="w-full bg-background border border-border rounded-lg p-2 text-primary outline-none focus:border-indigo-500 resize-none"
+              />
+            </div>
+            <div className="flex items-center gap-6">
+              <label className="flex items-center gap-2 cursor-pointer text-sm text-secondary">
+                <input
+                  type="checkbox"
+                  checked={notifEmail}
+                  onChange={e => setNotifEmail(e.target.checked)}
+                  className="w-4 h-4 text-indigo-600 rounded"
+                />
+                Also send Email
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer text-sm text-secondary">
+                <input
+                  type="checkbox"
+                  checked={notifWhatsApp}
+                  onChange={e => setNotifWhatsApp(e.target.checked)}
+                  className="w-4 h-4 text-indigo-600 rounded"
+                />
+                Also send WhatsApp
+              </label>
+            </div>
+            <button
+              type="submit"
+              disabled={notifSending}
+              className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            >
+              {notifSending ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />}
+              {notifSending ? "Sending..." : "Send Notification"}
+            </button>
+          </form>
         </div>
       )}
 

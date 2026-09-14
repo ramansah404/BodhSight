@@ -353,6 +353,24 @@ export const NotificationAPI = {
   },
   markAllRead(): Promise<{ success: boolean }> {
     return apiClient.put("/notifications/read-all").then(r => r.data);
+  },
+  /** Create an RBAC-targeted notification (Admin/Dean/etc. only) */
+  async createNotification(payload: {
+    title: string;
+    message: string;
+    type?: "INFO" | "WARNING" | "CRITICAL" | "SUCCESS";
+    link?: string;
+    /** Target role — undefined = all roles */
+    role?: string;
+    /** Target department — undefined = all departments */
+    department?: string;
+    /** Target a specific user by UUID */
+    user_id?: string;
+    send_email?: boolean;
+    send_whatsapp?: boolean;
+  }): Promise<{ success: boolean; message: string }> {
+    const res = await apiClient.post("/notifications", payload);
+    return res.data;
   }
 };
 
@@ -501,6 +519,16 @@ export const AdminAPI = {
 
   async deleteUser(userId: string): Promise<{ success: boolean; message: string }> {
     const res = await apiClient.delete(`/admin/users/${userId}`);
+    return res.data;
+  },
+
+  async getPermissions(): Promise<{ role: string; permissions: string[] }[]> {
+    const res = await apiClient.get("/admin/permissions");
+    return res.data;
+  },
+
+  async updatePermissions(role: string, permissions: string[]): Promise<{ success: boolean; message: string }> {
+    const res = await apiClient.put(`/admin/permissions/${role}`, { permissions });
     return res.data;
   }
 };

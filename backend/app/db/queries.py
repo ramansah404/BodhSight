@@ -44,6 +44,13 @@ def get_course_performance_all(db: Session) -> List[Dict[str, Any]]:
 
 
 def filter_course_rows(rows: List[Dict[str, Any]], roster: List[Dict[str, Any]], department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> List[Dict[str, Any]]:
+    if programme and programme.lower() == "all":
+        programme = None
+    if department and department.lower() == "all":
+        department = None
+    if semester and semester.lower() == "all":
+        semester = None
+
     if not any([department, semester, programme, academic_year]):
         return rows
         
@@ -241,6 +248,11 @@ def get_course_section_roster(db: Session) -> List[Dict[str, Any]]:
 
 def get_student_profile_summary(db: Session, department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> Dict[str, Any]:
     """Aggregated student KPIs."""
+    if programme and programme.lower() == "all":
+        programme = None
+    if department and department.lower() == "all":
+        department = None
+
     where_clause = " WHERE 1=1 "
     params = {}
     
@@ -268,6 +280,11 @@ def get_student_profile_summary(db: Session, department: str = None, semester: s
 
 def get_students_by_context(db: Session, context: str, department: str = None, semester: str = None, programme: str = None) -> List[Dict[str, Any]]:
     """Fetch students based on UI drilldown context."""
+    if programme and programme.lower() == "all":
+        programme = None
+    if department and department.lower() == "all":
+        department = None
+
     where_clause = " WHERE status = 'ACTIVE' "
     params = {}
     
@@ -602,6 +619,11 @@ def get_student_drilldown(
     Returns student details for a drill-down context:
     contexts: 'evaluated', 'condonation', 'problems'
     """
+    if programme and programme.lower() == "all":
+        programme = None
+    if department and department.lower() == "all":
+        department = None
+
     select_clause = """
         SELECT 
             p.student_id,

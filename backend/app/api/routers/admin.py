@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List, Optional
@@ -209,3 +209,95 @@ def update_role_permissions(role_name: str, data: RolePermissionsRequest, db: Se
         db.rollback()
         logger.error(f"Error updating permissions: {e}")
         raise HTTPException(status_code=500, detail="Failed to update permissions")
+
+
+class BroadcastNotificationRequest(BaseModel):
+    title: str
+    message: str
+    type: str = "INFO"
+    link: Optional[str] = None
+    role: Optional[str] = None
+    department: Optional[str] = None
+    send_email: bool = False
+    send_whatsapp: bool = False
+
+@router.post("/notify")
+def broadcast_notification(
+    data: BroadcastNotificationRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    _: str = Depends(verify_admin)
+):
+    """
+    Admin broadcasts an RBAC-targeted in-app notification.
+    Optionally dispatches real WhatsApp / Email to target users in the background.
+    """
+    try:
+        # Ensure the notifications table exists
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS core.notification (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                title TEXT NOT NULL,
+                message TEXT NOT NULL,
+                type TEXT NOT NULL DEFAULT 'INFO',
+                link TEXT,
+                role TEXT,
+                department TEXT,
+                user_id UUID,
+                is_read BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        """))
+        db.execute(
+            text("""
+                INSERT INTO core.notification (title, message, type, link, role, department)
+                VALUES (:title, :msg, :type, :link, :role, :dept)
+            """),
+            {
+                "title": data.title, "msg": data.message,
+                "type": data.type, "link": data.link,
+                "role": data.role, "dept": data.department
+            }
+        )
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error creating notification: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create notification")
+
+    if data.send_email or data.send_whatsapp:
+        def _dispatch():
+            try:
+                from app.services.communication import communication_service
+                conds = ["is_active = TRUE"]
+                params: dict = {}
+                if data.role:
+                    conds.append("role = :role")
+                    params["role"] = data.role
+                if data.department:
+                    conds.append("department = :dept")
+                    params["dept"] = data.department
+                where = " AND ".join(conds)
+                users = db.execute(
+                    text(f"SELECT email, phone_number FROM core.user_account WHERE {where}"),
+                    params
+                ).fetchall()
+                for u in users:
+                    if data.send_email and getattr(u, "email", None):
+                        communication_service.send_email(
+                            u.email,
+                            data.title,
+                            f"<p><strong>{data.title}</strong></p><p>{data.message}</p>"
+                        )
+                    if data.send_whatsapp and getattr(u, "phone_number", None):
+                        communication_service.send_whatsapp(
+                            u.phone_number,
+                            f"BodhSight: {data.title}\n{data.message}"
+                        )
+            except Exception as ex:
+                logger.error(f"Notification dispatch error: {ex}")
+        background_tasks.add_task(_dispatch)
+
+    target = data.role or "All roles"
+    dept_suffix = f" ({data.department})" if data.department else ""
+    return {"success": True, "message": f"Notification broadcast to {target}{dept_suffix}."}
