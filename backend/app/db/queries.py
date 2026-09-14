@@ -280,10 +280,14 @@ def get_students_by_context(db: Session, context: str, department: str = None, s
 
     if context == "at_risk":
         where_clause += " AND backlog_count > 0 "
-    elif context == "high_backlogs":
+    elif context in ("high_backlogs", "high_risk"):
         where_clause += " AND backlog_count > 2 "
     elif context == "top_performers":
         where_clause += " AND cgpa >= 8.5 "
+    elif context == "attendance_risk":
+        where_clause += " AND attendance_pct < 75 "
+    elif context == "outstanding_fees":
+        where_clause += " AND fee_outstanding > 0 "
 
     sql = text(f"""
         SELECT
@@ -293,8 +297,11 @@ def get_students_by_context(db: Session, context: str, department: str = None, s
             department_code,
             programme_code,
             batch_label,
+            section_code,
             cgpa,
             backlog_count,
+            attendance_pct,
+            fee_outstanding,
             status
         FROM people.v_student_profile
         {where_clause}
@@ -600,7 +607,8 @@ def get_student_drilldown(
 ) -> List[Dict[str, Any]]:
     """
     Returns student details for a drill-down context:
-    contexts: 'evaluated', 'condonation', 'problems'
+    contexts: 'evaluated', 'condonation', 'problems', 'at_risk', 'high_risk',
+    'attendance_risk', and 'outstanding_fees'
     """
     select_clause = """
         SELECT 
@@ -643,6 +651,12 @@ def get_student_drilldown(
     elif context == "high_risk":
         select_clause += " 'High Backlogs' AS reason "
         where_clause += " AND p.backlog_count >= 3 "
+    elif context == "attendance_risk":
+        select_clause += " 'Attendance below 75%' AS reason "
+        where_clause += " AND p.attendance_pct < 75 "
+    elif context == "outstanding_fees":
+        select_clause += " 'Outstanding fees' AS reason "
+        where_clause += " AND p.fee_outstanding > 0 "
     elif context == "course" and course_code:
         select_clause += " 'Course Risk' AS reason "
         where_clause += " AND p.student_id IN (SELECT student_id FROM academics.v_offering_roster WHERE course_code = :course_code) "

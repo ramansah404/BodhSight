@@ -2,10 +2,6 @@ import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
-<<<<<<< HEAD
-
-=======
->>>>>>> dd7c1d01b3744b2d71e661c4ef3634294725fe3f
 
 import Landing       from "./pages/Landing";
 import Login         from "./pages/Login";
@@ -16,6 +12,7 @@ import Departments   from "./pages/Departments";
 import Sections      from "./pages/Sections";
 import Batches       from "./pages/Batches";
 import Students      from "./pages/Students";
+import StudentInsights from "./pages/StudentInsights";
 import Problems      from "./pages/Problems";
 import Recommendations from "./pages/Recommendations";
 import Reports       from "./pages/Reports";
@@ -70,6 +67,7 @@ export default function App() {
             <Route element={<ProtectedRoute allowedRoles={["Chairman", "Principal", "Dean", "HOD", "Faculty"]} />}>
               <Route path="sections"      element={<Sections />} />
               <Route path="students"      element={<Students />} />
+              <Route path="student-insights" element={<StudentInsights />} />
             </Route>
 
             {/* Data Hub — Data upload for faculty/HOD */}

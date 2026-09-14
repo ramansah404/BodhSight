@@ -169,7 +169,16 @@ def get_students_drilldown(
     Used for dashboard modal drilldowns.
     """
     from app.db import queries
-    students = _safe(queries.get_students_by_context, db, context=context, department=department, semester=semester, programme=programme)
+    students = _safe(
+        queries.get_student_drilldown,
+        db,
+        context=context,
+        course_code=None,
+        department=department,
+        semester=semester,
+        programme=programme,
+        academic_year=academic_year,
+    )
     return students
 
 

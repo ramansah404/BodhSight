@@ -6,7 +6,7 @@ import type { FilterState } from "../contexts/FilterContext";
  * All calls go to the real FastAPI backend.
  * No mock fallbacks — errors are surfaced to the UI.
  *
- * Base URL: VITE_API_BASE_URL || "http://localhost:8000/api/v1"
+ * Base URL: VITE_API_BASE_URL, with environment-safe local/production defaults.
  */
 import axios from "axios";
 import type {
@@ -27,7 +27,8 @@ import {
 } from "../types/agent10";
 import * as Mocks from "./mockData";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL
+  ?? (import.meta.env.PROD ? "https://bodhsight.onrender.com/api/v1" : "http://localhost:8000/api/v1");
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -234,23 +235,21 @@ export const Agent10API = {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("document_type", type);
-
-    const res = await apiClient.post("/ingestion/upload", formData, {
-      headers: { "Content-Type": "multipart/form-data" }
-    });
-    clearCache();
-    return res.data;
+    try {
+      const res = await apiClient.post("/ingestion/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      clearCache();
+      return res.data;
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail;
+      throw new Error(typeof detail === "string" ? detail : "Upload failed. Please check the file and try again.");
+    }
   },
 
   /** Fetch student drilldown details for a specific context */
   async getStudentDrilldown(context: string, filters?: Partial<FilterState> & { course_code?: string }): Promise<import("../types/agent10").StudentProfile[]> {
-    try {
-      const data = await get<import("../types/agent10").StudentProfile[]>(buildQuery("/agent10/students/drilldown", { ...filters, context } as any));
-      if (!data || data.length === 0) return Mocks.mockStudentDrilldown as any;
-      return data;
-    } catch {
-      return Mocks.mockStudentDrilldown as any;
-    }
+    return get<import("../types/agent10").StudentProfile[]>(buildQuery("/agent10/students/drilldown", { ...filters, context } as any), true);
   },
 
   /** Update a student profile (saves to live database) */

@@ -1,8 +1,10 @@
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.core.config import Settings
+from app.api.routers.chat import get_groq_client
 from app.main import app
 
 client = TestClient(app)
@@ -12,6 +14,14 @@ def test_settings_loads_groq_api_key_from_repo_env(monkeypatch):
     monkeypatch.setenv("GROQ_API_KEY", "test-groq-key")
     settings = Settings()
     assert settings.GROQ_API_KEY == "test-groq-key"
+
+
+def test_groq_client_reports_missing_key_without_exposing_a_secret(monkeypatch):
+    from app.api.routers import chat
+
+    monkeypatch.setattr(chat.settings, "GROQ_API_KEY", None)
+    with pytest.raises(ValueError, match="GROQ_API_KEY is not configured"):
+        get_groq_client()
 
 
 def test_valid_csv_upload_returns_success_summary():
@@ -42,3 +52,16 @@ def test_invalid_csv_upload_returns_validation_error():
 
     assert response.status_code == 422, response.text
     assert "required columns" in response.json()["detail"].lower()
+
+
+def test_malformed_csv_row_is_reported_without_server_error():
+    csv_bytes = b"Roll No,Attendance,CGPA,Backlogs\n24CSE001,not-a-number,7.8,1\n"
+    response = client.post(
+        "/api/v1/ingestion/upload",
+        files={"file": ("malformed_student_data.csv", csv_bytes, "text/csv")},
+        data={"document_type": "attendance"},
+        headers={"X-User-Role": "Dean", "X-User-Name": "QA User"},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["file_info"]["rows_rejected"] == 1

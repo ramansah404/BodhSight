@@ -67,3 +67,15 @@ def test_hod_department_scope_overrides_requested_department():
     data = response.json()
     assert isinstance(data, list)
     assert all(row["department"] == "CSE" for row in data)
+
+
+@pytest.mark.parametrize("context", ["at_risk", "high_risk", "attendance_risk", "outstanding_fees"])
+def test_student_drilldown_accepts_supported_insight_contexts(context):
+    response = client.get(
+        "/api/v1/agent10/students/drilldown",
+        params={"context": context},
+        headers={"X-User-Role": "Dean"},
+    )
+
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)

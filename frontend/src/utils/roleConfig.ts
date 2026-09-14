@@ -12,6 +12,14 @@ export interface RoleConfig {
 }
 
 export const ROLE_CONFIG: Record<RuntimeRole, RoleConfig> = {
+  Admin: {
+    role: "Admin",
+    title: "Administration",
+    purpose: "Manage users and review platform operations.",
+    scopeLabel: "Administrative scope",
+    primaryQuestion: "Which platform operations need attention?",
+    composition: "iqac",
+  },
   Faculty: {
     role: "Faculty",
     title: "Course Instructor Telemetry",

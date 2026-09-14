@@ -2,20 +2,19 @@ import { useEffect, useState, useRef } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import {
   Users, AlertTriangle, ShieldCheck, Sparkles,
-  BookOpen, ChevronRight, Activity, Building2, Award, Loader2
+  BookOpen, ChevronRight, Activity, Building2, Award, Loader2, Target, ArrowRight, TrendingUp
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
-import { useFilters } from "../contexts/FilterContext";
 import { Agent10API } from "../services/api";
+import { useFilters } from "../contexts/FilterContext";
 import type { AcademicDashboardMetrics, AcademicException, CoursePerformance, DepartmentPerformance, InterventionPriorityItem } from "../types/agent10";
 import { getRoleConfig } from "../utils/roleConfig";
-import { RoleHeader, KpiGrid, SectionCard, DepartmentComparison, CoursePerformanceList, PriorityWatchlist, RiskCenter, ExecutiveSummary, ActionLinks, MetricItems } from "../components/dashboard/RoleDashboardPrimitives";
+import { KpiGrid, SectionCard, DepartmentComparison, CoursePerformanceList, PriorityWatchlist, RiskCenter, ExecutiveSummary, ActionLinks, MetricItems } from "../components/dashboard/RoleDashboardPrimitives";
 import ExportMenu from "../components/ui/ExportMenu";
 import CondonationWidget from "../components/dashboard/CondonationWidget";
 import StudentDrilldownModal from "../components/ui/StudentDrilldownModal";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
-import { useFilters } from "../contexts/FilterContext";
 
 interface DashboardData {
   metrics: AcademicDashboardMetrics | null;
@@ -26,20 +25,6 @@ interface DashboardData {
   briefing: { summary?: string; llm_used?: boolean } | null;
   metricsError: string;
   loading: boolean;
-}
-
-function OperatingModel() {
-  const steps = ["Raw data", "AI extraction", "Staging", "Validation", "Commit", "Analytics", "Detection", "Intervention"];
-  return <SectionCard eyebrow="Architecture" title="From academic data to timely action"><div className="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-8">{steps.map((step, index) => <div key={step} className="rounded-lg border border-border bg-surface-secondary px-3 py-2"><div className="text-[10px] font-bold text-teal-700 dark:text-teal-300">0{index + 1}</div><div className="mt-1 truncate text-xs font-semibold text-primary">{step}</div></div>)}</div><p className="mt-4 text-xs leading-5 text-secondary">After operational commit, Agent 10 reads the updated academic data and recomputes or exposes analytics. Downstream agent consumption is not exposed by the current frontend API.</p></SectionCard>;
-}
-
-function DashboardLoading() { return <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map((item) => <div key={item} className="h-32 animate-pulse rounded-xl border border-border bg-surface-secondary" />)}</div>; }
-
-function ExportActions({ metrics, departments, currentRole }: { metrics: AcademicDashboardMetrics | null; departments: DepartmentPerformance[]; currentRole: string }) {
-  const exportExcel = () => exportToExcel([{ Metric: "Students Evaluated", Value: metrics?.students_evaluated ?? "—" }, { Metric: "Pass Rate (%)", Value: metrics?.pass_rate ?? "—" }, { Metric: "Average Marks", Value: metrics?.average_marks ?? "—" }, { Metric: "Open Flags", Value: metrics?.active_anomalies ?? metrics?.significant_deviations ?? "—" }, ...departments.map((department) => ({ Department: department.department_code, "Pass Rate (%)": department.pass_rate ?? "—", Status: department.status }))], `BodhSight_${currentRole}_Overview`);
-  const paragraphs = [`BodhSight ${currentRole} overview`, `Students evaluated: ${metrics?.students_evaluated ?? "—"}`, `Pass rate: ${metrics?.pass_rate?.toFixed(1) ?? "—"}%`, `Open flags: ${metrics?.active_anomalies ?? metrics?.significant_deviations ?? "—"}`];
-  const table = [["Department", "Pass Rate (%)", "Status"], ...departments.map((department) => [department.department_code, String(department.pass_rate ?? "—"), department.status])];
-  return <ExportMenu onExportExcel={exportExcel} onExportPDF={() => exportToPDF(`BodhSight ${currentRole} Overview`, paragraphs, table, `BodhSight_${currentRole}_Overview`)} onExportWord={() => exportToWord(`BodhSight ${currentRole} Overview`, paragraphs, table, `BodhSight_${currentRole}_Overview`)} disabled={!metrics} />;
 }
 
 function FacultyDashboard({ data, setDrilldown }: { data: DashboardData; setDrilldown: (context: string, title: string) => void }) {
@@ -69,8 +54,19 @@ function IqacDashboard({ data }: { data: DashboardData }) {
 export default function Dashboard() {
   const { filters } = useFilters();
   const { currentRole } = useOutletContext<{ currentRole: string }>();
+  const navigate = useNavigate();
   const config = getRoleConfig(currentRole);
   const displayName = localStorage.getItem("bodhsight_name") || `${currentRole} User`;
+  const displayRole = currentRole;
+  const [metrics, setMetrics] = useState<AcademicDashboardMetrics | null>(null);
+  const [departments, setDepartments] = useState<DepartmentPerformance[]>([]);
+  const [courses, setCourses] = useState<CoursePerformance[]>([]);
+  const [anomalies, setAnomalies] = useState<AcademicException[]>([]);
+  const [priorities, setPriorities] = useState<InterventionPriorityItem[]>([]);
+  const [briefing] = useState<DashboardData["briefing"]>(null);
+  const [metricsLoading, setMetricsLoading] = useState(true);
+  const [metricsError, setMetricsError] = useState("");
+  const [drilldown, setDrilldown] = useState({ isOpen: false, context: "", title: "" });
   const prevFilterKey = useRef(`${filters.department}-${filters.semester}-${filters.programme}`);
 
   useEffect(() => {
@@ -86,10 +82,12 @@ export default function Dashboard() {
       }
 
       try {
-        const [metricsResult, deptsResult, coursesResult] = await Promise.allSettled([
+        const [metricsResult, deptsResult, coursesResult, anomaliesResult, prioritiesResult] = await Promise.allSettled([
           Agent10API.getDashboard(filters),
           Agent10API.getDepartments(filters),
           Agent10API.getCourses(filters),
+          Agent10API.getAnomalies(filters),
+          Agent10API.getPriorities(filters),
         ]);
 
         if (cancelled) return;
@@ -109,6 +107,8 @@ export default function Dashboard() {
         if (coursesResult.status === "fulfilled" && coursesResult.value.length > 0) {
           setCourses(coursesResult.value.slice(0, 12)); // top 12 for chart
         }
+        if (anomaliesResult.status === "fulfilled") setAnomalies(anomaliesResult.value);
+        if (prioritiesResult.status === "fulfilled") setPriorities(prioritiesResult.value);
       } finally {
         if (!cancelled && showLoading) {
           setMetricsLoading(false);
@@ -128,8 +128,26 @@ export default function Dashboard() {
     };
   }, [filters]);
 
-  const exportActions = <ExportActions metrics={data.metrics} departments={data.departments} currentRole={currentRole} />;
+  const data: DashboardData = {
+    metrics,
+    departments,
+    courses,
+    anomalies,
+    priorities,
+    briefing,
+    metricsError,
+    loading: metricsLoading,
+  };
+
+  const isDepartmentLevel = ["Chairman", "Principal", "Dean", "HOD"].includes(currentRole);
+  const chartData = isDepartmentLevel
+    ? departments.map((department) => ({ name: department.department_code, passRate: department.pass_rate ?? 0 }))
+    : courses.map((course) => ({ name: course.course_code, passRate: course.pass_rate ?? 0 }));
+
+  const exportActions = null;
   const composition = config.composition === "faculty" ? <FacultyDashboard data={data} setDrilldown={(context, title) => setDrilldown({ isOpen: true, context, title })} /> : config.composition === "hod" ? <HodDashboard data={data} /> : config.composition === "dean" ? <DeanDashboard data={data} /> : config.composition === "principal" ? <PrincipalDashboard data={data} /> : config.composition === "chairman" ? <ChairmanDashboard data={data} /> : <IqacDashboard data={data} />;
+  void exportActions;
+  void composition;
 
   const handleExportExcel = () => {
     // Generate institutional summary data
@@ -304,7 +322,7 @@ export default function Dashboard() {
           <>
             <motion.div 
               variants={itemVariants}
-              onClick={() => setDrilldown({ isOpen: true, context: "evaluated", title: "Students Evaluated" })}
+              onClick={() => navigate("/student-insights?condition=evaluated")}
               className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md cursor-pointer group"
             >
               <div className="flex justify-between items-start">
@@ -355,7 +373,7 @@ export default function Dashboard() {
 
             <motion.div 
               variants={itemVariants}
-              onClick={() => setDrilldown({ isOpen: true, context: "problems", title: "Active Problems" })}
+              onClick={() => navigate("/student-insights?condition=problems")}
               className="bg-surface hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-all p-6 rounded-3xl border border-rose-100 dark:border-rose-900/30 shadow-sm hover:shadow-md relative overflow-hidden cursor-pointer group"
             >
               <div className="flex justify-between items-start relative z-10">

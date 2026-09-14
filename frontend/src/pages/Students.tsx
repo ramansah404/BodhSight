@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { ShieldAlert, Users, AlertTriangle, AlertCircle, Info, BookOpen, PieChart as PieChartIcon } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Agent10API } from "../services/api";
@@ -11,6 +12,7 @@ import StudentDrilldownModal from "../components/ui/StudentDrilldownModal";
 type LoadState = "loading" | "success" | "error" | "empty";
 
 export default function Students() {
+  const navigate = useNavigate();
   const { filters } = useFilters();
   const [trendsData, setTrendsData] = useState<TrendsResponse | null>(null);
   const [state, setState] = useState<LoadState>("loading");
@@ -171,7 +173,7 @@ export default function Students() {
             </div>
 
             <div 
-              onClick={() => canDrilldown && setDrilldown({ isOpen: true, context: "at_risk", title: "Students With Backlogs" })}
+              onClick={() => canDrilldown && navigate("/student-insights?condition=at_risk")}
               className={`bg-surface p-6 rounded-3xl border border-amber-500/20 shadow-sm transition-colors group ${canDrilldown ? 'cursor-pointer hover:bg-surface/80' : 'opacity-90'}`}
             >
               <div className="flex justify-between items-start">
@@ -189,7 +191,7 @@ export default function Students() {
             </div>
 
             <div 
-              onClick={() => canDrilldown && setDrilldown({ isOpen: true, context: "high_risk", title: "High Risk Students" })}
+              onClick={() => canDrilldown && navigate("/student-insights?condition=high_risk")}
               className={`bg-surface p-6 rounded-3xl border border-rose-500/20 shadow-sm transition-colors group ${canDrilldown ? 'cursor-pointer hover:bg-surface/80' : 'opacity-90'}`}
             >
               <div className="flex justify-between items-start">

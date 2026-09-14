@@ -97,7 +97,9 @@ async def chat_with_agent10(
         reply = completion.choices[0].message.content
         return ChatResponse(reply=reply)
         
-    except Exception as e:
-        logging.error(f"Chat API error: {e}")
-        # Return a graceful fallback if API key is invalid or request fails
-        return ChatResponse(reply=f"Agent 10 is currently offline. (Error: {str(e)})")
+    except ValueError as e:
+        logging.error("Chat configuration error: %s", e)
+        return ChatResponse(reply="Agent 10 is currently offline. GROQ_API_KEY is not configured on the backend.")
+    except Exception:
+        logging.exception("Chat provider request failed")
+        return ChatResponse(reply="Agent 10 is currently offline. The chat provider request failed; please try again later.")
