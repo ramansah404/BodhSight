@@ -33,6 +33,7 @@ export default function Settings() {
           phone_number: res.phone_number || "",
           profile_image_url: res.profile_image_url
         });
+        setTwoFactorEnabled(res.two_factor_enabled || false);
       }
     } catch (e) {
       console.error("Failed to load profile", e);

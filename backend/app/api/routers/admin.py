@@ -264,6 +264,18 @@ def update_system_config(data: SystemConfigRequest, db: Session = Depends(get_db
         logger.error(f"Error updating config: {e}")
         raise HTTPException(status_code=500, detail="Failed to update config")
 
+@router.delete("/mock-data")
+def purge_mock_data(db: Session = Depends(get_db), _: str = Depends(verify_admin)):
+    """Purge all mock data from the database."""
+    try:
+        # Delete mock users (assuming mock users have 'Mock' in name or email)
+        db.execute(text("DELETE FROM core.user_account WHERE email LIKE 'mock%' OR full_name LIKE 'Mock %'"))
+        db.commit()
+        return {"success": True, "message": "Mock data purged successfully."}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error purging mock data: {e}")
+        raise HTTPException(status_code=500, detail="Failed to purge mock data.")
 
 class BroadcastNotificationRequest(BaseModel):
     title: str

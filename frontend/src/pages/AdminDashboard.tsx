@@ -247,6 +247,20 @@ export default function AdminDashboard() {
     }
   };
 
+  const handlePurgeMockData = async () => {
+    if (!window.confirm("Are you sure you want to permanently delete all mock data? This cannot be undone.")) return;
+    try {
+      setConfigLoading(true);
+      await AdminAPI.purgeMockData();
+      alert("Mock data purged successfully!");
+      fetchUsers(); // Refresh the list
+    } catch (err: any) {
+      alert("Failed to purge mock data: " + (err.response?.data?.detail || ""));
+    } finally {
+      setConfigLoading(false);
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin text-indigo-600" size={32} /></div>;
   }
@@ -640,6 +654,21 @@ export default function AdminDashboard() {
               <span
                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${mockDataEnabled ? 'translate-x-6' : 'translate-x-1'}`}
               />
+            </button>
+          </div>
+          <div className="flex items-center justify-between bg-surface-secondary/50 p-4 rounded-xl border border-border/60 mt-4">
+            <div>
+              <h3 className="font-bold text-rose-600 dark:text-rose-400 text-sm">Purge Mock Data</h3>
+              <p className="text-secondary text-xs mt-1 max-w-md">
+                Permanently delete all mock users and fake records from the database. This action cannot be undone.
+              </p>
+            </div>
+            <button
+              onClick={handlePurgeMockData}
+              disabled={configLoading}
+              className="px-4 py-2 bg-rose-600 text-white rounded-lg text-xs font-bold hover:bg-rose-700 disabled:opacity-50"
+            >
+              Purge Data
             </button>
           </div>
         </div>

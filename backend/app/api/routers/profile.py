@@ -21,11 +21,13 @@ class ProfileResponse(BaseModel):
     role: str
     department: Optional[str] = None
     profile_image_url: Optional[str] = None
+    two_factor_enabled: Optional[bool] = None
 
 class ProfileUpdateRequest(BaseModel):
     identifier: str # Email or phone to identify user since we don't have true JWTs yet
     full_name: Optional[str] = None
     phone_number: Optional[str] = None
+    two_factor_enabled: Optional[bool] = None
     # Add other updatable fields here
 
 @router.post("/me", response_model=ProfileResponse)
@@ -36,7 +38,7 @@ def get_profile(data: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Identifier is required")
         
     user = db.execute(
-        text("SELECT email, phone_number, full_name, role, department, profile_image_url FROM core.user_account WHERE email = :id OR phone_number = :id"),
+        text("SELECT email, phone_number, full_name, role, department, profile_image_url, two_factor_enabled FROM core.user_account WHERE email = :id OR phone_number = :id"),
         {"id": identifier}
     ).fetchone()
     
@@ -52,6 +54,7 @@ def get_profile(data: dict, db: Session = Depends(get_db)):
         role=user.role,
         department=user.department,
         profile_image_url=user.profile_image_url,
+        two_factor_enabled=user.two_factor_enabled,
     )
 
 @router.put("/me", response_model=ProfileResponse)
@@ -60,9 +63,10 @@ def update_profile(data: ProfileUpdateRequest, db: Session = Depends(get_db)):
     # Note: RBAC validation should ideally be done based on verified session JWT.
     # For now, users can only update their own non-sensitive fields.
     
+    identifier = data.identifier
     user = db.execute(
         text("SELECT * FROM core.user_account WHERE email = :id OR phone_number = :id"),
-        {"id": data.identifier}
+        {"id": identifier}
     ).fetchone()
     
     if not user:
@@ -70,15 +74,19 @@ def update_profile(data: ProfileUpdateRequest, db: Session = Depends(get_db)):
 
     # Update logic
     updates = []
-    params = {"id": data.identifier}
+    params = {"id": identifier}
     
-    if data.full_name:
+    if data.full_name is not None:
         updates.append("full_name = :full_name")
         params["full_name"] = data.full_name
         
-    if data.phone_number:
+    if data.phone_number is not None:
         updates.append("phone_number = :phone_number")
         params["phone_number"] = data.phone_number
+
+    if data.two_factor_enabled is not None:
+        updates.append("two_factor_enabled = :two_factor_enabled")
+        params["two_factor_enabled"] = data.two_factor_enabled
 
     if not updates:
         raise HTTPException(status_code=400, detail="No fields to update provided")
@@ -94,8 +102,8 @@ def update_profile(data: ProfileUpdateRequest, db: Session = Depends(get_db)):
         
     # Re-fetch user to return updated response
     updated_user = db.execute(
-        text("SELECT email, phone_number, full_name, role, department, profile_image_url FROM core.user_account WHERE email = :id OR phone_number = :id"),
-        {"id": data.identifier}
+        text("SELECT email, phone_number, full_name, role, department, profile_image_url, two_factor_enabled FROM core.user_account WHERE email = :id OR phone_number = :id"),
+        {"id": identifier}
     ).fetchone()
     
     return ProfileResponse(
@@ -107,6 +115,7 @@ def update_profile(data: ProfileUpdateRequest, db: Session = Depends(get_db)):
         role=updated_user.role,
         department=updated_user.department,
         profile_image_url=updated_user.profile_image_url,
+        two_factor_enabled=updated_user.two_factor_enabled,
     )
 
 @router.post("/image")

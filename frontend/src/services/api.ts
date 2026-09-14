@@ -588,7 +588,10 @@ export const AdminAPI = {
     const res = await apiClient.put("/admin/config", { mock_data_enabled: mockDataEnabled });
     syncSystemConfig();
     return res.data;
+  },
+
+  async purgeMockData(): Promise<{ success: boolean; message: string }> {
+    const res = await apiClient.delete("/admin/mock-data");
+    return res.data;
   }
 };
-
-
