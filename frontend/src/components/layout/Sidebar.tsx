@@ -13,7 +13,6 @@ import {
   Building2, 
 
   Layers, 
-
   AlertTriangle, 
 
   Lightbulb, 
@@ -27,9 +26,7 @@ import {
   Menu,
 
   Database,
-
   FileWarning
-
 } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";

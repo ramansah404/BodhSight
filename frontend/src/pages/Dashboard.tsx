@@ -9,9 +9,7 @@ import {
   BookOpen, ChevronRight, Activity, Building2, Award, Loader2
 
 } from "lucide-react";
-
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-
 import { motion } from "framer-motion";
 
 import { useFilters } from "../contexts/FilterContext";
@@ -185,51 +183,24 @@ export default function Dashboard() {
   const handleExportExcel = () => {
 
     // Generate institutional summary data
+    const summaryData = [
+      { Metric: "Total Students", Value: metrics?.total_students || 0 },
+      { Metric: "Students Evaluated", Value: metrics?.students_evaluated || 0 },
+      { Metric: "Pass Rate (%)", Value: metrics?.pass_rate || 0 },
+      { Metric: "Average Marks", Value: metrics?.average_marks || 0 },
+      { Metric: "Average GPA", Value: metrics?.average_gpa || 0 },
+      { Metric: "Failure Rate (%)", Value: metrics?.failure_rate || 0 },
+      { Metric: "Data Trust Score", Value: metrics?.data_trust_score || 0 }
+    ];
 
-    const summaryData = [{
-
-      "Metric": "Students Evaluated",
-
-      "Value": metrics?.students_evaluated || 0
-
-    }, {
-
-      "Metric": "Total Students",
-
-      "Value": metrics?.total_students || 0
-
-    }, {
-
-      "Metric": "Pass Rate (%)",
-
-      "Value": metrics?.pass_rate || 0
-
-    }, {
-
-      "Metric": "Average Marks",
-
-      "Value": metrics?.average_marks || 0
-
-    }, {
-
-      "Metric": "Active Problems",
-
-      "Value": metrics?.active_anomalies || metrics?.significant_deviations || 0
-
-    }];
-
-    
-
-    // Generate department data
-
-    const deptData = departments.map(d => ({
-
-      "Department": d.department_code,
-
-      "Pass Rate (%)": d.pass_rate || 0,
-
-      "Status": d.status
-
+    const anomalies = (metrics as any)?.anomalies || [];
+    const anomalyData = anomalies.map((a: any) => ({
+      "Course": a.course_code,
+      "Severity": a.severity,
+      "Description": a.description,
+      "Metric": a.metric,
+      "Expected": a.expected_value,
+      "Actual": a.actual_value,
     }));
 
 
@@ -306,10 +277,7 @@ export default function Dashboard() {
 
   };
 
-
-
   const containerVariants: any = {
-
     hidden: { opacity: 0 },
 
     show: {
@@ -322,10 +290,7 @@ export default function Dashboard() {
 
   };
 
-
-
   const itemVariants: any = {
-
     hidden: { opacity: 0, y: 20 },
 
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
@@ -341,9 +306,7 @@ export default function Dashboard() {
 
 
       {/* Header */}
-
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-surface p-6 rounded-3xl border border-border/60 shadow-lg">
-
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-surface p-6 rounded-3xl border border-border/60 shadow-lg relative z-50">
         <div>
 
           <div className="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-bold border border-indigo-500/20 mb-3">
@@ -789,33 +752,23 @@ export default function Dashboard() {
                 <AreaChart 
 
                   data={courses.map(c => ({ name: c.course_code, passRate: c.pass_rate ?? 0, status: c.status }))} 
-
-                  margin={{ top: 10, right: 10, left: -20, bottom: 40 }}
-
+                  margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
                 >
 
                   <defs>
-
-                    <linearGradient id="courseColorPassRate" x1="0" y1="0" x2="0" y2="1">
-
-                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.4}/>
-
+                    <linearGradient id="colorPassRateCourse" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
                       <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
 
                     </linearGradient>
-
-                    <linearGradient id="courseLineColor" x1="0" y1="0" x2="1" y2="0">
-
-                      <stop offset="0%" stopColor="#8b5cf6" />
-
-                      <stop offset="100%" stopColor="#ec4899" />
-
+                    <linearGradient id="lineColorCourse" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#ec4899" stopOpacity={1}/>
+                      <stop offset="50%" stopColor="#8b5cf6" stopOpacity={1}/>
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={1}/>
                     </linearGradient>
 
                   </defs>
-
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(100,116,139,0.2)" />
-
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" />
                   <XAxis 
 
                     dataKey="name" 
@@ -823,25 +776,18 @@ export default function Dashboard() {
                     axisLine={false} 
 
                     tickLine={false} 
-
-                    tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 700 }} 
-
-                    angle={-35} 
-
-                    textAnchor="end" 
-
+                    tick={{ fill: "#94a3b8", fontWeight: "600", fontSize: 12 }} 
+                    dy={10}
+                    angle={-20}
+                    textAnchor="end"
                   />
-
-                  <YAxis domain={[0, 100]} axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `${v}%`} />
-
+                  <YAxis domain={[0, 100]} hide />
                   <Tooltip 
 
                     cursor={{ stroke: "#334155", strokeWidth: 1, strokeDasharray: "3 3" }}
 
                     contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#0f172a", color: "#f8fafc" }} 
-
-                    formatter={(val: any) => [`${val.toFixed(1)}%`, "Pass Rate"]} 
-
+                    formatter={(val: any) => [`${Number(val).toFixed(1)}%`, "Pass Rate"]} 
                   />
 
                   <Area
@@ -849,15 +795,11 @@ export default function Dashboard() {
                     type="monotone"
 
                     dataKey="passRate"
-
-                    stroke="url(#courseLineColor)"
-
+                    stroke="url(#lineColorCourse)"
                     strokeWidth={4}
 
                     fillOpacity={1}
-
-                    fill="url(#courseColorPassRate)"
-
+                    fill="url(#colorPassRateCourse)"
                     dot={{ fill: "#0f172a", stroke: "#8b5cf6", strokeWidth: 2, r: 4 }}
 
                     activeDot={{ r: 6, fill: "#ec4899", strokeWidth: 0 }}
