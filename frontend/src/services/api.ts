@@ -48,15 +48,20 @@ export const syncSystemConfig = async () => {
 // Sync immediately
 syncSystemConfig();
 
-// Attach role headers to every request
+// Attach role headers and JWT to every request
 apiClient.interceptors.request.use((config) => {
   const role = localStorage.getItem("bodhsight_role") || "Dean";
   const name = localStorage.getItem("bodhsight_name") || "User";
   const dept = localStorage.getItem("bodhsight_department");
+  const token = localStorage.getItem("bodhsight_token");
+  
   config.headers["X-User-Role"] = role;
   config.headers["X-User-Name"] = name;
   if (dept) {
     config.headers["X-User-Department"] = dept;
+  }
+  if (token) {
+    config.headers["Authorization"] = `Bearer ${token}`;
   }
   return config;
 });

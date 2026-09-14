@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 logger = logging.getLogger(__name__)
 
-VALID_ROLES = ["Admin", "Chairman", "Principal", "Dean", "HOD", "Faculty", "IQAC"]
+VALID_ROLES = ["Chairman", "Principal", "Dean", "HOD", "Faculty", "IQAC"]
 
 # -------------------------------------------------------------------
 # Brute-force protection: track failed login attempts per identifier
@@ -71,6 +71,7 @@ class GoogleAuthRequest(BaseModel):
 class AuthResponse(BaseModel):
     success: bool
     message: str
+    token: Optional[str] = None
     role: Optional[str] = None
     full_name: Optional[str] = None
     email: Optional[str] = None
@@ -107,6 +108,18 @@ def verify_password(plain: str, hashed: str) -> bool:
         return bcrypt.checkpw(plain.encode('utf-8'), hashed.encode('utf-8'))
     except Exception:
         return False
+
+import jwt
+from datetime import datetime, timedelta
+
+SECRET_KEY = "super_secret_bodhsight_jwt_key_for_testing"
+ALGORITHM = "HS256"
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(days=7)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
 # -------------------------------------------------------------------
@@ -209,9 +222,12 @@ def verify_signup(data: VerifyOtpRequest, db: Session = Depends(get_db)):
         )
         db.commit()
 
+        token = create_access_token({"sub": pending_data.email or pending_data.phone_number, "role": pending_data.role, "dept": pending_data.department})
+        
         return AuthResponse(
             success=True,
             message="Account created successfully. Login successful.",
+            token=token,
             role=pending_data.role,
             full_name=pending_data.full_name,
             email=pending_data.email,
@@ -345,9 +361,11 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
                 email=norm_id # Send back to frontend for step 2
             )
 
+        token = create_access_token({"sub": user.email or user.phone_number, "role": user.role, "dept": user.department})
         return AuthResponse(
             success=True,
             message="Login successful.",
+            token=token,
             role=user.role,
             full_name=user.full_name,
             email=user.email,

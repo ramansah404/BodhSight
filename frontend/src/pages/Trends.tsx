@@ -261,12 +261,12 @@ export default function Trends() {
                 <>
                   <div style={{ width: "100%", height: 180 }} className="p-4 border-b border-border">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={data.courses_below_mean.slice(0, 5)} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+                      <BarChart data={data.courses_below_mean.slice(0, 5).map(c => ({...c, abs_delta: Math.abs(c.delta_vs_mean)}))} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#334155" />
                         <XAxis type="number" hide />
                         <YAxis dataKey="course_code" type="category" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10 }} width={60} />
-                        <Tooltip cursor={{ fill: "#1e293b" }} contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#0f172a", color: "#f8fafc" }} />
-                        <Bar dataKey="delta_vs_mean" fill="#e11d48" radius={[0, 4, 4, 0]} barSize={16} name="Delta (pp)" isAnimationActive={true} animationDuration={1500} />
+                        <Tooltip cursor={{ fill: "#1e293b" }} contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#0f172a", color: "#f8fafc" }} formatter={(value: number) => [`-${value.toFixed(1)} pp`, "Delta"]} />
+                        <Bar dataKey="abs_delta" fill="#e11d48" radius={[0, 4, 4, 0]} barSize={16} name="Delta (pp)" isAnimationActive={true} animationDuration={1500} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>

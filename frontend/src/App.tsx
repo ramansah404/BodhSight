@@ -1,4 +1,4 @@
-﻿import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import { ThemeProvider } from "./contexts/ThemeContext";
 
@@ -70,11 +70,11 @@ export default function App() {
 
 
 
-            {/* Accessible to all logged-in roles */}
-
-            <Route path="dashboard"       element={<Dashboard />} />
-
-            <Route path="settings"        element={<Settings />} />
+            {/* Accessible to all logged-in roles EXCEPT Admin */}
+            <Route element={<ProtectedRoute allowedRoles={["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"]} />}>
+              <Route path="dashboard"       element={<Dashboard />} />
+              <Route path="settings"        element={<Settings />} />
+            </Route>
 
 
 

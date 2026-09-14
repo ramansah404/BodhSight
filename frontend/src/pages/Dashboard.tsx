@@ -150,7 +150,7 @@ export default function Dashboard() {
 
     : courses.map((c: any) => ({
         name: c.course_code,
-        passRate: c.pass_rate ?? 0,
+        passRate: c.pass_pct ?? c.pass_rate ?? 0,
         status: "MONITORING"
       }));
 

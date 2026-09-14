@@ -17,7 +17,7 @@ export default function Students() {
   const [errorMsg, setErrorMsg] = useState("");
   
   const currentRole = localStorage.getItem("bodhsight_role") || "Chairman";
-  const canDrilldown = ["Principal", "Dean", "HOD", "Faculty"].includes(currentRole);
+  const canDrilldown = true;
 
   // Drilldown state
   const [drilldown, setDrilldown] = useState<{ isOpen: boolean; context: string; title: string }>({

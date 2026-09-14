@@ -13,10 +13,28 @@ from app.db.session import get_db
 router = APIRouter(prefix="/admin", tags=["Admin"])
 logger = logging.getLogger(__name__)
 
-def verify_admin(x_user_role: str = Header(...)):
-    if x_user_role != "Admin":
-        raise HTTPException(status_code=403, detail="Admin privileges required")
-    return x_user_role
+import jwt
+from fastapi import Request
+
+SECRET_KEY = "super_secret_bodhsight_jwt_key_for_testing"
+ALGORITHM = "HS256"
+
+def verify_admin(request: Request):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Authentication required")
+        
+    token = auth_header.split(" ")[1]
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        role = payload.get("role")
+        if role != "Admin":
+            raise HTTPException(status_code=403, detail="Admin privileges required")
+        return role
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid authentication token")
 
 class UserResponse(BaseModel):
     id: str

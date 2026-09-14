@@ -210,6 +210,33 @@ def create_notification(
     if "can_send_notifications" not in permissions_list and x_user_role not in ["Admin", "Dean", "Principal", "Chairman", "IQAC"]:
         raise HTTPException(status_code=403, detail="Insufficient permissions to create notifications")
 
+    # WhatsApp Validation: Check if targets have phone numbers
+    if data.send_whatsapp:
+        conditions = ["is_active = TRUE"]
+        params = {}
+        if data.user_id:
+            conditions.append("id = :uid")
+            params["uid"] = data.user_id
+        else:
+            if data.role:
+                conditions.append("role = :role")
+                params["role"] = data.role
+            if data.department:
+                conditions.append("department = :dept")
+                params["dept"] = data.department
+
+        where_clause = " AND ".join(conditions)
+        if where_clause:
+            users = db.execute(text(f"SELECT phone_number FROM core.user_account WHERE {where_clause}"), params).fetchall()
+            
+            # If no users found, or ALL found users have no phone number, we raise an error
+            valid_phones = [u.phone_number for u in users if u.phone_number]
+            if not valid_phones:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Please set up phone numbers for the target user(s) to use the WhatsApp feature."
+                )
+
 
     db.execute(
         text("""

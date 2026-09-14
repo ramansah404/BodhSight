@@ -19,7 +19,6 @@ import axios from "axios";
  */
 
 const ROLE_OPTIONS = [
-  { code: "Admin",     label: "System Administrator", display: "Admin",     desc: "Full System Access",    icon: ShieldCheck },
   { code: "Chairman",  label: "Chairman / Board",     display: "Chairman", desc: "Institutional Overview", icon: ShieldCheck },
   { code: "Principal", label: "Principal",             display: "Principal", desc: "Academic Leadership",   icon: ShieldCheck },
   { code: "Dean",      label: "Dean of Academics",    display: "Dean",      desc: "Academic Management",   icon: Lock },
@@ -86,7 +85,10 @@ export default function Login() {
 
   // If already logged in, skip the login page entirely
   useEffect(() => {
-    if (localStorage.getItem("bodhsight_role")) {
+    const role = localStorage.getItem("bodhsight_role");
+    if (role === "Admin") {
+      navigate("/admin/users", { replace: true });
+    } else if (role) {
       navigate("/dashboard", { replace: true });
     }
   }, [navigate]);
@@ -102,11 +104,14 @@ export default function Login() {
     setSuccess("");
   }, [isSignUp]);
 
-  const startSession = (code: string, displayLabel: string, displayName: string, userEmail: string, dept?: string | null) => {
+  const startSession = (code: string, displayLabel: string, displayName: string, userEmail: string, dept?: string | null, token?: string) => {
     localStorage.setItem("bodhsight_role", code);
     localStorage.setItem("bodhsight_display_role", displayLabel);
     localStorage.setItem("bodhsight_name", displayName);
     localStorage.setItem("bodhsight_email", userEmail);
+    if (token) {
+      localStorage.setItem("bodhsight_token", token);
+    }
     if (dept) {
       localStorage.setItem("bodhsight_department", dept);
     } else {

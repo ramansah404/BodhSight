@@ -281,7 +281,7 @@ export default function Reports() {
 
       {/* View Details Modal */}
       {selectedReport && (
-        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
           <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-3xl border border-border/60 overflow-hidden max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="px-8 py-6 border-b border-border/60 flex justify-between items-start bg-indigo-500/5">
