@@ -32,9 +32,10 @@ def _check_rate_limit(identifier: str):
     _login_attempts[identifier] = [t for t in attempts if now - t < LOCKOUT_SECONDS]
     if len(_login_attempts[identifier]) >= MAX_ATTEMPTS:
         remaining = int(LOCKOUT_SECONDS - (now - _login_attempts[identifier][0]))
+        msg = f"{remaining} seconds" if remaining < 60 else f"{int(remaining / 60) + (1 if remaining % 60 > 0 else 0)} minutes"
         raise HTTPException(
             status_code=429,
-            detail=f"Too many failed login attempts. Please try again in {remaining // 60} minutes."
+            detail=f"Too many failed login attempts. Please try again in {msg}."
         )
 
 def _record_failure(identifier: str):

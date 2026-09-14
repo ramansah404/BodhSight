@@ -81,3 +81,87 @@ export const mockNotifications = [
   { id: "n2", title: "New Exception Detected (CS301)", message: "CS301 pass rate dropped by 20% uniformly.", type: "WARNING", is_read: false, created_at: "2026-09-11T14:30:00Z" },
   { id: "n3", title: "Pending HOD Review", message: "Faculty feedback pending for EC202 Section B variance.", type: "INFO", is_read: false, created_at: "2026-09-11T09:15:00Z" }
 ];
+
+// Dynamic Role-based Mocks Fallback
+export const getDynamicMockDashboard = (role: string, _department?: string) => {
+  const isFaculty = role === "Faculty";
+  const isHOD = role === "HOD";
+  
+  if (isFaculty) {
+    return {
+      ...mockDashboard,
+      students_evaluated: 120,
+      ingestion_status: { ...mockDashboard.ingestion_status, total_records_ingested: 120 }
+    };
+  }
+  if (isHOD) {
+    return {
+      ...mockDashboard,
+      students_evaluated: 650,
+      ingestion_status: { ...mockDashboard.ingestion_status, total_records_ingested: 650 }
+    };
+  }
+  return mockDashboard;
+};
+
+export const getDynamicMockCourses = (role: string, department?: string) => {
+  let filtered = [...mockCourses];
+  if (department) {
+    filtered = filtered.filter(c => c.department === department);
+  }
+  if (role === "Faculty") {
+    return filtered.slice(0, 1);
+  }
+  return filtered.length > 0 ? filtered : mockCourses.slice(0, 2);
+};
+
+export const getDynamicMockDepartments = (role: string, _department?: string) => {
+  if (role === "Faculty" || role === "HOD") {
+    return []; // HOD and Faculty should not see other departments
+  }
+  return mockDepartments;
+};
+
+export const getDynamicMockTrends = (role: string, _department?: string) => {
+  const isFaculty = role === "Faculty";
+  const isHOD = role === "HOD";
+  let scale = 1;
+  if (isFaculty) scale = 120 / 2450;
+  else if (isHOD) scale = 650 / 2450;
+
+  return {
+    ...mockTrends,
+    current_term_summary: {
+      ...mockTrends.current_term_summary,
+      students_evaluated: Math.round(2450 * scale),
+      total_sections: isFaculty ? 2 : (isHOD ? 12 : 45)
+    },
+    student_backlog_trend: {
+      total_students: Math.round(2450 * scale),
+      students_with_backlogs: Math.round(350 * scale),
+      students_high_backlogs: Math.round(50 * scale)
+    }
+  };
+};
+
+export const getDynamicMockExceptions = (_role: string, department?: string) => {
+  if (department) {
+    return mockExceptions.filter(e => e.department === department);
+  }
+  return mockExceptions;
+};
+
+export const getDynamicMockRecommendations = (_role: string, department?: string) => {
+  if (department) {
+    return mockRecommendations.filter(e => e.department === department);
+  }
+  return mockRecommendations;
+};
+
+export const getDynamicMockSections = (_role: string, _department?: string) => {
+  return mockSections;
+};
+
+export const getDynamicMockPriorities = (_role: string, _department?: string) => {
+  return mockPriorities;
+};

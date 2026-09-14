@@ -9,6 +9,7 @@ export interface FilterState {
   department: string;   // "" = all
   semester: string;     // active term label from backend, or "" = all
   programme: string;    // "" = all (no backend endpoint yet)
+  _refresh?: number;    // used to force real-time polling updates
 }
 
 interface FilterContextValue {
@@ -40,6 +41,14 @@ export function FilterProvider({ children }: { children: ReactNode }) {
   function setFilters(partial: Partial<FilterState>) {
     setFiltersState((prev) => ({ ...prev, ...partial }));
   }
+
+  // Global real-time polling trigger: updates all components depending on filters
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFiltersState((prev) => ({ ...prev, _refresh: Date.now() }));
+    }, 30000); // 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;

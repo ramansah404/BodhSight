@@ -36,7 +36,26 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    fetchUsers();
+    let cancelled = false;
+    
+    const loadData = async () => {
+      try {
+        const data = await AdminAPI.getAllUsers();
+        if (!cancelled) setUsers(data);
+      } catch (err: any) {
+        if (!cancelled) setError(err.response?.data?.detail || "Failed to fetch users");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadData();
+    const interval = setInterval(loadData, 30000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   const handleUpdateRole = async (userId: string) => {
