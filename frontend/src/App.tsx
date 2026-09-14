@@ -2,8 +2,7 @@ import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
-import { lazy, Suspense } from "react";
-import LoadingFallback from "./components/ui/LoadingFallback";
+
 
 import Landing       from "./pages/Landing";
 import Login         from "./pages/Login";

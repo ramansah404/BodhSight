@@ -15,14 +15,14 @@ logger = logging.getLogger(__name__)
 
 logger = logging.getLogger(__name__)
 
-VALID_ROLES = ["Chairman", "Principal", "Dean", "HOD", "Faculty", "IQAC"]
+VALID_ROLES = ["Admin", "Chairman", "Principal", "Dean", "HOD", "Faculty", "IQAC"]
 
 # -------------------------------------------------------------------
 # Brute-force protection: track failed login attempts per identifier
 # -------------------------------------------------------------------
 _login_attempts: dict = defaultdict(list)  # identifier -> [timestamp, ...]
 MAX_ATTEMPTS = 5
-LOCKOUT_SECONDS = 600  # 10 minutes
+LOCKOUT_SECONDS = 60  # 1 minute
 
 def _check_rate_limit(identifier: str):
     """Raise 429 if too many failed attempts in the lockout window."""

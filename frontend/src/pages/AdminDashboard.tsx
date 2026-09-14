@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { User, ShieldCheck, Trash2, Edit2, Loader2, AlertTriangle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ShieldCheck, Trash2, Edit2, Loader2, AlertTriangle } from "lucide-react";
 import { AdminAPI } from "../services/api";
 
 type AdminUser = {

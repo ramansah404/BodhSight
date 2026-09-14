@@ -8,20 +8,29 @@ import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, Ta
  * @param filename Name of the file without extension
  * @param sheetName Name of the sheet (optional)
  */
-export const exportToExcel = (data: any[], filename: string, sheetName = "Data") => {
-  if (!data || data.length === 0) {
+export const exportToExcel = (data: any[] | Record<string, any[]>, filename: string, defaultSheetName = "Data") => {
+  if (!data || (Array.isArray(data) && data.length === 0) || (typeof data === 'object' && Object.keys(data).length === 0)) {
     alert("No data available to export.");
     return;
   }
   
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  
-  // Auto-size columns (basic implementation)
-  const colWidths = Object.keys(data[0] || {}).map(key => ({ wch: Math.max(key.length, 10) }));
-  worksheet['!cols'] = colWidths;
-  
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+  if (Array.isArray(data)) {
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const colWidths = Object.keys(data[0] || {}).map(key => ({ wch: Math.max(key.length, 10) }));
+    worksheet['!cols'] = colWidths;
+    XLSX.utils.book_append_sheet(workbook, worksheet, defaultSheetName);
+  } else {
+    for (const [sheetName, sheetData] of Object.entries(data)) {
+      if (sheetData && sheetData.length > 0) {
+        const worksheet = XLSX.utils.json_to_sheet(sheetData);
+        const colWidths = Object.keys(sheetData[0] || {}).map(key => ({ wch: Math.max(key.length, 10) }));
+        worksheet['!cols'] = colWidths;
+        XLSX.utils.book_append_sheet(workbook, worksheet, sheetName.substring(0, 31)); // Max sheet name length
+      }
+    }
+  }
   
   XLSX.writeFile(workbook, `${filename}.xlsx`);
 };

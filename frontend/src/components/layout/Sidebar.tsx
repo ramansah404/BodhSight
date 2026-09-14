@@ -6,7 +6,6 @@ import {
   BookOpen, 
   Building2, 
   Layers, 
-  Users, 
   AlertTriangle, 
   Lightbulb, 
   FileText, 
@@ -14,8 +13,7 @@ import {
   X,
   Menu,
   Database,
-  FileWarning,
-  ClipboardEdit
+  FileWarning
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";

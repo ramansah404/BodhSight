@@ -49,8 +49,7 @@ export default function Students() {
     if (!backlog) return [];
     return [
       { name: "Critical Risk (≥3 backlogs)", value: backlog.students_high_backlogs, color: "#e11d48" },
-      { name: "Moderate Risk (1-2 backlogs)", value: backlog.students_with_backlogs - backlog.students_high_backlogs, color: "#d97706" },
-      { name: "Healthy / No Risk (0 backlogs)", value: backlog.total_students - backlog.students_with_backlogs, color: "#10b981" }
+      { name: "Moderate Risk (1-2 backlogs)", value: backlog.students_with_backlogs - backlog.students_high_backlogs, color: "#d97706" }
     ];
   }, [backlog]);
 
@@ -230,6 +229,7 @@ export default function Students() {
                       stroke="none"
                       isAnimationActive={true}
                       animationDuration={1500}
+                      label={({ value }) => value}
                     >
                       {pieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />

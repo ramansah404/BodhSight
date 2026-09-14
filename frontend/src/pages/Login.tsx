@@ -19,6 +19,7 @@ import axios from "axios";
  */
 
 const ROLE_OPTIONS = [
+  { code: "Admin",     label: "System Administrator", display: "Admin",     desc: "Full System Access",    icon: ShieldCheck },
   { code: "Chairman",  label: "Chairman / Board",     display: "Chairman", desc: "Institutional Overview", icon: ShieldCheck },
   { code: "Principal", label: "Principal",             display: "Principal", desc: "Academic Leadership",   icon: ShieldCheck },
   { code: "Dean",      label: "Dean of Academics",    display: "Dean",      desc: "Academic Management",   icon: Lock },
@@ -231,40 +232,6 @@ export default function Login() {
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || "Invalid or expired OTP.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSuccess = async (credentialResponse: any) => {
-    if (!credentialResponse.credential) return;
-    setLoading(true);
-    try {
-      const res = await AuthAPI.googleAuth({ 
-        token: credentialResponse.credential, 
-        role: roleCode,
-        department
-      });
-      if (res.success) {
-        if (res.requires_2fa) {
-          setSuccess("2FA Required. Please check your email or phone for the OTP.");
-          setIsOtpMode(true);
-          setOtpSent(true);
-          setIdentifier(res.email!);
-          return;
-        }
-
-        const role = ROLE_OPTIONS.find(r => r.code === res.role);
-        startSession(
-          res.role ?? "Faculty",
-          role?.label ?? res.role ?? "User",
-          res.full_name ?? "User",
-          res.email ?? identifier,
-          res.department,
-        );
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.detail || "Google authentication failed.");
     } finally {
       setLoading(false);
     }

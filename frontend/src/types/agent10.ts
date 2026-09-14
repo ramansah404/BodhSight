@@ -54,6 +54,8 @@ export interface CoursePerformance {
     course_difficulty_rating: "High" | "Moderate" | "Low";
     historical_pass_rate: number;
   };
+  status?: "OPTIMAL" | "MONITORING" | "INTERVENTION_REQUIRED" | "NO_DATA";
+  pass_pct?: number;
 }
 
 // --- Departments ---
