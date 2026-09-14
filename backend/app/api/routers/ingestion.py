@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Header, UploadFile, File, Form
-from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-import asyncio
 import logging
 import csv
 import io
@@ -34,112 +32,63 @@ async def upload_document(
         file_content = await file.read()
         file_size_kb = len(file_content) / 1024
         
-        # 2. Add to database audit log to track who uploaded what
+        # Keep the ingestion audit in application logs. The official schema in
+        # this checkout has no agentops.system_logs table.
         meta_dict = {
             "filename": file.filename,
             "size_kb": round(file_size_kb, 1),
             "type": document_type,
             "uploader": x_user_name
         }
-        db.execute(
-            text("""
-                INSERT INTO agentops.system_logs 
-                (log_type, message, component, user_role, metadata)
-                VALUES 
-                ('INFO', 'Document ingestion queued', 'DataHub', :role, :meta)
-            """),
-            {
-                "role": x_user_role,
-                "meta": json.dumps(meta_dict)
-            }
-        )
-        db.commit()
+        logger.info("Document ingestion queued: %s", json.dumps(meta_dict))
 
-        # 3. Process CSV if available (for the live demo functionality)
-        rows_updated = 0
+        # 3. Validate CSV rows when present. Operational writes are not
+        # exposed by the current schema, so valid files remain queued rather
+        # than being reported as committed database updates.
+        rows_detected = 0
+        rows_valid = 0
+        rows_rejected = 0
         if file.filename.lower().endswith('.csv'):
             try:
-                decoded = file_content.decode('utf-8')
+                decoded = file_content.decode("utf-8-sig")
                 reader = csv.DictReader(io.StringIO(decoded))
-                
-                for row in reader:
-                    student_id = row.get("student_id")
-                    roll_no = row.get("roll_no") or row.get("roll") or row.get("Roll No")
-                    
-                    if not student_id and roll_no:
-                        # Lookup student_id by roll_no
-                        res = db.execute(text("SELECT student_id FROM people.student WHERE roll_no = :roll"), {"roll": roll_no}).fetchone()
-                        if res:
-                            student_id = str(res[0])
-                            
-                    if not student_id:
-                        continue
-                        
-                    # RBAC Security: Enforce department boundaries
-                    if x_user_department and x_user_role in ["Faculty", "HOD"]:
-                        check_q = """
-                            SELECT 1 
-                            FROM people.v_student_profile p
-                            JOIN academics.v_offering_roster c ON c.section_code = p.section_code
-                            WHERE p.student_id = :sid AND c.department_code = :dept
-                        """
-                        res_auth = db.execute(text(check_q), {"sid": student_id, "dept": x_user_department}).fetchone()
-                        if not res_auth:
-                            logger.warning(f"User {x_user_name} attempted to modify unauthorized student {student_id}")
-                            continue
-                    
-                    updates = []
-                    params = {"sid": student_id}
-                    
-                    att_str = row.get("attendance_pct") or row.get("attendance") or row.get("Attendance")
-                    if att_str:
-                        try:
-                            params["att"] = float(att_str)
-                            updates.append("demo_attendance_override = :att")
-                        except ValueError:
-                            pass
-                            
-                    cgpa_str = row.get("cgpa") or row.get("marks") or row.get("CGPA")
-                    if cgpa_str:
-                        try:
-                            params["cgpa"] = float(cgpa_str)
-                            updates.append("demo_marks_override = :cgpa")
-                        except ValueError:
-                            pass
-                            
-                    backlogs_str = row.get("backlogs") or row.get("backlog_count") or row.get("Backlogs")
-                    if backlogs_str:
-                        try:
-                            params["backlogs"] = int(float(backlogs_str))
-                            updates.append("demo_backlog_override = :backlogs")
-                        except ValueError:
-                            pass
-                            
-                    if updates:
-                        update_q = "UPDATE people.student SET " + ", ".join(updates) + " WHERE student_id = :sid"
-                        db.execute(text(update_q), params)
-                        rows_updated += 1
-                        
-                if rows_updated > 0:
-                    db.commit()
-            except Exception as e:
-                logger.error(f"Error parsing CSV: {e}")
-                db.rollback()
+                required = {"Roll No", "Attendance", "CGPA", "Backlogs"}
+                headers = set(reader.fieldnames or [])
+                if not required.issubset(headers):
+                    missing = ", ".join(sorted(required - headers))
+                    raise HTTPException(status_code=422, detail=f"CSV is missing required columns: {missing}")
 
-        # Simulate Agent 10 background processing queue for non-CSV files
-        if rows_updated == 0:
-            await asyncio.sleep(1.5) # Simulate processing time
+                for row in reader:
+                    rows_detected += 1
+                    try:
+                        roll_no = (row.get("Roll No") or "").strip()
+                        attendance = float(row.get("Attendance") or "")
+                        cgpa = float(row.get("CGPA") or "")
+                        backlogs = int(float(row.get("Backlogs") or ""))
+                        if not roll_no or not 0 <= attendance <= 100 or not 0 <= cgpa <= 10 or backlogs < 0:
+                            raise ValueError("value outside supported range")
+                    except (TypeError, ValueError):
+                        rows_rejected += 1
+                        continue
+                    rows_valid += 1
+            except UnicodeDecodeError as exc:
+                raise HTTPException(status_code=422, detail="CSV must be UTF-8 encoded.") from exc
 
         return {
             "success": True,
-            "message": f"File '{file.filename}' processed. {rows_updated} student records updated." if rows_updated > 0 else f"File '{file.filename}' successfully ingested into Agent 10 processing queue.",
-            "status": "PROCESSED" if rows_updated > 0 else "QUEUED",
+            "message": f"File '{file.filename}' validated and queued for Agent 10 processing. {rows_valid} valid rows detected; {rows_rejected} rejected." if file.filename.lower().endswith('.csv') else f"File '{file.filename}' successfully ingested into Agent 10 processing queue.",
+            "status": "QUEUED",
             "file_info": {
                 "name": file.filename,
                 "size_kb": round(file_size_kb, 1),
-                "type": document_type
+                "type": document_type,
+                "rows_detected": rows_detected,
+                "rows_valid": rows_valid,
+                "rows_rejected": rows_rejected,
             }
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Ingestion error: {e}")
         db.rollback()

@@ -1,4 +1,3 @@
-import os
 import json
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
@@ -23,9 +22,11 @@ class ChatResponse(BaseModel):
     reply: str
 
 def get_groq_client():
-    api_key = settings.GROQ_API_KEY or os.environ.get("GROQ_API_KEY")
+    # Settings loads the repository root/backend .env files through pydantic-settings.
+    # Keep the key server-side; the frontend only calls this endpoint.
+    api_key = settings.GROQ_API_KEY
     if not api_key:
-        raise ValueError("GROQ_API_KEY is missing from environment variables (.env)")
+        raise ValueError("GROQ_API_KEY is not configured. Add it to the backend/root .env file and restart FastAPI.")
     return Groq(api_key=api_key)
 
 @router.post("", response_model=ChatResponse)

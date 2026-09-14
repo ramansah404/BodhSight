@@ -2,7 +2,10 @@ import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
+<<<<<<< HEAD
 
+=======
+>>>>>>> dd7c1d01b3744b2d71e661c4ef3634294725fe3f
 
 import Landing       from "./pages/Landing";
 import Login         from "./pages/Login";
