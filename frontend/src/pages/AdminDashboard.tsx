@@ -28,7 +28,7 @@ const generatePassword = () => {
 const AVAILABLE_PERMISSIONS = [
   "view_overview", "view_trends", "view_courses", "view_departments", 
   "view_sections", "view_students", "view_reports", "view_data_hub", 
-  "manage_exceptions", "manage_users"
+  "manage_exceptions", "manage_users", "can_send_notifications"
 ];
 
 export default function AdminDashboard() {

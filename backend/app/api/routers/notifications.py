@@ -200,10 +200,16 @@ def create_notification(
     Create a new notification (Admin / system only).
     Optionally dispatches WhatsApp/Email to target users in background.
     """
-    if x_user_role not in ["Admin", "Dean", "Principal", "Chairman", "IQAC"]:
+    _ensure_table(db)
+
+    # RBAC Validation from DB
+    perms = db.execute(text("SELECT permissions FROM core.role_permissions WHERE role_name = :r"), {"r": x_user_role}).scalar()
+    permissions_list = perms if perms else []
+    
+    # We allow if 'can_send_notifications' is present, or for fallback hardcoded roles if DB isn't updated
+    if "can_send_notifications" not in permissions_list and x_user_role not in ["Admin", "Dean", "Principal", "Chairman", "IQAC"]:
         raise HTTPException(status_code=403, detail="Insufficient permissions to create notifications")
 
-    _ensure_table(db)
 
     db.execute(
         text("""

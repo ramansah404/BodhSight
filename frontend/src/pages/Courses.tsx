@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { BookOpen, ShieldCheck, BarChart2, AlertCircle , X, Info } from "lucide-react";
 import { Agent10API } from "../services/api";
 import { useFilters } from "../contexts/FilterContext";
@@ -42,9 +42,11 @@ export default function Courses() {
   }, [filters]);
 
   // Apply department filter from GlobalFilterBar
-  const visible = filters.department
-    ? courses.filter((c) => c.department === filters.department)
-    : courses;
+  const visible = useMemo(() => {
+    return filters.department
+      ? courses.filter((c) => c.department === filters.department)
+      : courses;
+  }, [courses, filters.department]);
 
   const handleExportExcel = () => {
     const exportData = visible.map(c => ({
