@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ShieldCheck, Trash2, Edit2, Loader2, AlertTriangle, Plus, Key, Power, X } from "lucide-react";
+import { ShieldCheck, Trash2, Edit2, Loader2, AlertTriangle, Plus, Key, Power, X, Users, Lock } from "lucide-react";
 import { AdminAPI } from "../services/api";
 
 type AdminUser = {
@@ -26,6 +26,7 @@ const generatePassword = () => {
 };
 
 export default function AdminDashboard() {
+  const [activeTab, setActiveTab] = useState<"users" | "rbac">("users");
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -145,14 +146,35 @@ export default function AdminDashboard() {
             <ShieldCheck className="text-indigo-600" size={32} />
             User Management
           </h1>
-          <p className="text-secondary text-sm mt-2">Manage all registered accounts, assign RBAC roles, and revoke access.</p>
+          <p className="text-secondary text-sm mt-2">Manage all registered accounts, assign roles, and review RBAC matrices.</p>
         </div>
-        <button 
-          onClick={() => setIsCreateOpen(true)}
-          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-md"
+        {activeTab === "users" && (
+          <button 
+            onClick={() => setIsCreateOpen(true)}
+            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-md"
+          >
+            <Plus size={18} />
+            Create User
+          </button>
+        )}
+      </div>
+
+      <div className="flex space-x-2 border-b border-border/60 pb-px">
+        <button
+          onClick={() => setActiveTab("users")}
+          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+            activeTab === "users" ? "border-indigo-600 text-indigo-600" : "border-transparent text-secondary hover:text-primary"
+          }`}
         >
-          <Plus size={18} />
-          Create User
+          <Users size={16} /> User Management
+        </button>
+        <button
+          onClick={() => setActiveTab("rbac")}
+          className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+            activeTab === "rbac" ? "border-indigo-600 text-indigo-600" : "border-transparent text-secondary hover:text-primary"
+          }`}
+        >
+          <Lock size={16} /> RBAC Matrix
         </button>
       </div>
 
@@ -162,8 +184,9 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div className="bg-surface border border-border/60 rounded-3xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+      {activeTab === "users" ? (
+        <div className="bg-surface border border-border/60 rounded-3xl overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-surface-secondary text-secondary text-xs uppercase tracking-wider border-b border-border/60">
@@ -279,6 +302,72 @@ export default function AdminDashboard() {
           </table>
         </div>
       </div>
+      ) : (
+        <div className="bg-surface border border-border/60 rounded-3xl overflow-hidden shadow-sm">
+          <div className="p-6 border-b border-border/60">
+            <h2 className="text-lg font-bold text-primary">Role-Based Access Control (RBAC) Permissions</h2>
+            <p className="text-sm text-secondary mt-1">
+              Below is the strictly enforced permission matrix for the BodhSight platform. As Admin, you assign these roles via the User Management tab to strictly control access.
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-surface-secondary text-secondary text-xs uppercase tracking-wider border-b border-border/60">
+                  <th className="p-4 font-bold">Role</th>
+                  <th className="p-4 font-bold">Scope</th>
+                  <th className="p-4 font-bold">Permitted Pages</th>
+                  <th className="p-4 font-bold">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60 text-sm">
+                <tr className="hover:bg-surface-secondary/50">
+                  <td className="p-4 font-semibold text-primary"><span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">Chairman</span></td>
+                  <td className="p-4 text-secondary">Institution-wide (Macro)</td>
+                  <td className="p-4 text-secondary">Overview, Trends, Courses, Depts, Sections, Students, Reports</td>
+                  <td className="p-4 text-secondary">View all institution data, executive reporting</td>
+                </tr>
+                <tr className="hover:bg-surface-secondary/50">
+                  <td className="p-4 font-semibold text-primary"><span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">Principal</span></td>
+                  <td className="p-4 text-secondary">Institution-wide</td>
+                  <td className="p-4 text-secondary">Overview, Trends, Courses, Depts, Sections, Students, Reports</td>
+                  <td className="p-4 text-secondary">View all institution data, academic reporting</td>
+                </tr>
+                <tr className="hover:bg-surface-secondary/50">
+                  <td className="p-4 font-semibold text-primary"><span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">Dean</span></td>
+                  <td className="p-4 text-secondary">Institution-wide</td>
+                  <td className="p-4 text-secondary">Overview, Trends, Courses, Depts, Sections, Students, Reports</td>
+                  <td className="p-4 text-secondary">Monitor college health, exceptions, trust audits</td>
+                </tr>
+                <tr className="hover:bg-surface-secondary/50">
+                  <td className="p-4 font-semibold text-primary"><span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">HOD</span></td>
+                  <td className="p-4 text-secondary">Department-Specific</td>
+                  <td className="p-4 text-secondary">Overview, Trends, Courses, Sections, Students, Data Hub</td>
+                  <td className="p-4 text-secondary">View department anomalies, manage manual entries</td>
+                </tr>
+                <tr className="hover:bg-surface-secondary/50">
+                  <td className="p-4 font-semibold text-primary"><span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">Faculty</span></td>
+                  <td className="p-4 text-secondary">Course-Specific</td>
+                  <td className="p-4 text-secondary">Overview, Courses, Sections, Students, Data Hub</td>
+                  <td className="p-4 text-secondary">View assigned course telemetry, student support</td>
+                </tr>
+                <tr className="hover:bg-surface-secondary/50">
+                  <td className="p-4 font-semibold text-primary"><span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">IQAC</span></td>
+                  <td className="p-4 text-secondary">Institution-wide Quality</td>
+                  <td className="p-4 text-secondary">Overview, Trends, Courses, Depts, Reports</td>
+                  <td className="p-4 text-secondary">Monitor quality metrics, reporting</td>
+                </tr>
+                <tr className="hover:bg-surface-secondary/50">
+                  <td className="p-4 font-semibold text-primary"><span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">Admin</span></td>
+                  <td className="p-4 text-secondary">System-wide Settings</td>
+                  <td className="p-4 text-secondary">Admin Dashboard (User Management, RBAC)</td>
+                  <td className="p-4 text-secondary">Create/Suspend Users, Assign Roles, Reset Passwords</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Create User Modal */}
       {isCreateOpen && (

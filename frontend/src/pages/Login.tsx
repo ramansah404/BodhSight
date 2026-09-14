@@ -109,7 +109,12 @@ export default function Login() {
     } else {
       localStorage.removeItem("bodhsight_department");
     }
-    navigate("/dashboard");
+    
+    if (code === "Admin") {
+      navigate("/admin/users");
+    } else {
+      navigate("/dashboard");
+    }
   };
 
   const handleAuthSubmit = async (e: React.FormEvent) => {

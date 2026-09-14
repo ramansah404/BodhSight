@@ -44,7 +44,7 @@ export default function Layout() {
             currentRole={currentRole} 
             onMenuToggle={() => setIsMobileMenuOpen(true)} 
           />
-          <GlobalFilterBar />
+          {currentRole !== "Admin" && <GlobalFilterBar />}
           <main ref={mainRef} className="flex-1 overflow-y-auto px-4 py-5 md:px-7 md:py-6 lg:px-10">
             <AnimatePresence mode="wait">
               <motion.div

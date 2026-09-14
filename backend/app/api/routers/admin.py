@@ -45,6 +45,9 @@ class UpdateRoleRequest(BaseModel):
     role: str
     department: Optional[str] = None
 
+class RolePermissionsRequest(BaseModel):
+    permissions: List[str]
+
 @router.get("/users", response_model=List[UserResponse])
 def get_all_users(db: Session = Depends(get_db), _: str = Depends(verify_admin)):
     """Fetch all registered users."""
@@ -180,3 +183,29 @@ def delete_user(user_id: str, db: Session = Depends(get_db), _: str = Depends(ve
         db.rollback()
         logger.error(f"Error deleting user: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete user")
+
+@router.get("/permissions")
+def get_all_role_permissions(db: Session = Depends(get_db), _: str = Depends(verify_admin)):
+    """Fetch the RBAC permissions matrix."""
+    try:
+        rows = db.execute(text("SELECT role_name, permissions FROM core.role_permissions")).fetchall()
+        return [{"role": row.role_name, "permissions": row.permissions} for row in rows]
+    except Exception as e:
+        logger.error(f"Error fetching permissions: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch permissions")
+
+import json
+@router.put("/permissions/{role_name}")
+def update_role_permissions(role_name: str, data: RolePermissionsRequest, db: Session = Depends(get_db), _: str = Depends(verify_admin)):
+    """Update permissions for a specific role."""
+    try:
+        db.execute(
+            text("UPDATE core.role_permissions SET permissions = :perms, updated_at = CURRENT_TIMESTAMP WHERE role_name = :role"),
+            {"perms": json.dumps(data.permissions), "role": role_name}
+        )
+        db.commit()
+        return {"success": True, "message": f"Permissions updated for {role_name}"}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating permissions: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update permissions")
