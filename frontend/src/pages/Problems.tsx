@@ -288,7 +288,7 @@ export default function Problems() {
 
       {/* Evidence Explorer Modal */}
       {selectedAnomaly && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
           <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border/60 animate-in zoom-in-95">
             <div className="px-6 py-4 border-b border-border/60 flex justify-between items-center bg-surface-secondary/50 text-primary">
               <div className="flex items-center gap-2">
@@ -367,12 +367,21 @@ export default function Problems() {
                 </div>
               )}
 
-              <div className="pt-4 border-t border-border/60 flex justify-end">
+              <div className="pt-4 border-t border-border/60 flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    const text = `🚨 *Anomaly Alert: ${selectedAnomaly.title}*\nSeverity: ${selectedAnomaly.severity}\nCourse: ${selectedAnomaly.course_code !== "—" ? selectedAnomaly.course_code : "N/A"}\nDeviation: ${selectedAnomaly.deviation.toFixed(1)} pp\nAffected Students: ${selectedAnomaly.affected_students}\n\n*Action*: ${selectedAnomaly.recommended_action || "Investigate immediately"}`;
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                  }}
+                  className="px-4 py-2.5 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] border border-[#25D366]/20 rounded-xl text-sm font-bold transition-colors shadow-sm cursor-pointer"
+                >
+                  Share via WhatsApp
+                </button>
                 <button
                   onClick={() => setSelectedAnomaly(null)}
                   className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-primary rounded-xl text-sm font-bold transition-colors shadow-sm cursor-pointer"
                 >
-                  Close Evidence Explorer
+                  Close
                 </button>
               </div>
             </div>

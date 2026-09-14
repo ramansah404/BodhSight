@@ -665,6 +665,9 @@ def get_student_drilldown(
     elif context == "high_risk":
         select_clause += " 'High Backlogs' AS reason "
         where_clause += " AND p.backlog_count >= 3 "
+    elif context == "low_risk":
+        select_clause += " 'Low Backlogs' AS reason "
+        where_clause += " AND p.backlog_count BETWEEN 1 AND 2 "
     elif context == "course" and course_code:
         select_clause += " 'Course Risk' AS reason "
         where_clause += " AND p.student_id IN (SELECT student_id FROM academics.v_offering_roster WHERE course_code = :course_code) "

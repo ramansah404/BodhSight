@@ -492,7 +492,11 @@ export default function Dashboard() {
 
 
 
-            <motion.div variants={itemVariants} className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md">
+            <motion.div 
+              variants={itemVariants} 
+              onClick={() => setDrilldown({ isOpen: true, context: "evaluated", title: "Pass Rate (Evaluated Students)" })}
+              className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md cursor-pointer group"
+            >
 
               <div className="flex justify-between items-start">
 
@@ -518,7 +522,11 @@ export default function Dashboard() {
 
 
 
-            <motion.div variants={itemVariants} className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md">
+            <motion.div 
+              variants={itemVariants} 
+              onClick={() => setDrilldown({ isOpen: true, context: "evaluated", title: "Average Marks (Evaluated Students)" })}
+              className="bg-surface hover:bg-surface/80 transition-all p-6 rounded-3xl border border-border/60 shadow-sm hover:shadow-md cursor-pointer group"
+            >
 
               <div className="flex justify-between items-start">
 

@@ -47,7 +47,9 @@ async def upload_document(
         # than being reported as committed database updates.
         rows_detected = 0
         rows_valid = 0
-        rows_rejected = 0
+        errors = []
+        seen_roll_nos = set()
+        
         if file.filename.lower().endswith('.csv'):
             try:
                 decoded = file_content.decode("utf-8-sig")
@@ -56,27 +58,47 @@ async def upload_document(
                 headers = set(reader.fieldnames or [])
                 if not required.issubset(headers):
                     missing = ", ".join(sorted(required - headers))
-                    raise HTTPException(status_code=422, detail=f"CSV is missing required columns: {missing}")
+                    raise HTTPException(status_code=400, detail=f"CSV is missing required columns: {missing}")
 
-                for row in reader:
+                for i, row in enumerate(reader, start=2):
                     rows_detected += 1
+                    roll_no = (row.get("Roll No") or "").strip()
+                    if not roll_no:
+                        errors.append(f"Row {i}: Roll No is empty")
+                        continue
+                    
+                    if roll_no in seen_roll_nos:
+                        errors.append(f"Row {i}: Duplicate Roll No '{roll_no}' found in CSV")
+                        continue
+                    seen_roll_nos.add(roll_no)
+                        
                     try:
-                        roll_no = (row.get("Roll No") or "").strip()
                         attendance = float(row.get("Attendance") or "")
                         cgpa = float(row.get("CGPA") or "")
                         backlogs = int(float(row.get("Backlogs") or ""))
-                        if not roll_no or not 0 <= attendance <= 100 or not 0 <= cgpa <= 10 or backlogs < 0:
-                            raise ValueError("value outside supported range")
+                        
+                        if attendance < 0 or attendance > 100:
+                            errors.append(f"Row {i}: Attendance must be between 0 and 100")
+                        if cgpa < 0 or cgpa > 10:
+                            errors.append(f"Row {i}: CGPA must be between 0 and 10")
+                        if backlogs < 0:
+                            errors.append(f"Row {i}: Backlogs cannot be negative")
+                            
                     except (TypeError, ValueError):
-                        rows_rejected += 1
+                        errors.append(f"Row {i}: Invalid numeric values")
                         continue
-                    rows_valid += 1
+                        
+                if errors:
+                    # Return a 400 with the exact errors
+                    raise HTTPException(status_code=400, detail=f"Validation failed for {len(errors)} rows. Errors: " + " | ".join(errors[:5]) + ("..." if len(errors) > 5 else ""))
+                    
+                rows_valid = rows_detected
             except UnicodeDecodeError as exc:
-                raise HTTPException(status_code=422, detail="CSV must be UTF-8 encoded.") from exc
+                raise HTTPException(status_code=400, detail="CSV must be UTF-8 encoded.") from exc
 
-        return {
+        response_payload = {
             "success": True,
-            "message": f"File '{file.filename}' validated and queued for Agent 10 processing. {rows_valid} valid rows detected; {rows_rejected} rejected." if file.filename.lower().endswith('.csv') else f"File '{file.filename}' successfully ingested into Agent 10 processing queue.",
+            "message": f"File '{file.filename}' validated and queued for Agent 10 processing. {rows_valid} valid rows detected." if file.filename.lower().endswith('.csv') else f"File '{file.filename}' successfully ingested into Agent 10 processing queue.",
             "status": "QUEUED",
             "file_info": {
                 "name": file.filename,
@@ -87,6 +109,19 @@ async def upload_document(
                 "rows_rejected": rows_rejected,
             }
         }
+        
+        # Simulate real-time notification to the uploader
+        if x_user_name:
+            from app.services.notification import send_whatsapp_otp
+            import asyncio
+            # Dummy phone number since we don't have the user's phone here, but in a real app we'd fetch it
+            # We'll just print it using the OTP service to simulate a real-time alert
+            asyncio.create_task(send_whatsapp_otp(
+                to_number="+1234567890", 
+                otp=f"Agent 10 has successfully ingested your file '{file.filename}'. {rows_valid} rows were processed."
+            ))
+
+        return response_payload
     except HTTPException:
         raise
     except Exception as e:

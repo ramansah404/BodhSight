@@ -124,20 +124,24 @@ export default function AdminDashboard() {
 
   const handleUpdateRole = async (userId: string) => {
     try {
-      await AdminAPI.updateUserRole(userId, editRole, editRole === "HOD" || editRole === "Faculty" ? editDept : null);
+      // Optimistic update
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: editRole, department: (editRole === "HOD" || editRole === "Faculty") ? editDept : null } : u));
       setEditingId(null);
-      fetchUsers();
+      await AdminAPI.updateUserRole(userId, editRole, editRole === "HOD" || editRole === "Faculty" ? editDept : null);
     } catch (err: any) {
       alert("Failed to update user: " + (err.response?.data?.detail || ""));
+      fetchUsers(); // revert
     }
   };
 
   const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
     try {
+      // Optimistic update
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, is_active: !currentStatus } : u));
       await AdminAPI.updateUserStatus(userId, !currentStatus);
-      fetchUsers();
     } catch (err: any) {
       alert("Failed to update status: " + (err.response?.data?.detail || ""));
+      fetchUsers(); // revert
     }
   };
 
@@ -309,7 +313,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {activeTab === "users" ? (
+      {activeTab === "users" && (
         <div className="bg-surface border border-border/60 rounded-3xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -426,8 +430,10 @@ export default function AdminDashboard() {
             </tbody>
           </table>
         </div>
-      </div>
-      ) : (
+        </div>
+      )}
+      
+      {activeTab === "rbac" && (
         <div className="bg-surface border border-border/60 rounded-3xl overflow-hidden shadow-sm">
           <div className="p-6 border-b border-border/60 flex justify-between items-center">
             <div>

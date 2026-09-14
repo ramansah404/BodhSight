@@ -8,7 +8,7 @@ import os
 app = FastAPI(title=settings.APP_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json")
 
 # Mount static folder for profile images
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "../../uploads")
+UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "../uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 

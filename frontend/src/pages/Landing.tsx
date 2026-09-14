@@ -52,11 +52,10 @@ export default function Landing() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem("bodhsight_role")) navigate("/dashboard", { replace: true });
     const onScroll = () => setScrolled(window.scrollY > 24);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
-  }, [navigate]);
+  }, []);
 
   const scrollTo = (id: string) => { document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); setMobileOpen(false); };
 
