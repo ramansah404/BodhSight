@@ -92,17 +92,23 @@ export default function Reports() {
   };
 
   const handleExportExcel = (rep: ReportItem) => {
-    const exportData = [
-      { "Report": rep.title, "Category": rep.category, "Date": rep.generated_date, "Type": rep.type },
-      {},
-      { "Metric": "Students Evaluated", "Value": metrics?.students_evaluated ?? "—" },
-      { "Metric": "Pass Rate (%)", "Value": metrics?.pass_rate?.toFixed(1) ?? "—" },
-      { "Metric": "Avg Marks", "Value": metrics?.average_marks?.toFixed(1) ?? "—" },
-      { "Metric": "Active Anomalies", "Value": metrics?.active_anomalies ?? "—" },
-      {},
-      ...departments.map(d => ({ "Department": d.department_code, "Pass Rate (%)": d.pass_rate, "Status": d.status }))
-    ];
-    exportToExcel(exportData, `Executive_Report_${rep.id}`);
+    exportToExcel({
+      "Report Info": [
+        { "Field": "Title", "Value": rep.title },
+        { "Field": "Category", "Value": rep.category },
+        { "Field": "Date Generated", "Value": rep.generated_date },
+        { "Field": "Format", "Value": rep.type },
+        { "Field": "Students Evaluated", "Value": metrics?.students_evaluated ?? "—" },
+        { "Field": "Pass Rate (%)", "Value": metrics?.pass_rate?.toFixed(1) ?? "—" },
+        { "Field": "Avg Marks", "Value": metrics?.average_marks?.toFixed(1) ?? "—" },
+        { "Field": "Active Anomalies", "Value": metrics?.active_anomalies ?? "—" }
+      ],
+      "Department Stats": departments.map(d => ({
+        "Department": d.department_code, 
+        "Pass Rate (%)": d.pass_rate, 
+        "Status": d.status
+      }))
+    }, `Executive_Report_${rep.id}`);
   };
 
   const handleExportPDF = (rep: ReportItem) => {

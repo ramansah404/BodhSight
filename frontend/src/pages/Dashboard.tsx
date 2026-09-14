@@ -1,5 +1,4 @@
-﻿import { useEffect, useState } from "react";
-
+import { useEffect, useState, useRef } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 
 import {
@@ -67,83 +66,59 @@ export default function Dashboard() {
   const displayRole = localStorage.getItem("bodhsight_display_role") || currentRole;
 
   const displayName = localStorage.getItem("bodhsight_name") || `${currentRole} User`;
+  const prevFilterKey = useRef(`${filters.department}-${filters.semester}-${filters.programme}`);
 
 
 
   useEffect(() => {
 
     let cancelled = false;
-
-    setMetricsLoading(true);
-
-    setMetricsError("");
-
-
-
-    Promise.allSettled([
-
-      Agent10API.getDashboard(filters),
-
-      Agent10API.getDepartments(filters),
-
-      Agent10API.getCourses(filters),
-
-    ]).then(([metricsResult, deptsResult, coursesResult]) => {
-
-      if (cancelled) return;
-
-
-
-      if (metricsResult.status === "fulfilled") {
-
-        setMetrics(metricsResult.value);
-
-      } else {
-
-        const err = metricsResult.reason;
-
-        const msg = err?.response?.data?.detail || err?.message || String(err);
-
-        setMetricsError(`Failed to load dashboard metrics from backend: ${msg}`);
-
+    const currentFilterKey = `${filters.department}-${filters.semester}-${filters.programme}`;
+    const isUserChange = currentFilterKey !== prevFilterKey.current;
+    prevFilterKey.current = currentFilterKey;
+    
+    const fetchDashboardData = async (showLoading = false) => {
+      if (showLoading) {
+        setMetricsLoading(true);
+        setMetricsError("");
       }
 
+      try {
+        const [metricsResult, deptsResult, coursesResult] = await Promise.allSettled([
+          Agent10API.getDashboard(filters),
+          Agent10API.getDepartments(filters),
+          Agent10API.getCourses(filters),
+        ]);
 
+        if (cancelled) return;
 
-      if (deptsResult.status === "fulfilled" && deptsResult.value.length > 0) {
+        if (metricsResult.status === "fulfilled") {
+          setMetrics(metricsResult.value);
+        } else if (showLoading) {
+          const err = metricsResult.reason;
+          const msg = err?.response?.data?.detail || err?.message || String(err);
+          setMetricsError(`Failed to load dashboard metrics from backend: ${msg}`);
+        }
 
-        setDepartments(deptsResult.value);
+        if (deptsResult.status === "fulfilled" && deptsResult.value.length > 0) {
+          setDepartments(deptsResult.value);
+        }
 
+        if (coursesResult.status === "fulfilled" && coursesResult.value.length > 0) {
+          setCourses(coursesResult.value.slice(0, 12)); // top 12 for chart
+        }
+      } finally {
+        if (!cancelled && showLoading) {
+          setMetricsLoading(false);
+        }
       }
+    };
 
-
-
-      if (coursesResult.status === "fulfilled" && coursesResult.value.length > 0) {
-
-        setCourses(coursesResult.value.slice(0, 12)); // top 12 for chart
-
-      }
-
-
-
-      setMetricsLoading(false);
-
-
-
-      // Silently warm the cache for adjacent tabs after dashboard renders
-
-      if (!cancelled) {
-
-        Agent10API.prefetchDashboardData(filters);
-
-      }
-
-    });
-
-
-
-    return () => { cancelled = true; };
-
+    fetchDashboardData(isUserChange || !metrics);
+    
+    return () => { 
+      cancelled = true; 
+    };
   }, [filters]);
 
 
@@ -203,10 +178,25 @@ export default function Dashboard() {
       "Actual": a.actual_value,
     }));
 
+    const deptData = departments.map(d => ({
+      "Department": d.department_code,
+      "Pass Rate (%)": d.pass_rate,
+      "Status": d.status
+    }));
 
+    const courseData = courses.map(c => ({
+      "Course Code": c.course_code,
+      "Course Name": c.course_name,
+      "Pass Rate (%)": c.pass_pct,
+      "Trend": c.trend
+    }));
 
-    exportToExcel([...summaryData, {}, ...deptData], "Institutional_Overview_Dashboard");
-
+    exportToExcel({
+      "Summary": summaryData,
+      "Anomalies": anomalyData,
+      "Departments": deptData,
+      "Courses": courseData
+    }, "Institutional_Overview_Dashboard");
   };
 
 
@@ -306,7 +296,7 @@ export default function Dashboard() {
 
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-surface p-6 rounded-3xl border border-border/60 shadow-lg relative z-50">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-surface p-6 rounded-3xl border border-border/60 shadow-lg relative z-[100]">
         <div>
 
           <div className="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-bold border border-indigo-500/20 mb-3">
