@@ -191,6 +191,7 @@ export default function Login() {
             res.full_name ?? "User",
             res.email ?? identifier,
             res.department,
+            res.token
           );
         }
       }
@@ -242,6 +243,7 @@ export default function Login() {
             res.full_name ?? "User",
             res.email ?? identifier,
             res.department,
+            res.token
           );
         }
       } else {
@@ -254,6 +256,7 @@ export default function Login() {
             res.full_name ?? "User",
             res.email ?? identifier,
             res.department,
+            res.token
           );
         }
       }

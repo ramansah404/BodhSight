@@ -93,7 +93,7 @@ export default function Exceptions() {
 
       {/* Evidence Trace Modal */}
       {selectedException && (
-        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+        <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
           <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-border/60">
             <div className="px-6 py-4 border-b border-border/60 flex justify-between items-center bg-indigo-500/10/60">
               <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">

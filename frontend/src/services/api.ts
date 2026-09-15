@@ -444,6 +444,7 @@ export const CrudDataAPI = {
 export interface AuthResponse {
   success: boolean;
   message: string;
+  token?: string;
   role?: string;
   full_name?: string;
   email?: string;
