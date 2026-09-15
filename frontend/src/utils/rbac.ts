@@ -1,4 +1,4 @@
-export type InstitutionalRole = "Chairman" | "Dean" | "HOD" | "Faculty" | "Admin";
+export type InstitutionalRole = "Chairman" | "Dean" | "HOD" | "Faculty" | "Admin" | "Student" | "IQAC" | "Principal" | "Management";
 
 export interface PermissionMatrix {
   canApproveMacroInterventions: boolean;
@@ -12,7 +12,23 @@ export interface PermissionMatrix {
   canOverrideStudentData: boolean;
 }
 
-export const getRolePermissions = (roleString: string): PermissionMatrix => {
+// Parses the raw string array from the DB into the PermissionMatrix booleans
+export const parsePermissions = (perms: string[]): PermissionMatrix => {
+  const has = (p: string) => perms.includes(p);
+  return {
+    canApproveMacroInterventions: has("can_approve_interventions"),
+    canViewAllDepartments: has("can_view_all_departments"),
+    canExportOfficialReports: has("can_export_reports"),
+    canTriggerSystemAudit: has("can_trigger_audit"),
+    canCalibrateCourseDifficulty: has("can_calibrate_difficulty"),
+    canCalibrateDifficulty: has("can_calibrate_difficulty"),
+    canExecuteRecommendation: has("can_execute_recommendation"),
+    canSubmitFacultyFeedback: has("can_submit_feedback"),
+    canOverrideStudentData: has("can_override_student_data"),
+  };
+};
+
+export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
   const role = roleString ? roleString.trim() : "Chairman";
 
   switch (role) {

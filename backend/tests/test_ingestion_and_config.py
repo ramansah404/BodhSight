@@ -8,10 +8,10 @@ from app.main import app
 client = TestClient(app)
 
 
-def test_settings_loads_groq_api_key_from_repo_env(monkeypatch):
-    monkeypatch.setenv("GROQ_API_KEY", "test-groq-key")
+def test_settings_loads_gemini_api_key_from_repo_env(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key")
     settings = Settings()
-    assert settings.GROQ_API_KEY == "test-groq-key"
+    assert settings.GEMINI_API_KEY == "test-gemini-key"
 
 
 def test_valid_csv_upload_returns_success_summary():

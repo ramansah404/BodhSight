@@ -509,6 +509,11 @@ export const AuthAPI = {
     return res.data;
   },
 
+  async getMyPermissions(): Promise<{ role: string; permissions: string[] }> {
+    const res = await apiClient.get("/auth/me/permissions");
+    return res.data;
+  },
+
   async googleAuth(payload: { token: string; role?: string; department?: string }): Promise<AuthResponse> {
     const res = await apiClient.post<AuthResponse>("/auth/google", payload);
     return res.data;

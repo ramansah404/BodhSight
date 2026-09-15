@@ -68,6 +68,22 @@ export const ROLE_CONFIG: Record<RuntimeRole, RoleConfig> = {
     primaryQuestion: "What is the global system status?",
     composition: "iqac", // Fallback, could map to a specific admin dashboard if it exists
   },
+  Student: {
+    role: "Student",
+    title: "Student Academic Overview",
+    purpose: "Personal academic monitoring",
+    scopeLabel: "My academic scope",
+    primaryQuestion: "How am I progressing academically, and what needs attention?",
+    composition: "faculty",
+  },
+  Management: {
+    role: "Management",
+    title: "Institutional Management Overview",
+    purpose: "Institution-wide academic oversight",
+    scopeLabel: "Institutional scope",
+    primaryQuestion: "What strategic academic signals require attention?",
+    composition: "principal",
+  },
 };
 
 export function getRoleConfig(role: string): RoleConfig {

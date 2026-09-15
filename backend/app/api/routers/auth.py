@@ -160,6 +160,30 @@ def create_access_token(data: dict):
 # Endpoints
 # -------------------------------------------------------------------
 
+@router.get("/me/permissions")
+def get_my_permissions(request: Request, db: Session = Depends(get_db)):
+    """Fetch live permissions for the authenticated user."""
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Authentication required")
+        
+    token = auth_header.split(" ")[1]
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        role = payload.get("role")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    if not role:
+        raise HTTPException(status_code=400, detail="Invalid token payload")
+
+    import json
+    row = db.execute(text("SELECT permissions FROM core.role_permissions WHERE role_name = :role"), {"role": role}).fetchone()
+    if row and row.permissions:
+        perms = row.permissions if isinstance(row.permissions, list) else json.loads(row.permissions)
+        return {"role": role, "permissions": perms}
+    return {"role": role, "permissions": []}
+
 @router.post("/signup", response_model=AuthResponse)
 async def signup(data: SignupRequest, db: Session = Depends(get_db)):
     """Initiates registration by sending an OTP. Account is NOT created yet."""
