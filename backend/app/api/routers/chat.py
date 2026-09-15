@@ -2,7 +2,6 @@ import json
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-from groq import Groq
 import logging
 
 from app.core.config import settings
@@ -21,13 +20,18 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     reply: str
 
-def get_groq_client():
+def get_gemini_client():
     # Settings loads the repository root/backend .env files through pydantic-settings.
     # Keep the key server-side; the frontend only calls this endpoint.
-    api_key = settings.GROQ_API_KEY
+    api_key = settings.GEMINI_API_KEY
     if not api_key:
-        raise ValueError("GROQ_API_KEY is not configured. Add it to the backend/root .env file and restart FastAPI.")
-    return Groq(api_key=api_key)
+        raise ValueError("GEMINI_API_KEY is not configured. Add it to the backend/root .env file and restart FastAPI.")
+
+    from openai import OpenAI
+    return OpenAI(
+        api_key=api_key,
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+    )
 
 @router.post("", response_model=ChatResponse)
 async def chat_with_agent10(
@@ -37,7 +41,7 @@ async def chat_with_agent10(
     db: Session = Depends(get_db)
 ):
     try:
-        client = get_groq_client()
+        client = get_gemini_client()
         
         # Build RBAC Context
         rbac_context = f"You are Agent 10, an AI assistant for BodhSight University Analytics."
@@ -73,19 +77,19 @@ async def chat_with_agent10(
                 academic_year=None
             )
             
-            # Combine and serialize the DB data into a string so Groq can read it
+            # Combine and serialize the DB data into a string so Gemini can read it
             db_summary = {
                 "course_performance": perf_summary,
                 "student_profiles": student_summary
             }
-            db_context = json.dumps(db_summary, indent=2)
+            db_context = json.dumps(db_summary, indent=2, default=str)
             rbac_context += f"\\n\\nHere is the LIVE real-time database context for the user's current filtered view:\\n```json\\n{db_context}\\n```\\nUse this exact data to answer their questions accurately."
         except Exception as db_err:
             logging.error(f"Failed to fetch DB context for Chat: {db_err}")
-            rbac_context += "\\n\\n(Note: Live database context is temporarily unavailable. Answer based on general knowledge)."
+            rbac_context += "\\n\\n(Note: Live database context is temporarily unavailable. Do not provide academic statistics; explain that the data is unavailable.)"
         
         completion = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
+            model="gemini-3.6-flash",
             messages=[
                 {"role": "system", "content": rbac_context},
                 {"role": "user", "content": req.message}

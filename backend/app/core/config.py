@@ -21,7 +21,6 @@ class Settings(BaseSettings):
     LLM_API_KEY: str | None = None        # Alias for OPENAI key
     OPENAI_API_KEY: str | None = None     # Standard OpenAI env var name
     GEMINI_API_KEY: str | None = None     # Google Gemini
-    GROQ_API_KEY: str | None = None       # Groq LPU
     LLM_MAX_TOKENS: int = 512
 
     # Communication Configuration
