@@ -13,7 +13,7 @@ type AdminUser = {
   is_active: boolean;
 };
 
-const ROLES = ["Chairman", "Principal", "Dean", "HOD", "Faculty", "IQAC", "Admin"];
+const ROLES = ["Chairman", "Principal", "Dean", "HOD", "Faculty", "IQAC"];
 const DEPARTMENTS = ["CSE", "ME", "ECE", "EEE", "CE", "IT", "MBA", "MCA"];
 
 const generatePassword = () => {
