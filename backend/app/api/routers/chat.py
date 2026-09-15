@@ -51,7 +51,7 @@ async def chat_with_agent10(
             rbac_context += f"\\nThe user has university-wide access."
             
         rbac_context += "\\nYour responses should be concise, professional, and directly address their questions. Format your response with basic markdown."
-
+        rbac_context += "\\nCRITICAL RULE: DO NOT generate or output SQL queries under ANY circumstances. The user cannot run them. If you cannot answer a question based on the provided JSON data (e.g., if they ask for a list of student names or details), politely instruct them to use the drill-down features in their dashboard to view those specific details, rather than providing SQL."
         # Enforce RBAC on the requested department for the DB query
         from app.api.routers.agent10 import get_rbac_department
         safe_department = get_rbac_department(req.department, x_user_role, x_user_department)

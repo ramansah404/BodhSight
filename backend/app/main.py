@@ -15,6 +15,8 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 # Guarantee required production origins regardless of Render environment overrides
 required_origins = [
     "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:5175",
     "http://127.0.0.1:5173",
     "https://bodhsight.vercel.app",
     "https://bodhsight-acmqdmpjr-ramansah404-5576s-projects.vercel.app"

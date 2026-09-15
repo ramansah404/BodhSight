@@ -88,18 +88,10 @@ export default function ManualEntry() {
         if (!isNaN(bl)) payload.backlog_count = Math.max(0, bl);
         await CrudDataAPI.updateStudentData(id, payload);
       }
+      // Re-fetch live data from backend to ensure 100% accuracy in real-time
+      const freshData = await CrudDataAPI.getStudentsBySection(selectedSection);
+      setStudents(freshData);
       
-      // Update local state optimistically
-      setStudents(prev => prev.map(s => {
-        if (editedData[s.student_id]) {
-          return {
-            ...s,
-            attendance_pct: parseFloat(editedData[s.student_id].attendance_pct) || s.attendance_pct,
-            cgpa: parseFloat(editedData[s.student_id].cgpa) || s.cgpa,
-          };
-        }
-        return s;
-      }));
       setEditedData({});
       setSuccessMsg(`Successfully saved ${idsToUpdate.length} student record(s) to the database. Dashboard charts will reflect changes immediately.`);
     } catch (err: any) {

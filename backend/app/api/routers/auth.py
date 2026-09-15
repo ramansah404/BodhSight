@@ -329,7 +329,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
             _record_failure(norm_id)
             raise HTTPException(status_code=401, detail="No account found with these credentials.")
 
-        if hasattr(user, 'is_active') and not getattr(user, 'is_active', True):
+        if hasattr(user, 'is_active') and getattr(user, 'is_active', True) is False:
             _record_failure(norm_id)
             raise HTTPException(status_code=403, detail="Your account has been deactivated. Contact administration.")
 
@@ -424,7 +424,7 @@ def verify_otp(data: VerifyOtpRequest, db: Session = Depends(get_db)):
         {"ident": identifier}
     ).fetchone()
     
-    if not user or (hasattr(user, 'is_active') and not getattr(user, 'is_active', True)):
+    if not user or (hasattr(user, 'is_active') and getattr(user, 'is_active', True) is False):
         raise HTTPException(status_code=401, detail="Authentication failed.")
         
     return AuthResponse(

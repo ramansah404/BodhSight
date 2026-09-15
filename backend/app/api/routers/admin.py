@@ -81,11 +81,11 @@ def get_all_users(db: Session = Depends(get_db), _: str = Depends(verify_admin))
                 id=str(u.id),
                 email=u.email,
                 phone_number=u.phone_number,
-                full_name=u.full_name,
-                role=u.role,
+                full_name=u.full_name or "Unknown",
+                role=u.role or "Student",
                 department=u.department,
-                created_at=str(u.created_at),
-                is_active=bool(u.is_active)
+                created_at=str(u.created_at) if u.created_at else "",
+                is_active=True if u.is_active is None else bool(u.is_active)
             ) for u in users
         ]
     except Exception as e:
