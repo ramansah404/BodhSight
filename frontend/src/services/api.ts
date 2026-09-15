@@ -564,8 +564,13 @@ export const AdminAPI = {
     return res.data;
   },
 
-  async resetPassword(userId: string, password: string): Promise<{ success: boolean; message: string }> {
-    const res = await apiClient.put(`/admin/users/${userId}/password`, { password });
+  async requestResetOtp(): Promise<{ success: boolean; message: string }> {
+    const res = await apiClient.post("/admin/request-otp");
+    return res.data;
+  },
+
+  async resetPassword(userId: string, password: string, adminOtp: string): Promise<{ success: boolean; message: string }> {
+    const res = await apiClient.put(`/admin/users/${userId}/password`, { password, admin_otp: adminOtp });
     return res.data;
   },
 

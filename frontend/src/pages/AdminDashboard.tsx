@@ -45,9 +45,13 @@ export default function AdminDashboard() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newUser, setNewUser] = useState({ full_name: "", email: "", password: "", role: "Faculty", department: "CSE" });
   
-  // Reset Password Modal State
   const [resetId, setResetId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  
+  // Admin OTP State
+  const [adminOtp, setAdminOtp] = useState("");
+  const [showAdminOtpModal, setShowAdminOtpModal] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
 
   // RBAC State
   const [rolePermissions, setRolePermissions] = useState<{ role: string; permissions: string[] }[]>([]);
@@ -174,12 +178,31 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!resetId || !newPassword) return;
     try {
-      await AdminAPI.resetPassword(resetId, newPassword);
+      setOtpLoading(true);
+      await AdminAPI.requestResetOtp();
+      setShowAdminOtpModal(true);
+    } catch (err: any) {
+      alert("Failed to request OTP: " + (err.response?.data?.detail || ""));
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleVerifyAdminOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetId || !newPassword || !adminOtp) return;
+    try {
+      setOtpLoading(true);
+      await AdminAPI.resetPassword(resetId, newPassword, adminOtp);
       setResetId(null);
       setNewPassword("");
+      setAdminOtp("");
+      setShowAdminOtpModal(false);
       alert("Password reset successfully!");
     } catch (err: any) {
       alert("Failed to reset password: " + (err.response?.data?.detail || ""));
+    } finally {
+      setOtpLoading(false);
     }
   };
 
@@ -732,6 +755,27 @@ export default function AdminDashboard() {
                 <input required type="text" value={newPassword} onChange={e=>setNewPassword(e.target.value)} className="w-full bg-background border border-border rounded-lg p-2 text-primary focus:border-amber-500 outline-none" placeholder="Type new password" />
               </div>
               <button type="submit" className="w-full bg-amber-500 text-white font-semibold py-2 rounded-lg hover:bg-amber-600 transition-colors">Confirm Reset</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Admin OTP Modal for Password Reset */}
+      {showAdminOtpModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-surface border border-border rounded-2xl p-6 w-full max-w-sm shadow-2xl relative">
+            <button onClick={() => { setShowAdminOtpModal(false); setResetId(null); }} className="absolute top-4 right-4 text-secondary hover:text-primary"><X size={20}/></button>
+            <h2 className="text-lg font-bold text-primary mb-2 flex items-center gap-2"><ShieldCheck className="text-indigo-500" size={20}/> Admin Authorization</h2>
+            <p className="text-xs text-secondary mb-4">An OTP has been sent to your admin email/phone. Please enter it to authorize the password reset.</p>
+            <form onSubmit={handleVerifyAdminOtp} className="space-y-4">
+              <div>
+                <label className="block text-sm text-secondary mb-1">Enter 6-digit OTP</label>
+                <input required type="text" maxLength={6} value={adminOtp} onChange={e=>setAdminOtp(e.target.value)} className="w-full bg-background border border-border rounded-lg p-2 text-primary focus:border-indigo-500 outline-none text-center tracking-widest font-mono text-lg" placeholder="------" />
+                <p className="text-[10px] text-secondary mt-1">Check backend terminal logs if running locally.</p>
+              </div>
+              <button disabled={otpLoading || adminOtp.length !== 6} type="submit" className="w-full bg-indigo-600 text-white font-semibold py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50">
+                {otpLoading ? "Verifying..." : "Verify & Reset Password"}
+              </button>
             </form>
           </div>
         </div>

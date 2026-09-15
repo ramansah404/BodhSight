@@ -651,6 +651,9 @@ export default function Login() {
                           required
                         />
                       </div>
+                      <p className="text-[10px] text-secondary mt-1 px-1">
+                        If you don't receive the OTP and are running locally, check the backend console logs.
+                      </p>
                     </div>
                       <motion.button
                       whileHover={{ scale: 1.01 }}

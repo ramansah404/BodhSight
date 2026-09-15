@@ -74,8 +74,10 @@ export default function App() {
             {/* Accessible to all logged-in roles EXCEPT Admin */}
             <Route element={<ProtectedRoute allowedRoles={["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"]} />}>
               <Route path="dashboard"       element={<Dashboard />} />
-              <Route path="settings"        element={<Settings />} />
             </Route>
+
+            {/* Settings ΓÇö accessible to all logged-in users including Admin */}
+            <Route path="settings"        element={<Settings />} />
 
 
 

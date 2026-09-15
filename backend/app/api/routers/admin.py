@@ -58,6 +58,31 @@ class UpdateStatusRequest(BaseModel):
 
 class ResetPasswordRequest(BaseModel):
     password: str
+    admin_otp: str
+
+# Store admin OTPs in memory for now
+_admin_otps = {}
+
+@router.post("/request-otp")
+async def request_admin_otp(request: Request, db: Session = Depends(get_db), _: str = Depends(verify_admin)):
+    """Send OTP to the logged-in admin's email/phone for sensitive actions."""
+    auth_header = request.headers.get("Authorization")
+    token = auth_header.split(" ")[1]
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    sub = payload.get("sub") # email or phone of admin
+
+    import random
+    from app.services.notification import send_email_otp, send_whatsapp_otp
+
+    otp = str(random.randint(100000, 999999))
+    _admin_otps[sub] = otp
+    
+    if '@' in sub:
+        await send_email_otp(sub, otp)
+    else:
+        await send_whatsapp_otp(sub, otp)
+
+    return {"success": True, "message": "OTP sent to your admin contact."}
 
 class UpdateRoleRequest(BaseModel):
     role: str
@@ -162,9 +187,18 @@ def update_user_status(user_id: str, data: UpdateStatusRequest, db: Session = De
         raise HTTPException(status_code=500, detail="Failed to update user status")
 
 @router.put("/users/{user_id}/password")
-def reset_user_password(user_id: str, data: ResetPasswordRequest, db: Session = Depends(get_db), _: str = Depends(verify_admin)):
+def reset_user_password(user_id: str, data: ResetPasswordRequest, request: Request, db: Session = Depends(get_db), _: str = Depends(verify_admin)):
     """Reset a user's password."""
     try:
+        auth_header = request.headers.get("Authorization")
+        token = auth_header.split(" ")[1]
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        sub = payload.get("sub")
+
+        # Verify OTP
+        if _admin_otps.get(sub) != data.admin_otp:
+            raise HTTPException(status_code=401, detail="Invalid or expired Admin OTP")
+
         user = db.execute(text("SELECT id FROM core.user_account WHERE id = :id"), {"id": user_id}).fetchone()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
@@ -172,6 +206,9 @@ def reset_user_password(user_id: str, data: ResetPasswordRequest, db: Session = 
         hashed_pw = pwd_context.hash(data.password)
         db.execute(text("UPDATE core.user_account SET password_hash = :pw WHERE id = :id"), {"pw": hashed_pw, "id": user_id})
         db.commit()
+        
+        _admin_otps.pop(sub, None) # clear OTP
+
         return {"success": True, "message": "Password reset successfully"}
     except HTTPException:
         raise
