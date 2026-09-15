@@ -71,95 +71,62 @@ export default function App() {
 
 
 
-            {/* Accessible to all logged-in roles EXCEPT Admin */}
-            <Route element={<ProtectedRoute allowedRoles={["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"]} />}>
+            {/* Accessible to all logged-in roles EXCEPT Admin (Admin dashboard is separate) */}
+            <Route element={<ProtectedRoute requiredPermission="view_overview" />}>
               <Route path="dashboard"       element={<Dashboard />} />
             </Route>
 
-            {/* Settings ΓÇö accessible to all logged-in users including Admin */}
+            {/* Settings ΓÇö accessible to all logged-in users */}
             <Route path="settings"        element={<Settings />} />
 
-
-
             {/* Courses ΓÇö all roles can view */}
+            <Route element={<ProtectedRoute requiredPermission="view_courses" />}>
+              <Route path="courses"         element={<Courses />} />
+            </Route>
 
-            <Route path="courses"         element={<Courses />} />
+            {/* Anomalies & Recommendations ΓÇö RBAC filtered */}
+            <Route element={<ProtectedRoute requiredPermission="manage_exceptions" />}>
+              <Route path="anomalies"       element={<Problems />} />
+              <Route path="exceptions"      element={<Exceptions />} />
+              <Route path="recommendations" element={<Recommendations />} />
+            </Route>
 
-
-
-            {/* Anomalies & Recommendations ΓÇö all roles, but data is RBAC-filtered on backend */}
-
-            <Route path="anomalies"       element={<Problems />} />
-
-            <Route path="exceptions"      element={<Exceptions />} />
-
-            <Route path="recommendations" element={<Recommendations />} />
-
-
-
-            {/* Trends ΓÇö senior roles only */}
-
-            <Route element={<ProtectedRoute allowedRoles={["Chairman", "Principal", "IQAC", "Dean", "HOD"]} />}>
-
+            {/* Trends ΓÇö requires view_trends */}
+            <Route element={<ProtectedRoute requiredPermission="view_trends" />}>
               <Route path="trends"        element={<Trends />} />
-
             </Route>
 
-
-
-            {/* Departments ΓÇö top management only */}
-
-            <Route element={<ProtectedRoute allowedRoles={["Chairman", "Principal", "IQAC", "Dean"]} />}>
-
+            {/* Departments ΓÇö requires view_departments */}
+            <Route element={<ProtectedRoute requiredPermission="view_departments" />}>
               <Route path="departments"   element={<Departments />} />
-
             </Route>
 
+            {/* Batches ΓÇö general access */}
+            <Route path="batches"       element={<Batches />} />
 
-
-            {/* Batches ΓÇö not Faculty */}
-
-            <Route element={<ProtectedRoute allowedRoles={["Chairman", "Principal", "IQAC", "Dean", "HOD"]} />}>
-
-              <Route path="batches"       element={<Batches />} />
-
-            </Route>
-
-
-
-            {/* Sections & Students ΓÇö not top-level Chairman/Principal only */}
-
-            <Route element={<ProtectedRoute allowedRoles={["Chairman", "Principal", "Dean", "HOD", "Faculty"]} />}>
-
+            {/* Sections & Students ΓÇö general access */}
+            <Route element={<ProtectedRoute requiredPermission="view_sections" />}>
               <Route path="sections"      element={<Sections />} />
-
+            </Route>
+            <Route element={<ProtectedRoute requiredPermission="view_students" />}>
               <Route path="students"      element={<Students />} />
-
             </Route>
 
-            {/* Data Hub — Data upload for faculty/HOD */}
-            <Route element={<ProtectedRoute allowedRoles={["HOD", "Faculty", "Chairman"]} />}>
+            {/* Data Hub — Requires view_data_hub */}
+            <Route element={<ProtectedRoute requiredPermission="view_data_hub" />}>
               <Route path="data-hub"      element={<DataHub />} />
               <Route path="data-hub/manual-entry" element={<ManualEntry />} />
             </Route>
 
-            {/* Admin User Management — Admin only */}
+            {/* Admin User Management — Admin only (still uses allowedRoles) */}
             <Route element={<ProtectedRoute allowedRoles={["Admin"]} />}>
               <Route path="admin/users"   element={<AdminDashboard />} />
             </Route>
 
-
-
-            {/* Reports ΓÇö senior management */}
-
-            <Route element={<ProtectedRoute allowedRoles={["Chairman", "Principal", "IQAC", "Dean", "HOD"]} />}>
-
+            {/* Reports ΓÇö requires view_reports */}
+            <Route element={<ProtectedRoute requiredPermission="view_reports" />}>
               <Route path="reports"       element={<Reports />} />
-
             </Route>
-
-
-
           </Route>
 
         </Route>

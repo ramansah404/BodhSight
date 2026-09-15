@@ -16,6 +16,40 @@ logger = logging.getLogger(__name__)
 logger = logging.getLogger(__name__)
 
 VALID_ROLES = ["Chairman", "Principal", "Dean", "HOD", "Faculty", "IQAC", "Student", "Admin"]
+import jwt
+from fastapi import Request
+
+SECRET_KEY = "super_secret_bodhsight_jwt_key_for_testing"
+ALGORITHM = "HS256"
+
+def get_current_role_optional(request: Request):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None
+    token = auth_header.split(" ")[1]
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload.get("role")
+    except Exception:
+        return None
+
+@router.get("/me/permissions")
+def get_my_permissions(
+    role: Optional[str] = Depends(get_current_role_optional), 
+    fallback_role: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    actual_role = role or fallback_role
+    if not actual_role:
+        return []
+    import json
+    row = db.execute(text("SELECT permissions FROM core.role_permissions WHERE role_name = :role"), {"role": actual_role}).fetchone()
+    if row and row[0]:
+        try:
+            return json.loads(row[0]) if isinstance(row[0], str) else row[0]
+        except:
+            return []
+    return []
 
 # -------------------------------------------------------------------
 # Brute-force protection: track failed login attempts per identifier

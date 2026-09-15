@@ -488,6 +488,12 @@ export const AuthAPI = {
     return res.data;
   },
   
+  async getMyPermissions(): Promise<string[]> {
+    const role = localStorage.getItem("bodhsight_role");
+    const res = await apiClient.get(`/auth/me/permissions?fallback_role=${role || ""}`);
+    return res.data;
+  },
+  
   async requestOtp(payload: { identifier: string }): Promise<{ success: boolean; message: string }> {
     const res = await apiClient.post("/auth/request-otp", payload);
     return res.data;

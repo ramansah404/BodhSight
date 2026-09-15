@@ -48,7 +48,7 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
-  const { currentRole } = useRole();
+  const { currentRole, permissions } = useRole();
 
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
 
@@ -56,33 +56,50 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
   const allNavItems = [
 
-    { name: "Overview", path: "/dashboard", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: LayoutDashboard },
+    { name: "Overview", path: "/dashboard", requiredPermission: "view_overview", icon: LayoutDashboard },
 
-    { name: "Trends", path: "/trends", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: TrendingUp },
+    { name: "Trends", path: "/trends", requiredPermission: "view_trends", icon: TrendingUp },
 
-    { name: "Courses", path: "/courses", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: BookOpen },
+    { name: "Courses", path: "/courses", requiredPermission: "view_courses", icon: BookOpen },
 
-    { name: "Departments", path: "/departments", roles: ["Chairman", "Principal", "IQAC", "Dean"], icon: Building2 },
+    { name: "Departments", path: "/departments", requiredPermission: "view_departments", icon: Building2 },
 
-    { name: "Sections", path: "/sections", roles: ["Chairman", "Principal", "Dean", "HOD", "Faculty"], icon: Layers },
+    { name: "Sections", path: "/sections", requiredPermission: "view_sections", icon: Layers },
 
-    { name: "Students (At-Risk)", path: "/students", roles: ["Chairman", "Principal", "Dean", "HOD", "Faculty"], icon: ShieldAlert },
+    { name: "Students (At-Risk)", path: "/students", requiredPermission: "view_students", icon: ShieldAlert },
 
-    { name: "Problems", path: "/anomalies", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: AlertTriangle },
+    { name: "Problems", path: "/anomalies", requiredPermission: "manage_exceptions", icon: AlertTriangle },
 
-    { name: "Exceptions", path: "/exceptions", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: FileWarning },
+    { name: "Exceptions", path: "/exceptions", requiredPermission: "manage_exceptions", icon: FileWarning },
 
-    { name: "Recommendations", path: "/recommendations", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"], icon: Lightbulb },
+    { name: "Recommendations", path: "/recommendations", requiredPermission: "manage_exceptions", icon: Lightbulb },
 
-    { name: "Executive Reports", path: "/reports", roles: ["Chairman", "Principal", "IQAC", "Dean", "HOD"], icon: FileText },
+    { name: "Executive Reports", path: "/reports", requiredPermission: "view_reports", icon: FileText },
 
-    { name: "Data Hub", path: "/data-hub", roles: ["HOD", "Faculty"], icon: Database },
+    { name: "Data Hub", path: "/data-hub", requiredPermission: "view_data_hub", icon: Database },
     { name: "User Management", path: "/admin/users", roles: ["Admin"], icon: ShieldAlert },
   ];
 
 
 
-  const navItems = allNavItems.filter(item => item.roles.includes(currentRole ?? ""));
+  const navItems = allNavItems.filter(item => {
+    // If the user is Admin, ONLY show Admin-specific routes
+    if (currentRole === "Admin") {
+      return item.roles && item.roles.includes("Admin");
+    }
+
+    // For non-admins: explicitly hide Admin-specific routes
+    if (item.roles && item.roles.includes("Admin")) {
+      return false;
+    }
+
+    // Otherwise, filter by their dynamic permissions
+    if (item.requiredPermission) {
+      return permissions[item.requiredPermission] === true;
+    }
+    
+    return true; // General route
+  });
 
 
 
