@@ -10,8 +10,9 @@ import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 type LoadState = "loading" | "success" | "error" | "empty";
 
 export default function Recommendations() {
-  const { permissions } = useRole();
+  const { currentRole, permissions } = useRole();
   const { filters } = useFilters();
+  const rawRole = currentRole ?? "Faculty";
 
   const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
   const [state, setState] = useState<LoadState>("loading");
