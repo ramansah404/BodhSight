@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str | None = None       # Groq LPU
     LLM_MAX_TOKENS: int = 512
 
+    # Communication Configuration
+    TWILIO_ACCOUNT_SID: str | None = None
+    TWILIO_AUTH_TOKEN: str | None = None
+    TWILIO_WHATSAPP_NUMBER: str = "whatsapp:+14155238886"
+    SENDGRID_API_KEY: str | None = None
+    SENDER_EMAIL: str = "noreply@bodhsight.edu"
     
     CORS_ORIGINS: List[str] | str = [
         "http://localhost:5173",

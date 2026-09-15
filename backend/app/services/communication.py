@@ -2,16 +2,18 @@ import os
 import logging
 from typing import Optional
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 class CommunicationService:
     def __init__(self):
-        self.twilio_account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
-        self.twilio_auth_token = os.environ.get("TWILIO_AUTH_TOKEN")
-        self.twilio_whatsapp_number = os.environ.get("TWILIO_WHATSAPP_NUMBER", "whatsapp:+14155238886")
+        self.twilio_account_sid = settings.TWILIO_ACCOUNT_SID
+        self.twilio_auth_token = settings.TWILIO_AUTH_TOKEN
+        self.twilio_whatsapp_number = settings.TWILIO_WHATSAPP_NUMBER
         
-        self.sendgrid_api_key = os.environ.get("SENDGRID_API_KEY")
-        self.sender_email = os.environ.get("SENDER_EMAIL", "noreply@bodhsight.edu")
+        self.sendgrid_api_key = settings.SENDGRID_API_KEY
+        self.sender_email = settings.SENDER_EMAIL
 
     def send_whatsapp(self, to_phone: str, message: str) -> bool:
         """Sends a WhatsApp message via Twilio."""
