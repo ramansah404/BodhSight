@@ -1,10 +1,14 @@
 import { Filter, Calendar, Building, Book } from "lucide-react";
 import { useFilters } from "../../contexts/FilterContext";
 import { getRolePermissions } from "../../utils/rbac";
+import { useRole } from "../../contexts/RoleContext";
 
 export default function GlobalFilterBar() {
   const { filters, setFilters, departments, activeTerm, isLoading } = useFilters();
-  const currentRole = localStorage.getItem("bodhsight_role") || "Chairman";
+  const { currentRole } = useRole();
+  if (!currentRole) {
+    return null;
+  }
   const { canViewAllDepartments } = getRolePermissions(currentRole);
 
   if (currentRole === "Admin") {

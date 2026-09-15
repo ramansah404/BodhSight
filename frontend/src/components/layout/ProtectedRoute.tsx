@@ -1,6 +1,7 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
+import { useRole } from "../../contexts/RoleContext";
 
 interface ProtectedRouteProps {
   allowedRoles?: string[]; // If omitted, only checks for a valid session
@@ -13,18 +14,17 @@ interface ProtectedRouteProps {
  */
 export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   const navigate = useNavigate();
-  const currentRole = localStorage.getItem("bodhsight_role");
+  const { currentRole, isLoading } = useRole();
   const displayRole = localStorage.getItem("bodhsight_display_role") || currentRole;
 
   // If no session at all, redirect to login
   useEffect(() => {
-    if (!currentRole) {
+    if (!isLoading && !currentRole) {
       navigate("/login", { replace: true });
     }
-  }, [currentRole, navigate]);
+  }, [currentRole, isLoading, navigate]);
 
-  if (!currentRole) {
-    // Render nothing while the redirect effect fires
+  if (isLoading || !currentRole) {
     return null;
   }
 

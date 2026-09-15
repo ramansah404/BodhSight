@@ -1,7 +1,7 @@
 import BrandLogo from "../components/ui/BrandLogo";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShieldCheck, Lock, Mail, ArrowRight, Sparkles, KeyRound,
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { AuthAPI } from "../services/api";
 import axios from "axios";
+import { useRole } from "../contexts/RoleContext";
 
 /**
  * Login page — institutional sign-in with database-backed authentication.
@@ -33,6 +34,8 @@ type IdentifierMode = "email" | "phone";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { setSession } = useRole();
   const [isSignUp, setIsSignUp] = useState(false);
 
   // Role selector
@@ -85,13 +88,14 @@ export default function Login() {
 
   // If already logged in, skip the login page entirely
   useEffect(() => {
+    if (location.pathname !== "/login") return;
     const role = localStorage.getItem("bodhsight_role");
     if (role === "Admin") {
       navigate("/admin/users", { replace: true });
     } else if (role) {
       navigate("/dashboard", { replace: true });
     }
-  }, [navigate]);
+  }, [location.pathname, navigate]);
 
 
   // Clear form when switching modes
@@ -117,6 +121,7 @@ export default function Login() {
     } else {
       localStorage.removeItem("bodhsight_department");
     }
+    setSession(code);
     
     if (code === "Admin") {
       navigate("/admin/users");

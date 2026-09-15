@@ -32,6 +32,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useState } from "react";
+import { useRole } from "../../contexts/RoleContext";
 
 
 
@@ -47,7 +48,7 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
-  const currentRole = localStorage.getItem("bodhsight_role") || "Chairman";
+  const { currentRole } = useRole();
 
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
 
@@ -81,7 +82,7 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
 
 
-  const navItems = allNavItems.filter(item => item.roles.includes(currentRole));
+  const navItems = allNavItems.filter(item => item.roles.includes(currentRole ?? ""));
 
 
 

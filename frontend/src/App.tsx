@@ -1,6 +1,7 @@
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { RoleProvider } from "./contexts/RoleContext";
 
 import Layout from "./components/layout/Layout";
 
@@ -47,7 +48,7 @@ export default function App() {
   return (
 
     <ThemeProvider>
-
+    <RoleProvider>
     <HashRouter>
 
       <Routes>
@@ -170,7 +171,7 @@ export default function App() {
       </Routes>
 
     </HashRouter>
-
+    </RoleProvider>
     </ThemeProvider>
 
   );

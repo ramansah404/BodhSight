@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useOutletContext, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import {
 
@@ -12,6 +12,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { motion } from "framer-motion";
 import { Agent10API, API_BASE_URL } from "../services/api";
 import { useFilters } from "../contexts/FilterContext";
+import { useRole } from "../contexts/RoleContext";
 
 import type { AcademicDashboardMetrics, DepartmentPerformance, CoursePerformance } from "../types/agent10";
 
@@ -29,7 +30,7 @@ export default function Dashboard() {
 
   const { filters } = useFilters();
 
-  const { currentRole } = useOutletContext<{ currentRole: string }>();
+  const { currentRole, isLoading: roleLoading } = useRole();
 
   const navigate = useNavigate();
 
@@ -65,8 +66,6 @@ export default function Dashboard() {
 
   const displayName = localStorage.getItem("bodhsight_name") || `${currentRole} User`;
   const prevFilterKey = useRef(`${filters.department}-${filters.semester}-${filters.programme}`);
-
-
 
   useEffect(() => {
 
@@ -123,6 +122,10 @@ export default function Dashboard() {
       clearInterval(interval);
     };
   }, [filters]);
+
+  if (roleLoading || !currentRole) {
+    return <div className="flex min-h-[40vh] items-center justify-center text-secondary">Loading your workspace...</div>;
+  }
 
 
 

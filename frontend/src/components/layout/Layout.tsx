@@ -7,6 +7,7 @@ import ErrorBoundary from "../ui/ErrorBoundary";
 import GlobalFilterBar from "../filters/GlobalFilterBar";
 import { FilterProvider } from "../../contexts/FilterContext";
 import { NotificationProvider } from "../../contexts/NotificationContext";
+import { useRole } from "../../contexts/RoleContext";
 
 import ChatWidget from "../ui/ChatWidget";
 
@@ -23,10 +24,14 @@ const pageTransition = {
 };
 
 export default function Layout() {
-  const currentRole = localStorage.getItem("bodhsight_role") || "Dean";
+  const { currentRole, isLoading } = useRole();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
+
+  if (isLoading || !currentRole) {
+    return null;
+  }
 
 
 
@@ -57,7 +62,7 @@ export default function Layout() {
                 className="min-h-full pb-8"
               >
                 <ErrorBoundary>
-                  <Outlet context={{ currentRole }} />
+                  <Outlet />
                 </ErrorBoundary>
               </motion.div>
             </AnimatePresence>
