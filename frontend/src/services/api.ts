@@ -265,7 +265,7 @@ export const Agent10API = {
   },
 
   /** Upload unstructured document for Agent 10 Ingestion */
-  async uploadDocument(file: File, type: string): Promise<{ success: boolean; message: string; status: string }> {
+  async uploadDocument(file: File, type: string): Promise<{ status: string; received: number; accepted: number; rejected: number; errors: { row: number; field: string; message: string }[] }> {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("document_type", type);

@@ -1,131 +1,74 @@
-from fastapi import APIRouter, Depends, HTTPException, Header, UploadFile, File, Form
-from sqlalchemy.orm import Session
-from sqlalchemy import text
+from __future__ import annotations
+
 import logging
-import csv
-import io
-import json
+
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile
+from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.ingestion.agent10_pipeline import parse_csv, parse_xlsx, process_records
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+INGESTION_ROLES = {"Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"}
+
+
+def require_ingestion_actor(
+    x_user_role: str | None = Header(default=None),
+    x_user_name: str | None = Header(default=None),
+) -> tuple[str, str]:
+    """Match the existing application auth headers and reject anonymous writes."""
+    if x_user_role not in INGESTION_ROLES:
+        raise HTTPException(status_code=401, detail="Authenticated institutional role is required for ingestion")
+    if not x_user_name or not x_user_name.strip():
+        raise HTTPException(status_code=401, detail="Authenticated user name is required for ingestion")
+    return x_user_role, x_user_name.strip()
+
 
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
     document_type: str = Form(...),
-    x_user_role: str = Header(None),
-    x_user_department: str = Header(None),
-    x_user_name: str = Header(None),
-    db: Session = Depends(get_db)
+    actor: tuple[str, str] = Depends(require_ingestion_actor),
+    db: Session = Depends(get_db),
 ):
-    """
-    Handle document uploads for Agent 10 ingestion.
-    Simulates asynchronous AI extraction and validation of unstructured data.
-    """
-    if x_user_role not in ["Chairman", "Principal", "Dean", "HOD", "Faculty"]:
-        raise HTTPException(status_code=403, detail="Unauthorized to upload documents.")
-        
+    """Parse, normalize, validate, and persist a CSV/XLSX Agent 10 upload."""
+    filename = file.filename or "upload"
+    suffix = filename.lower().rsplit(".", 1)[-1] if "." in filename else ""
+    if suffix not in {"csv", "xlsx"}:
+        raise HTTPException(status_code=415, detail="Only CSV and XLSX academic data files are supported")
+
+    content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="File is too large. Maximum is 10MB")
+
     try:
-        # 1. Simulate reading file (in a real app, save to S3 or process via pandas/PyMuPDF)
-        file_content = await file.read()
-        file_size_kb = len(file_content) / 1024
-        
-        # Keep the ingestion audit in application logs. The official schema in
-        # this checkout has no agentops.system_logs table.
-        meta_dict = {
-            "filename": file.filename,
-            "size_kb": round(file_size_kb, 1),
+        required_aliases = {"rollno", "attendance", "cgpa", "backlogs"} if document_type == "attendance" else None
+        records = parse_csv(content, required_aliases=required_aliases) if suffix == "csv" else parse_xlsx(content)
+        if not records:
+            raise HTTPException(status_code=422, detail="The uploaded file contains no data rows")
+        result = process_records(db, records, source=actor[0], source_type=document_type, file_ref=filename)
+        response = result.model_dump()
+        response["success"] = result.status != "failed"
+        response["processing_status"] = result.status
+        response["file_info"] = {
+            "name": filename,
+            "size_kb": round(len(content) / 1024, 1),
             "type": document_type,
-            "uploader": x_user_name
+            "rows_detected": result.received,
+            "rows_valid": result.accepted,
+            "rows_rejected": result.rejected,
         }
-        logger.info("Document ingestion queued: %s", json.dumps(meta_dict))
-
-        # 3. Validate CSV rows when present. Operational writes are not
-        # exposed by the current schema, so valid files remain queued rather
-        # than being reported as committed database updates.
-        rows_detected = 0
-        rows_valid = 0
-        rows_rejected = 0
-        errors = []
-        seen_roll_nos = set()
-        
-        if file.filename.lower().endswith('.csv'):
-            try:
-                decoded = file_content.decode("utf-8-sig")
-                reader = csv.DictReader(io.StringIO(decoded))
-                required = {"Roll No", "Attendance", "CGPA", "Backlogs"}
-                headers = set(reader.fieldnames or [])
-                if not required.issubset(headers):
-                    missing = ", ".join(sorted(required - headers))
-                    raise HTTPException(status_code=422, detail=f"CSV is missing required columns: {missing}")
-
-                for i, row in enumerate(reader, start=2):
-                    rows_detected += 1
-                    roll_no = (row.get("Roll No") or "").strip()
-                    if not roll_no:
-                        errors.append(f"Row {i}: Roll No is empty")
-                        continue
-                    
-                    if roll_no in seen_roll_nos:
-                        errors.append(f"Row {i}: Duplicate Roll No '{roll_no}' found in CSV")
-                        continue
-                    seen_roll_nos.add(roll_no)
-                        
-                    try:
-                        attendance = float(row.get("Attendance") or "")
-                        cgpa = float(row.get("CGPA") or "")
-                        backlogs = int(float(row.get("Backlogs") or ""))
-                        
-                        if attendance < 0 or attendance > 100:
-                            errors.append(f"Row {i}: Attendance must be between 0 and 100")
-                        if cgpa < 0 or cgpa > 10:
-                            errors.append(f"Row {i}: CGPA must be between 0 and 10")
-                        if backlogs < 0:
-                            errors.append(f"Row {i}: Backlogs cannot be negative")
-                            
-                    except (TypeError, ValueError):
-                        errors.append(f"Row {i}: Invalid numeric values")
-                        continue
-                        
-                if errors:
-                    raise HTTPException(status_code=422, detail=f"Validation failed for {len(errors)} rows. Errors: " + " | ".join(errors[:5]) + ("..." if len(errors) > 5 else ""))
-                    
-                rows_valid = rows_detected
-                rows_rejected = rows_detected - rows_valid
-            except UnicodeDecodeError as exc:
-                raise HTTPException(status_code=400, detail="CSV must be UTF-8 encoded.") from exc
-
-        response_payload = {
-            "success": True,
-            "message": f"File '{file.filename}' validated and queued for Agent 10 processing. {rows_valid} valid rows detected." if file.filename.lower().endswith('.csv') else f"File '{file.filename}' successfully ingested into Agent 10 processing queue.",
-            "status": "QUEUED",
-            "file_info": {
-                "name": file.filename,
-                "size_kb": round(file_size_kb, 1),
-                "type": document_type,
-                "rows_detected": rows_detected,
-                "rows_valid": rows_valid,
-                "rows_rejected": rows_rejected,
-            }
-        }
-        
-        # Simulate real-time notification to the uploader
-        if x_user_name:
-            from app.services.notification import send_whatsapp_otp
-            import asyncio
-            # Dummy phone number since we don't have the user's phone here, but in a real app we'd fetch it
-            # We'll just print it using the OTP service to simulate a real-time alert
-            asyncio.create_task(send_whatsapp_otp(
-                to_number="+1234567890", 
-                otp=f"Agent 10 has successfully ingested your file '{file.filename}'. {rows_valid} rows were processed."
-            ))
-
-        return response_payload
+        if document_type == "attendance":
+            response["status"] = "QUEUED"
+        return response
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Ingestion error: {e}")
+    except ValueError as exc:
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except Exception as exc:
+        db.rollback()
+        logger.exception("Agent 10 upload failed for %s", filename)
+        raise HTTPException(status_code=500, detail="Agent 10 ingestion failed before persistence") from exc

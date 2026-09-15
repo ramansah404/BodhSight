@@ -22,9 +22,38 @@ from app.schemas.agent10 import (
     ExecutiveSummary, LLMStatus, TrendSummary, RecommendationItem,
     CoursePerformanceItem, DepartmentPerformanceItem, SectionComparison,
 )
+from app.schemas.ingestion import IngestionRequest
+from app.ingestion.agent10_pipeline import normalize_records, process_records
+from app.ingestion.adapters import adapt_source_records
+from app.api.routers.ingestion import require_ingestion_actor
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+@router.post("/ingest")
+def ingest_machine_records(
+    payload: IngestionRequest,
+    actor: tuple[str, str] = Depends(require_ingestion_actor),
+    db: Session = Depends(get_db),
+):
+    """Machine-facing Agent 10 input contract for upstream adapters."""
+    records = normalize_records(
+        adapt_source_records(payload.source_agent, payload.records),
+        defaults={"academic_year": payload.academic_year, "semester": payload.semester},
+    )
+    try:
+        result = process_records(
+            db,
+            records,
+            source=payload.source_agent,
+            source_type=payload.source_type,
+        )
+        return result.model_dump()
+    except Exception as exc:
+        db.rollback()
+        logger.exception("Machine ingestion failed for source %s", payload.source_agent)
+        raise HTTPException(status_code=500, detail="Agent 10 machine ingestion failed before persistence") from exc
 
 def get_rbac_department(
     department: str = None, 

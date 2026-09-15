@@ -9,6 +9,7 @@ export default function DataHub() {
   const [docType, setDocType] = useState<string>("attendance");
   const [uploadState, setUploadState] = useState<"idle" | "uploading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [processingSummary, setProcessingSummary] = useState<{ received: number; accepted: number; rejected: number; errors: { row: number; field: string; message: string }[] } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [activeTab, setActiveTab] = useState<"upload" | "manual">("upload");
@@ -43,13 +44,11 @@ export default function DataHub() {
   const validateAndSetFile = (file: File) => {
     const validTypes = [
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-      "application/pdf", // .pdf
       "text/csv" // .csv
     ];
     
     if (!validTypes.includes(file.type) && !file.name.match(/\.(xlsx|docx|pdf|csv)$/)) {
-      setErrorMsg("Invalid file type. Please upload Excel (.xlsx), Word (.docx), or PDF (.pdf) files.");
+      setErrorMsg("Invalid file type. Please upload an Excel (.xlsx) or CSV (.csv) file.");
       setUploadState("error");
       return;
     }
@@ -63,6 +62,7 @@ export default function DataHub() {
     setSelectedFile(file);
     setUploadState("idle");
     setErrorMsg("");
+    setProcessingSummary(null);
   };
 
   const clearFile = () => {
@@ -76,7 +76,8 @@ export default function DataHub() {
     
     setUploadState("uploading");
     try {
-      await Agent10API.uploadDocument(selectedFile, docType);
+      const result = await Agent10API.uploadDocument(selectedFile, docType);
+      setProcessingSummary(result);
       setUploadState("success");
       setTimeout(() => {
         clearFile();
@@ -96,7 +97,7 @@ export default function DataHub() {
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-indigo-950 dark:text-indigo-100">Document Ingestion & Uploads</h1>
           <p className="text-indigo-800/80 dark:text-indigo-200/70 text-sm mt-1">
-            Upload raw documents to the Agent 10 ingestion queue. The current backend acknowledges the file, records an audit event, and processes supported CSV rows when available.
+            Upload CSV or XLSX academic records. Agent 10 normalizes, validates, and persists accepted rows through the centralized academic data pipeline.
           </p>
         </div>
         <div className="flex bg-surface-hover/50 p-1 rounded-xl border border-border mt-4 md:mt-0">
@@ -156,7 +157,7 @@ export default function DataHub() {
                 type="file"
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 onChange={handleChange}
-                accept=".xlsx, .xls, .csv, .pdf, .docx"
+                accept=".xlsx, .csv"
               />
               
               {!selectedFile ? (
@@ -166,7 +167,7 @@ export default function DataHub() {
                   </div>
                   <h3 className="text-lg font-bold text-primary">Drag & Drop Document</h3>
                   <p className="text-sm text-secondary mt-2">or click to browse from your computer</p>
-                  <p className="text-xs text-secondary/60 mt-4 font-semibold uppercase tracking-wider">Supports .XLSX, .PDF, .DOCX</p>
+                  <p className="text-xs text-secondary/60 mt-4 font-semibold uppercase tracking-wider">Supports .XLSX and .CSV</p>
                 </>
               ) : (
                 <div className="flex flex-col items-center z-10 relative pointer-events-none">
@@ -195,8 +196,9 @@ export default function DataHub() {
             )}
             
             {uploadState === "success" && (
-              <div className="mt-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center gap-3 text-emerald-600 dark:text-emerald-400 text-sm font-medium">
-                <CheckCircle2 size={18} /> Backend acknowledged the upload. Validation and operational approval are not exposed by the current ingestion API.
+              <div className="mt-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-600 dark:text-emerald-400 text-sm font-medium">
+                <div className="flex items-center gap-3"><CheckCircle2 size={18} /> Processing completed: {processingSummary?.accepted ?? 0} accepted, {processingSummary?.rejected ?? 0} rejected out of {processingSummary?.received ?? 0}.</div>
+                {processingSummary?.errors.length ? <ul className="mt-2 space-y-1 text-xs text-rose-600 dark:text-rose-400">{processingSummary.errors.slice(0, 5).map((error) => <li key={`${error.row}-${error.field}`}>Row {error.row}, {error.field}: {error.message}</li>)}</ul> : null}
               </div>
             )}
 
@@ -239,15 +241,15 @@ export default function DataHub() {
               <li className="flex gap-3">
                 <div className="mt-0.5"><FileText size={16} className="text-blue-500" /></div>
                 <div>
-                  <strong className="text-primary block">Upload Word (.docx)</strong>
-                  Unstructured notes and meeting minutes are parsed using LLMs to extract action items.
+                  <strong className="text-primary block">Upload CSV or XLSX</strong>
+                  Academic rows are mapped to the canonical Agent 10 contract before validation and persistence.
                 </div>
               </li>
               <li className="flex gap-3">
                 <div className="mt-0.5"><FileIcon size={16} className="text-rose-500" /></div>
                 <div>
-                  <strong className="text-primary block">Upload PDF (.pdf)</strong>
-                  Medical certificates for condonation are OCR scanned and verified.
+                  <strong className="text-primary block">Validation report</strong>
+                  Invalid identifiers, marks, totals, attendance, duplicates, and relationships are returned by row.
                 </div>
               </li>
               <li className="flex gap-3 pt-4 border-t border-border">
