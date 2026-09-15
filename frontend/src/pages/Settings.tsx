@@ -2,11 +2,11 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Settings as SettingsIcon, User, ShieldCheck, Server, Database, CheckCircle2, AlertCircle, Loader2, LogOut, RefreshCw, Lock, Sliders, Bell, Camera, Save } from "lucide-react";
 import { Agent10API, API_BASE_URL, ProfileAPI, AuthAPI } from "../services/api";
-import { getRolePermissions } from "../utils/rbac";
+import { useRole } from "../contexts/RoleContext";
 
 export default function Settings() {
   const navigate = useNavigate();
-  const role = localStorage.getItem("bodhsight_role") || "Dean";
+  const { currentRole: role, permissions: perms } = useRole();
   const displayRole = localStorage.getItem("bodhsight_display_role") || role;
   const name = localStorage.getItem("bodhsight_name") || "User";
   const email = localStorage.getItem("bodhsight_email") || "—";
@@ -92,7 +92,6 @@ export default function Settings() {
   };
 
   const apiBase = API_BASE_URL;
-  const perms = getRolePermissions(role);
 
   const checkHealth = useCallback(() => {
     setHealthStatus("loading");

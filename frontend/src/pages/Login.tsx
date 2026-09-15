@@ -735,7 +735,7 @@ export default function Login() {
                   <p className="text-center text-[10px] text-secondary uppercase tracking-widest font-semibold mb-3">Demonstration</p>
                   <button
                     type="button"
-                    onClick={() => { setIdentifier("admin@bodhsight.com"); setPassword("admin123"); setIsOtpMode(false); }}
+                    onClick={() => { setIdentifier("admin@bodhsight.com"); setPassword("Admin123@"); setIsOtpMode(false); }}
                     className="w-full py-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <ShieldCheck size={14} /> Auto-fill Admin Credentials

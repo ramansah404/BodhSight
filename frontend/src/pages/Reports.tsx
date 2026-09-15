@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { FileText, ShieldCheck, Printer, Lock, X, TrendingUp, Users, AlertTriangle, BookOpen, BarChart3, Activity, Calendar, Database } from "lucide-react";
-import { getRolePermissions } from "../utils/rbac";
+import { useRole } from "../contexts/RoleContext";
 import { useFilters } from "../contexts/FilterContext";
 import { Agent10API } from "../services/api";
 import type { AcademicDashboardMetrics, DepartmentPerformance } from "../types/agent10";
@@ -19,8 +19,7 @@ type ReportItem = {
 };
 
 export default function Reports() {
-  const rawRole = localStorage.getItem("bodhsight_display_role") || localStorage.getItem("bodhsight_role") || "Dean";
-  const permissions = getRolePermissions(rawRole);
+  const { currentRole: rawRole, permissions } = useRole();
   const { filters, activeTerm } = useFilters();
 
   const [selectedReport, setSelectedReport] = useState<ReportItem | null>(null);

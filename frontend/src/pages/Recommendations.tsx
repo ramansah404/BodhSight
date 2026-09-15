@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Lightbulb, CheckCircle2, Play, Sparkles, Lock , AlertCircle, Info, Database, Brain } from "lucide-react";
 import { Agent10API } from "../services/api";
-import { getRolePermissions } from "../utils/rbac";
+import { useRole } from "../contexts/RoleContext";
 import { useFilters } from "../contexts/FilterContext";
 import type { RecommendationItem } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
@@ -10,11 +10,7 @@ import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 type LoadState = "loading" | "success" | "error" | "empty";
 
 export default function Recommendations() {
-  const rawRole =
-    localStorage.getItem("bodhsight_display_role") ||
-    localStorage.getItem("bodhsight_role") ||
-    "Dean";
-  const permissions = getRolePermissions(rawRole);
+  const { permissions } = useRole();
   const { filters } = useFilters();
 
   const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
