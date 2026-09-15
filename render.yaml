@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: bodhsight-api
+    runtime: python
+    branch: main
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: APP_ENV
+        value: production
+      - key: DATA_SOURCE
+        value: database
+      - key: CORS_ORIGINS
+        value: '["https://bodhsight.vercel.app","https://bodhsight-acmqdmpjr-ramansah404-5576s-projects.vercel.app","http://localhost:5173","http://127.0.0.1:5173"]'

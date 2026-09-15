@@ -30,6 +30,8 @@ import * as Mocks from "./mockData";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
   ?? (import.meta.env.PROD ? "https://bodhsight.onrender.com/api/v1" : "http://localhost:8000/api/v1");
 
+export const API_BASE_URL = BASE_URL;
+
 export const apiClient = axios.create({
   baseURL: BASE_URL,
   timeout: 60000,

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Settings as SettingsIcon, User, ShieldCheck, Server, Database, CheckCircle2, AlertCircle, Loader2, LogOut, RefreshCw, Lock, Sliders, Bell, Camera, Save } from "lucide-react";
-import { Agent10API, ProfileAPI, AuthAPI } from "../services/api";
+import { Agent10API, API_BASE_URL, ProfileAPI, AuthAPI } from "../services/api";
 import { getRolePermissions } from "../utils/rbac";
 
 export default function Settings() {
@@ -90,7 +90,7 @@ export default function Settings() {
     }
   };
 
-  const apiBase = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
+  const apiBase = API_BASE_URL;
   const perms = getRolePermissions(role);
 
   const checkHealth = useCallback(() => {

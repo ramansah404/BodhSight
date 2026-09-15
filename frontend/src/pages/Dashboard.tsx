@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
-import { Agent10API } from "../services/api";
+import { Agent10API, API_BASE_URL } from "../services/api";
 import { useFilters } from "../contexts/FilterContext";
 import type { AcademicDashboardMetrics, AcademicException, CoursePerformance, DepartmentPerformance, InterventionPriorityItem } from "../types/agent10";
 import { getRoleConfig } from "../utils/roleConfig";
@@ -316,7 +316,7 @@ export default function Dashboard() {
         ) : metricsError ? (
           <div className="col-span-1 md:col-span-2 lg:col-span-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4 text-rose-600 dark:text-rose-400 font-medium text-sm">
             ⚠ {metricsError} — Check backend connection at{" "}
-            {import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}
+            {API_BASE_URL}
           </div>
         ) : metrics ? (
           <>
