@@ -366,6 +366,19 @@ def get_open_flags_count(db: Session) -> int:
     return db.execute(sql).scalar() or 0
 
 
+def get_data_trust_score(db: Session) -> int:
+    """Estimate trust from recorded ingestion outcomes; no batches means no trust claim."""
+    sql = text("""
+        SELECT count(*) AS total_batches,
+               count(*) FILTER (WHERE status = 'ACCEPTED') AS accepted_batches
+        FROM attendance.ingestion_batch
+    """)
+    row = db.execute(sql).mappings().one()
+    total = int(row["total_batches"] or 0)
+    accepted = int(row["accepted_batches"] or 0)
+    return round(100 * accepted / total) if total else 0
+
+
 def get_critical_high_flags(db: Session) -> List[Dict[str, Any]]:
     """Only CRITICAL and HIGH severity flags."""
     sql = text("""

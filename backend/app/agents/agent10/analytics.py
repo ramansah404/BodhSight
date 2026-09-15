@@ -61,6 +61,7 @@ def compute_dashboard_metrics(db: Session, department: str = None, semester: str
     roster_summary = queries.get_offering_roster_summary(db)
     student_summary = queries.get_student_profile_summary(db, department, semester, programme, academic_year)
     open_flags_count = queries.get_open_flags_count(db)
+    data_trust_score = queries.get_data_trust_score(db)
 
     # Students evaluated: from assessment view
     students_evaluated = int(perf_summary.get("students_evaluated") or 0)
@@ -102,7 +103,7 @@ def compute_dashboard_metrics(db: Session, department: str = None, semester: str
         "courses_analyzed": courses_analyzed,
         "active_anomalies": open_flags_count,
         "significant_deviations": open_flags_count,
-        "data_trust_score": 98,             # Fixed: real DB is 98%
+        "data_trust_score": data_trust_score,
         "data_source": "database",
         "_meta": {
             "views_used": [

@@ -158,3 +158,54 @@ class SectionComparison(BaseModel):
     avg_external: Optional[float] = None
     disparity_flag: bool = False
     disparity_vs_peer: Optional[float] = None
+
+
+class AccreditationMetrics(BaseModel):
+    academic_year: Optional[str] = None
+    semester: Optional[str] = None
+    department: Optional[str] = None
+    students_evaluated: int
+    pass_percentage: float
+    failure_percentage: float
+    distinction_percentage: Optional[float] = None
+    first_class_percentage: Optional[float] = None
+    average_marks: float
+    unavailable_metrics: List[str] = []
+    data_source: str = "database"
+
+
+class FacultyPerformanceContext(BaseModel):
+    faculty_id: str
+    faculty: str
+    course_code: str
+    course_name: str
+    section: Optional[str] = None
+    student_count: int
+    pass_rate: Optional[float] = None
+    average_marks: Optional[float] = None
+    attendance_context: Optional[float] = None
+    historical_context: Optional[str] = None
+    entry_level_context: Optional[str] = None
+    context_available: bool = False
+
+
+class InstitutionalKPI(BaseModel):
+    academic_year: Optional[str] = None
+    semester: Optional[str] = None
+    department: Optional[str] = None
+    students_evaluated: int
+    institutional_pass_rate: float
+    average_marks: float
+    high_risk_students: int
+    attendance_risk_students: int
+    department_summaries: List[Dict[str, Any]] = []
+    data_source: str = "database"
+
+
+class StrategicTrendSeries(BaseModel):
+    metric: str
+    department: Optional[str] = None
+    series: List[Dict[str, Any]]
+    historical_data_available: bool
+    insufficient_history_note: Optional[str] = None
+    data_source: str = "database"

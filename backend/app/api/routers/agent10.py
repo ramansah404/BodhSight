@@ -21,6 +21,8 @@ from app.schemas.agent10 import (
     DashboardMetrics, AcademicException, InterventionPriority,
     ExecutiveSummary, LLMStatus, TrendSummary, RecommendationItem,
     CoursePerformanceItem, DepartmentPerformanceItem, SectionComparison,
+    AccreditationMetrics, FacultyPerformanceContext, InstitutionalKPI,
+    StrategicTrendSeries,
 )
 from app.schemas.ingestion import IngestionRequest
 from app.ingestion.agent10_pipeline import normalize_records, process_records
@@ -29,6 +31,187 @@ from app.api.routers.ingestion import require_ingestion_actor
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+OUTPUT_ROLES = {"Chairman", "Principal", "IQAC", "Dean", "HOD", "Faculty"}
+
+
+def get_rbac_department(
+    department: str | None = None,
+    x_user_role: str | None = Header(default=None),
+    x_user_department: str | None = Header(default=None),
+) -> str | None:
+    """Force department scope for restricted roles."""
+    if x_user_role in {"Faculty", "HOD"} and x_user_department:
+        return x_user_department
+    return department
+
+
+def require_output_actor(x_user_role: str | None = Header(default=None)) -> str:
+    """Require the same authenticated role header used by the existing frontend client."""
+    if x_user_role not in OUTPUT_ROLES:
+        raise HTTPException(status_code=401, detail="Authenticated institutional role is required")
+    return x_user_role
+
+
+def _query_filters(department: str | None, semester: str | None, academic_year: str | None) -> tuple[str, dict[str, str]]:
+    clauses = []
+    params: dict[str, str] = {}
+    if department:
+        clauses.append("d.code = :department")
+        params["department"] = department
+    if semester:
+        clauses.append("(t.label = :semester OR t.term_no::text = :semester)")
+        params["semester"] = semester
+    if academic_year:
+        clauses.append("ay.label = :academic_year")
+        params["academic_year"] = academic_year
+    return (" AND " + " AND ".join(clauses)) if clauses else "", params
+
+
+@router.get("/accreditation/metrics", response_model=AccreditationMetrics, tags=["Agent 9 - Accreditation"])
+def get_accreditation_metrics(
+    department: str | None = Depends(get_rbac_department),
+    semester: str | None = None,
+    academic_year: str | None = None,
+    actor: str = Depends(require_output_actor),
+    db: Session = Depends(get_db),
+):
+    """Return real accreditation metrics from published course results."""
+    metrics = _safe(agent10.compute_dashboard_metrics, db, department=department, semester=semester, programme=None, academic_year=academic_year)
+    unavailable = ["distinction_percentage", "first_class_percentage"]
+    return AccreditationMetrics(
+        academic_year=academic_year,
+        semester=semester,
+        department=department,
+        students_evaluated=int(metrics.get("students_evaluated") or 0),
+        pass_percentage=float(metrics.get("pass_rate") or 0),
+        failure_percentage=float(metrics.get("failure_rate") or 0),
+        average_marks=float(metrics.get("average_marks") or 0),
+        unavailable_metrics=unavailable,
+    )
+
+
+@router.get("/faculty/performance-context", response_model=list[FacultyPerformanceContext], tags=["Agent 59 - Faculty Context"])
+def get_faculty_performance_context(
+    department: str | None = Depends(get_rbac_department),
+    semester: str | None = None,
+    academic_year: str | None = None,
+    actor: str = Depends(require_output_actor),
+    db: Session = Depends(get_db),
+):
+    """Return faculty/course performance with cohort and attendance context only where stored."""
+    filter_sql, params = _query_filters(department, semester, academic_year)
+    rows = db.execute(text(f"""
+        SELECT f.faculty_id::text AS faculty_id, per.full_name AS faculty,
+               cv.course_code, c.title AS course_name, sec.code AS section,
+               count(DISTINCT sr.student_id) AS student_count,
+               round(avg(perf.pass_pct), 2) AS pass_rate,
+               round(avg(perf.avg_total), 2) AS average_marks,
+               round(avg(att.adjusted_pct), 2) AS attendance_context
+        FROM academics.faculty_allocation fa
+        JOIN people.faculty f ON f.faculty_id = fa.faculty_id
+        JOIN people.person per ON per.person_id = f.person_id
+        JOIN academics.course_offering co ON co.course_offering_id = fa.course_offering_id
+        JOIN curriculum.course_version cv ON cv.course_version_id = co.course_version_id
+        JOIN curriculum.course c ON c.course_id = cv.course_id
+        JOIN curriculum.section sec ON sec.section_id = co.section_id
+        JOIN core.term t ON t.term_id = co.term_id
+        JOIN core.academic_year ay ON ay.academic_year_id = t.academic_year_id
+        JOIN core.department d ON d.department_id = co.department_id
+        LEFT JOIN academics.student_registration sr ON sr.course_offering_id = co.course_offering_id
+                                                     AND sr.status = 'REGISTERED'
+        LEFT JOIN assessment.v_course_performance perf ON perf.course_offering_id = co.course_offering_id
+        LEFT JOIN attendance.v_current_attendance att ON att.course_offering_id = co.course_offering_id
+                                                     AND att.student_id = sr.student_id
+        WHERE 1 = 1 {filter_sql}
+        GROUP BY f.faculty_id, per.full_name, cv.course_code, c.title, sec.code
+        ORDER BY per.full_name, cv.course_code, sec.code
+    """), params).mappings().all()
+    return [FacultyPerformanceContext(**dict(row)) for row in rows]
+
+
+@router.get("/decision/priorities", response_model=List[InterventionPriority], tags=["Agent 70 - Decision Priorities"])
+def get_decision_priorities(
+    department: str | None = Depends(get_rbac_department),
+    semester: str | None = None,
+    programme: str | None = None,
+    academic_year: str | None = None,
+    actor: str = Depends(require_output_actor),
+    db: Session = Depends(get_db),
+):
+    """Expose the existing deterministic Agent 10 intervention priority calculation."""
+    return get_priorities(department, semester, programme, academic_year, db)
+
+
+@router.get("/kpi", response_model=InstitutionalKPI, tags=["Agent 71 - Institutional KPI"])
+def get_institutional_kpi(
+    department: str | None = Depends(get_rbac_department),
+    semester: str | None = None,
+    programme: str | None = None,
+    academic_year: str | None = None,
+    actor: str = Depends(require_output_actor),
+    db: Session = Depends(get_db),
+):
+    """Return institutional KPIs without exposing student-level records."""
+    from app.db import queries
+    metrics = _safe(agent10.compute_dashboard_metrics, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
+    summary = queries.get_student_profile_summary(db, department, semester, programme, academic_year)
+    filter_sql, params = _query_filters(department, semester, academic_year)
+    attendance_risk = db.execute(text(f"""
+        SELECT count(DISTINCT a.student_id)
+        FROM attendance.v_current_attendance a
+        JOIN academics.course_offering co ON co.course_offering_id = a.course_offering_id
+        JOIN core.term t ON t.term_id = co.term_id
+        JOIN core.academic_year ay ON ay.academic_year_id = t.academic_year_id
+        JOIN core.department d ON d.department_id = co.department_id
+        WHERE a.risk_level IN ('AT_RISK', 'CRITICAL') {filter_sql}
+    """), params).scalar() or 0
+    departments = _safe(agent10.compute_department_performance, db, department=department, semester=semester, programme=programme, academic_year=academic_year)
+    return InstitutionalKPI(
+        academic_year=academic_year,
+        semester=semester,
+        department=department,
+        students_evaluated=int(metrics.get("students_evaluated") or 0),
+        institutional_pass_rate=float(metrics.get("pass_rate") or 0),
+        average_marks=float(metrics.get("average_marks") or 0),
+        high_risk_students=int(summary.get("students_high_backlogs") or 0),
+        attendance_risk_students=int(attendance_risk),
+        department_summaries=departments,
+    )
+
+
+@router.get("/strategic/trends", response_model=StrategicTrendSeries, tags=["Agent 72 - Strategic Trends"])
+def get_strategic_trends(
+    department: str | None = Depends(get_rbac_department),
+    semester: str | None = None,
+    actor: str = Depends(require_output_actor),
+    db: Session = Depends(get_db),
+):
+    """Return a real academic-year pass-rate series, or an honest insufficient-history response."""
+    filter_sql, params = _query_filters(department, semester, None)
+    rows = db.execute(text(f"""
+        SELECT ay.label AS academic_year,
+               round(100.0 * count(*) FILTER (WHERE cr.result_status = 'PASS')
+                     / nullif(count(*) FILTER (WHERE cr.result_status <> 'ABSENT'), 0), 2) AS value
+        FROM assessment.course_result cr
+        JOIN core.term t ON t.term_id = cr.term_id
+        JOIN core.academic_year ay ON ay.academic_year_id = t.academic_year_id
+        JOIN curriculum.course_version cv ON cv.course_version_id = cr.course_version_id
+        LEFT JOIN academics.course_offering co ON co.course_offering_id = cr.course_offering_id
+        LEFT JOIN core.department d ON d.department_id = co.department_id
+        WHERE cr.exam_type = 'REGULAR' {filter_sql}
+        GROUP BY ay.label
+        ORDER BY ay.label
+    """), params).mappings().all()
+    series = [{"academic_year": row["academic_year"], "value": float(row["value"] or 0)} for row in rows]
+    available = len(series) >= 2
+    return StrategicTrendSeries(
+        metric="pass_rate",
+        department=department,
+        series=series,
+        historical_data_available=available,
+        insufficient_history_note=None if available else "At least two academic years of published results are required for a historical trend.",
+    )
 
 
 @router.post("/ingest")
@@ -54,17 +237,6 @@ def ingest_machine_records(
         db.rollback()
         logger.exception("Machine ingestion failed for source %s", payload.source_agent)
         raise HTTPException(status_code=500, detail="Agent 10 machine ingestion failed before persistence") from exc
-
-def get_rbac_department(
-    department: str = None, 
-    x_user_role: str = Header(None), 
-    x_user_department: str = Header(None)
-) -> str | None:
-    """RBAC Hardening: Force override department filter if user is restricted."""
-    if x_user_role in ["Faculty", "HOD"] and x_user_department:
-        return x_user_department
-    return department
-
 
 _QUERY_CACHE = {}
 _CACHE_TTL = 5 # 5 seconds deduplicates simultaneous frontend widget requests
