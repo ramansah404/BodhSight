@@ -31,6 +31,8 @@ def get_gemini_client():
     return OpenAI(
         api_key=api_key,
         base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+        timeout=30.0,
+        max_retries=0,
     )
 
 @router.post("", response_model=ChatResponse)
@@ -102,6 +104,16 @@ async def chat_with_agent10(
         return ChatResponse(reply=reply)
         
     except Exception as e:
-        logging.error(f"Chat API error: {e}")
+        cause = e.__cause__
+        logging.error(
+            "Chat API error type=%s message=%s cause_type=%s cause_message=%s "
+            "status_code=%s request_id=%s",
+            type(e).__name__,
+            str(e),
+            type(cause).__name__ if cause else None,
+            str(cause) if cause else None,
+            getattr(e, "status_code", None),
+            getattr(e, "request_id", None),
+        )
         # Return a graceful fallback if API key is invalid or request fails
         return ChatResponse(reply=f"Agent 10 is currently offline. (Error: {str(e)})")
