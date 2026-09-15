@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { BookOpen, ShieldCheck, BarChart2, AlertCircle , X, Info } from "lucide-react";
-import { Agent10API } from "../services/api";
+import { Agent10API, API_BASE_URL } from "../services/api";
 import { useFilters } from "../contexts/FilterContext";
 import type { CoursePerformance } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
@@ -150,7 +150,7 @@ export default function Courses() {
             <div className="text-center">
               <p className="font-bold text-lg text-primary">Failed to load courses</p>
               <p className="text-sm text-secondary mt-1">{errorMsg}</p>
-              <p className="text-xs text-secondary mt-2">Verify the backend is running at {import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000"}</p>
+              <p className="text-xs text-secondary mt-2">Verify the backend is running at {API_BASE_URL}</p>
             </div>
           </div>
         )}

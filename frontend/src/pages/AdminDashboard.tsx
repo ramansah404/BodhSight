@@ -32,7 +32,7 @@ const AVAILABLE_PERMISSIONS = [
 ];
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<"users" | "rbac" | "notify">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "rbac" | "notify" | "settings">("users");
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

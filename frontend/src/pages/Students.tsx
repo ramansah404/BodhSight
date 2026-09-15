@@ -16,7 +16,6 @@ export default function Students() {
   const [state, setState] = useState<LoadState>("loading");
   const [errorMsg, setErrorMsg] = useState("");
   
-  const currentRole = localStorage.getItem("bodhsight_role") || "Chairman";
   const canDrilldown = true;
 
   // Drilldown state

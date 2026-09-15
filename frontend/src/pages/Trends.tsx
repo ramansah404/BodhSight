@@ -265,7 +265,7 @@ export default function Trends() {
                         <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#334155" />
                         <XAxis type="number" hide />
                         <YAxis dataKey="course_code" type="category" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 10 }} width={60} />
-                        <Tooltip cursor={{ fill: "#1e293b" }} contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#0f172a", color: "#f8fafc" }} formatter={(value: number) => [`-${value.toFixed(1)} pp`, "Delta"]} />
+                        <Tooltip cursor={{ fill: "#1e293b" }} contentStyle={{ borderRadius: "12px", border: "1px solid #334155", backgroundColor: "#0f172a", color: "#f8fafc" }} formatter={(value) => [`-${Number(value ?? 0).toFixed(1)} pp`, "Delta"]} />
                         <Bar dataKey="abs_delta" fill="#e11d48" radius={[0, 4, 4, 0]} barSize={16} name="Delta (pp)" isAnimationActive={true} animationDuration={1500} />
                       </BarChart>
                     </ResponsiveContainer>

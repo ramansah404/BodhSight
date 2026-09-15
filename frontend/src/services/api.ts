@@ -27,7 +27,10 @@ import {
 } from "../types/agent10";
 import * as Mocks from "./mockData";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api/v1";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL
+  ?? (import.meta.env.PROD ? "https://bodhsight.onrender.com/api/v1" : "http://localhost:8000/api/v1");
+
+export const API_BASE_URL = BASE_URL;
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -514,6 +517,7 @@ export interface ProfileResponse {
   role: string;
   department?: string;
   profile_image_url?: string;
+  two_factor_enabled?: boolean;
 }
 
 export const ProfileAPI = {

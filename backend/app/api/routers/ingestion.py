@@ -47,6 +47,7 @@ async def upload_document(
         # than being reported as committed database updates.
         rows_detected = 0
         rows_valid = 0
+        rows_rejected = 0
         errors = []
         seen_roll_nos = set()
         
@@ -58,7 +59,7 @@ async def upload_document(
                 headers = set(reader.fieldnames or [])
                 if not required.issubset(headers):
                     missing = ", ".join(sorted(required - headers))
-                    raise HTTPException(status_code=400, detail=f"CSV is missing required columns: {missing}")
+                    raise HTTPException(status_code=422, detail=f"CSV is missing required columns: {missing}")
 
                 for i, row in enumerate(reader, start=2):
                     rows_detected += 1
@@ -89,10 +90,10 @@ async def upload_document(
                         continue
                         
                 if errors:
-                    # Return a 400 with the exact errors
-                    raise HTTPException(status_code=400, detail=f"Validation failed for {len(errors)} rows. Errors: " + " | ".join(errors[:5]) + ("..." if len(errors) > 5 else ""))
+                    raise HTTPException(status_code=422, detail=f"Validation failed for {len(errors)} rows. Errors: " + " | ".join(errors[:5]) + ("..." if len(errors) > 5 else ""))
                     
                 rows_valid = rows_detected
+                rows_rejected = rows_detected - rows_valid
             except UnicodeDecodeError as exc:
                 raise HTTPException(status_code=400, detail="CSV must be UTF-8 encoded.") from exc
 
