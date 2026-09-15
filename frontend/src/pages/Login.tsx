@@ -20,12 +20,14 @@ import { useRole } from "../contexts/RoleContext";
  */
 
 const ROLE_OPTIONS = [
+  { code: "Student",   label: "Student",              display: "Student",   desc: "Access courses & track progress", icon: User },
   { code: "Chairman",  label: "Chairman / Board",     display: "Chairman", desc: "Institutional Overview", icon: ShieldCheck },
   { code: "Principal", label: "Principal",             display: "Principal", desc: "Academic Leadership",   icon: ShieldCheck },
   { code: "Dean",      label: "Dean of Academics",    display: "Dean",      desc: "Academic Management",   icon: Lock },
   { code: "HOD",       label: "Head of Department",   display: "HOD",       desc: "Departmental View",     icon: User },
   { code: "Faculty",   label: "Course Instructor",    display: "Faculty",   desc: "Course Management",     icon: UserPlus },
   { code: "IQAC",      label: "Quality Assurance",    display: "IQAC",      desc: "Evidence & Quality",    icon: CheckCircle2 },
+  { code: "Admin",     label: "System Admin (Demo)",  display: "Admin",     desc: "Full platform access",  icon: ShieldCheck },
 ];
 
 const DEPT_OPTIONS = ["CSE", "ME", "ECE", "EEE", "CE", "IT", "MBA", "MCA"];
@@ -436,70 +438,72 @@ export default function Login() {
           <form onSubmit={handleAuthSubmit} className="space-y-5">
 
             {/* Role + Department Row */}
-            <div className={`grid grid-cols-1 gap-5 ${isSignUp && needsDept ? "sm:grid-cols-2" : ""}`}>
-              {/* Custom Role Dropdown */}
-              <div className="relative" ref={dropdownRef}>
-                <label className="block text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
-                  Access Level
-                </label>
-                <div
-                  onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
-                  className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-primary flex items-center justify-between cursor-pointer hover:border-indigo-500 transition-colors shadow-sm"
-                >
-                  <div className="flex items-center gap-2">
-                    {selectedRole.icon && <selectedRole.icon size={16} className="text-indigo-500" />}
-                    {selectedRole.display}
-                  </div>
-                  <ChevronDown size={16} className={`text-secondary transition-transform duration-200 ${isRoleDropdownOpen ? "rotate-180" : ""}`} />
-                </div>
-
-                <AnimatePresence>
-                  {isRoleDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -8 }}
-                      className="absolute top-full left-0 right-0 mt-2 bg-surface border border-border rounded-2xl shadow-xl z-50 overflow-hidden"
-                    >
-                      {ROLE_OPTIONS.map((r) => (
-                        <button
-                          key={r.code}
-                          type="button"
-                          onClick={() => { setRoleCode(r.code); setIsRoleDropdownOpen(false); }}
-                          className={`w-full text-left px-4 py-3 text-sm font-medium transition-colors flex items-center gap-3 cursor-pointer ${r.code === roleCode ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" : "text-primary hover:bg-surface-secondary"}`}
-                        >
-                          <r.icon size={15} className={r.code === roleCode ? "text-indigo-500" : "text-secondary"} />
-                          <div>
-                            <div className="font-semibold">{r.display}</div>
-                            <div className="text-[11px] text-secondary">{r.desc}</div>
-                          </div>
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Department — only shown for HOD/Faculty and during Sign Up */}
-              {isSignUp && needsDept && (
-                <div>
+            {isSignUp && (
+              <div className={`grid grid-cols-1 gap-5 ${needsDept ? "sm:grid-cols-2" : ""}`}>
+                {/* Custom Role Dropdown */}
+                <div className="relative" ref={dropdownRef}>
                   <label className="block text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
-                    Department
+                    Access Level
                   </label>
-                  <div className="relative">
-                    <Building2 className="absolute left-3.5 top-3 text-secondary" size={16} />
-                    <select
-                      value={department}
-                      onChange={(e) => setDepartment(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-primary focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm appearance-none cursor-pointer"
-                      required={needsDept}
-                    >
-                      {DEPT_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
+                  <div
+                    onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+                    className="w-full px-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-primary flex items-center justify-between cursor-pointer hover:border-indigo-500 transition-colors shadow-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      {selectedRole.icon && <selectedRole.icon size={16} className="text-indigo-500" />}
+                      {selectedRole.display}
+                    </div>
+                    <ChevronDown size={16} className={`text-secondary transition-transform duration-200 ${isRoleDropdownOpen ? "rotate-180" : ""}`} />
                   </div>
+
+                  <AnimatePresence>
+                    {isRoleDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        className="absolute top-full left-0 right-0 mt-2 bg-surface border border-border rounded-2xl shadow-xl z-50 overflow-hidden"
+                      >
+                        {ROLE_OPTIONS.map((r) => (
+                          <button
+                            key={r.code}
+                            type="button"
+                            onClick={() => { setRoleCode(r.code); setIsRoleDropdownOpen(false); }}
+                            className={`w-full text-left px-4 py-3 text-sm font-medium transition-colors flex items-center gap-3 cursor-pointer ${r.code === roleCode ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" : "text-primary hover:bg-surface-secondary"}`}
+                          >
+                            <r.icon size={15} className={r.code === roleCode ? "text-indigo-500" : "text-secondary"} />
+                            <div>
+                              <div className="font-semibold">{r.display}</div>
+                              <div className="text-[11px] text-secondary">{r.desc}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              )}
-            </div>
+
+                {/* Department — only shown for HOD/Faculty and during Sign Up */}
+                {needsDept && (
+                  <div>
+                    <label className="block text-xs font-semibold text-secondary uppercase tracking-wider mb-2">
+                      Department
+                    </label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3.5 top-3 text-secondary" size={16} />
+                      <select
+                        value={department}
+                        onChange={(e) => setDepartment(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-background border border-border rounded-xl text-sm font-medium text-primary focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-sm appearance-none cursor-pointer"
+                        required={needsDept}
+                      >
+                        {DEPT_OPTIONS.map(d => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Full Name — Sign Up only */}
             <AnimatePresence>
@@ -726,12 +730,24 @@ export default function Login() {
             )}
 
             {!isSignUp && (
-              <p className="text-center text-xs text-secondary pt-1">
-                Don't have an account?{" "}
-                <button type="button" onClick={() => { setIsSignUp(true); setError(""); setSuccess(""); }} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline cursor-pointer">
-                  Sign Up
-                </button>
-              </p>
+              <>
+                <div className="pt-4 border-t border-border mt-6">
+                  <p className="text-center text-[10px] text-secondary uppercase tracking-widest font-semibold mb-3">Demonstration</p>
+                  <button
+                    type="button"
+                    onClick={() => { setIdentifier("admin@bodhsight.com"); setPassword("admin123"); setIsOtpMode(false); }}
+                    className="w-full py-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <ShieldCheck size={14} /> Auto-fill Admin Credentials
+                  </button>
+                </div>
+                <p className="text-center text-xs text-secondary pt-4">
+                  Don't have an account?{" "}
+                  <button type="button" onClick={() => { setIsSignUp(true); setError(""); setSuccess(""); }} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline cursor-pointer">
+                    Sign Up
+                  </button>
+                </p>
+              </>
             )}
 
           </form>

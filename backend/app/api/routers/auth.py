@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 logger = logging.getLogger(__name__)
 
-VALID_ROLES = ["Chairman", "Principal", "Dean", "HOD", "Faculty", "IQAC"]
+VALID_ROLES = ["Chairman", "Principal", "Dean", "HOD", "Faculty", "IQAC", "Student", "Admin"]
 
 # -------------------------------------------------------------------
 # Brute-force protection: track failed login attempts per identifier
