@@ -40,6 +40,7 @@ export const apiClient = axios.create({
 
 // Global state for mock data
 export let mockDataEnabled = true;
+export const setMockDataEnabled = (val: boolean) => { mockDataEnabled = val; };
 export const syncSystemConfig = async () => {
   try {
     const res = await apiClient.get("/admin/config");
@@ -66,6 +67,7 @@ apiClient.interceptors.request.use((config) => {
   if (token) {
     config.headers["Authorization"] = `Bearer ${token}`;
   }
+  config.headers["X-Operational-Mode"] = mockDataEnabled ? "demo" : "real";
   return config;
 });
 

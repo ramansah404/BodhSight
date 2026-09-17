@@ -10,6 +10,13 @@ import time
 
 # Removed query cache class
 
+def is_mock_enabled(db: Session) -> bool:
+    try:
+        row = db.execute(text("SELECT value FROM core.system_config WHERE key = 'mock_data_enabled'")).fetchone()
+        return row.value == "true" if row else True
+    except:
+        return True
+
 
 # ---------------------------------------------------------------------------
 # Assessment — v_course_performance
@@ -247,7 +254,6 @@ def get_course_section_roster(db: Session) -> List[Dict[str, Any]]:
 # ---------------------------------------------------------------------------
 
 def get_student_profile_summary(db: Session, department: str = None, semester: str = None, programme: str = None, academic_year: str = None) -> Dict[str, Any]:
-    """Aggregated student KPIs."""
     if programme and programme.lower() == "all":
         programme = None
     if department and department.lower() == "all":
@@ -263,6 +269,9 @@ def get_student_profile_summary(db: Session, department: str = None, semester: s
         where_clause += " AND programme_code = :programme "
         params["programme"] = programme
         
+    if not is_mock_enabled(db):
+        where_clause += " AND is_mock = false "
+        
     sql = text(f"""
         SELECT
             count(*) AS total_students,
@@ -277,6 +286,21 @@ def get_student_profile_summary(db: Session, department: str = None, semester: s
     row = result.fetchone()
     return dict(row._mapping) if row else {}
 
+
+def get_at_risk_students(db: Session, department: str = None) -> List[Dict[str, Any]]:
+    where = "WHERE (demo_fa1 < 10 OR demo_cla1 < 10)"
+    if department:
+        where += f" AND department_code = '{department}'"
+    if not is_mock_enabled(db):
+        where += " AND is_mock = false"
+        
+    sql = text(f"""
+        SELECT student_id, roll_no, full_name, demo_fa1, demo_cla1, department_code, section_code, cgpa
+        FROM people.v_student_profile
+        {where}
+    """)
+    result = db.execute(sql)
+    return [dict(row._mapping) for row in result]
 
 def get_students_by_context(db: Session, context: str, department: str = None, semester: str = None, programme: str = None) -> List[Dict[str, Any]]:
     """Fetch students based on UI drilldown context."""

@@ -263,6 +263,7 @@ export default function AdminDashboard() {
       await AdminAPI.updateSystemConfig(!mockDataEnabled);
       setMockDataEnabled(!mockDataEnabled);
       alert(`Mock Data Fallback ${!mockDataEnabled ? 'Enabled' : 'Disabled'}`);
+      window.location.reload();
     } catch (err: any) {
       alert("Failed to update system config: " + (err.response?.data?.detail || ""));
     } finally {

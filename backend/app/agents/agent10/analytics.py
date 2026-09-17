@@ -534,6 +534,34 @@ def compute_anomalies(db: Session, department: str = None, semester: str = None,
         anomalies = [a for a in anomalies if a.get("department") == department]
 
     # Sort by priority_score descending
+    # 3. Add At Risk Student Anomalies
+    at_risk = queries.get_at_risk_students(db, department)
+    for i, s in enumerate(at_risk):
+        fa1 = _f(s.get("demo_fa1"))
+        cla1 = _f(s.get("demo_cla1"))
+        bad_mark_type = "FA1" if fa1 is not None and fa1 < 10 else "CLA1"
+        bad_mark = fa1 if bad_mark_type == "FA1" else cla1
+        
+        anomalies.append({
+            "id": f"anom-student-{i+1:03d}",
+            "anomaly_type": "AT_RISK_STUDENT",
+            "severity": "CRITICAL",
+            "title": f"Critical performance drop for {s.get('full_name')} in {bad_mark_type}",
+            "course_code": "—",
+            "course_title": "—",
+            "department": s.get("department_code") or "—",
+            "section": s.get("section_code") or "—",
+            "current_value": bad_mark,
+            "baseline_value": 20,
+            "deviation": -10.0,
+            "affected_students": 1,
+            "avg_marks": float(s.get("cgpa") or 0),
+            "evidence_sources": ["people.v_student_profile"],
+            "priority_score": 90,
+            "detected_date": _today(),
+            "recommended_action": f"Schedule immediate intervention for {s.get('full_name')} due to poor {bad_mark_type} performance.",
+        })
+
     anomalies.sort(key=lambda x: x.get("priority_score", 0), reverse=True)
     return anomalies
 
