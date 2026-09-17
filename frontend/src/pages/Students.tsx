@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ShieldAlert, Users, AlertTriangle, AlertCircle, Info, BookOpen, PieChart as PieChartIcon } from "lucide-react";
+import { ShieldAlert, Users, AlertTriangle, AlertCircle, Info, BookOpen, PieChart as PieChartIcon, Search, Plus, Edit } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Agent10API } from "../services/api";
 import { useFilters } from "../contexts/FilterContext";
@@ -8,16 +8,33 @@ import type { TrendsResponse } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 import StudentDrilldownModal from "../components/ui/StudentDrilldownModal";
+import StudentEditorModal, { StudentFormData } from "../components/students/StudentEditorModal";
+import { useRole } from "../contexts/RoleContext";
 
 type LoadState = "loading" | "success" | "error" | "empty";
+type TabType = "analytics" | "directory";
 
 export default function Students() {
+  const { currentRole } = useRole();
   const { filters } = useFilters();
+  const [activeTab, setActiveTab] = useState<TabType>("analytics");
+  
+  // Analytics state
   const [trendsData, setTrendsData] = useState<TrendsResponse | null>(null);
   const [state, setState] = useState<LoadState>("loading");
   const [errorMsg, setErrorMsg] = useState("");
   
+  // Directory state
+  const [studentsList, setStudentsList] = useState<any[]>([]);
+  const [dirState, setDirState] = useState<LoadState>("loading");
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Editor state
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editorData, setEditorData] = useState<StudentFormData | null>(null);
+
   const canDrilldown = true;
+  const canEdit = ["Admin", "Chairman", "HOD", "Dean", "Faculty"].includes(currentRole || "");
 
   // Drilldown state
   const [drilldown, setDrilldown] = useState<{ isOpen: boolean; context: string; title: string }>({
@@ -25,6 +42,22 @@ export default function Students() {
     context: "",
     title: "",
   });
+
+  const loadDirectory = () => {
+    setDirState("loading");
+    Agent10API.getAllStudents()
+      .then((data) => {
+        setStudentsList(data);
+        setDirState(data.length ? "success" : "empty");
+      })
+      .catch(() => setDirState("error"));
+  };
+
+  useEffect(() => {
+    if (activeTab === "directory") {
+      loadDirectory();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     let cancelled = false;
@@ -126,6 +159,33 @@ export default function Students() {
           disabled={state !== "success"}
         />
       </div>
+
+      <div className="flex border-b border-border/60">
+        <button
+          onClick={() => setActiveTab("analytics")}
+          className={`pb-3 px-6 text-sm font-bold transition-colors border-b-2 ${
+            activeTab === "analytics"
+              ? "border-rose-500 text-rose-600 dark:text-rose-400"
+              : "border-transparent text-secondary hover:text-primary"
+          }`}
+        >
+          Risk Analytics
+        </button>
+        <button
+          onClick={() => setActiveTab("directory")}
+          className={`pb-3 px-6 text-sm font-bold transition-colors border-b-2 ${
+            activeTab === "directory"
+              ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+              : "border-transparent text-secondary hover:text-primary"
+          }`}
+        >
+          Student Directory
+        </button>
+      </div>
+
+      {/* Analytics Tab Content */}
+      {activeTab === "analytics" && (
+        <>
 
       {state === "loading" && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -363,6 +423,86 @@ export default function Students() {
             Data sourced from <code className="bg-surface-secondary px-1 py-0.5 rounded text-primary border border-border">people.v_student_profile</code> via Agent 10 analytics engine.
           </div>
         </motion.div>
+        </>
+      )}
+
+      {/* Directory Tab Content */}
+      {activeTab === "directory" && (
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface p-4 rounded-2xl border border-border shadow-sm">
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" size={16} />
+              <input
+                type="text"
+                placeholder="Search by name, roll no, or section..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 bg-background border border-border rounded-xl text-sm focus:ring-1 focus:ring-indigo-500 outline-none text-primary"
+              />
+            </div>
+            {canEdit && (
+              <button
+                onClick={() => { setEditorData(null); setIsEditorOpen(true); }}
+                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors whitespace-nowrap"
+              >
+                <Plus size={16} /> Add Student
+              </button>
+            )}
+          </div>
+
+          {dirState === "loading" && (
+            <div className="p-8 text-center text-secondary">Loading directory...</div>
+          )}
+
+          {dirState === "success" && (
+            <div className="bg-surface rounded-2xl border border-border overflow-x-auto shadow-sm">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-surface-secondary/50 border-b border-border text-xs uppercase tracking-wider text-secondary">
+                    <th className="p-4 font-bold">Roll No</th>
+                    <th className="p-4 font-bold">Name</th>
+                    <th className="p-4 font-bold">Section</th>
+                    <th className="p-4 font-bold text-right">CGPA</th>
+                    <th className="p-4 font-bold text-right">Attendance</th>
+                    {canEdit && <th className="p-4 font-bold text-right">Actions</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {studentsList
+                    .filter(s => 
+                      s.full_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                      s.roll_no.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      s.section_code.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map(student => (
+                      <tr key={student.student_id} className="border-b border-border/50 hover:bg-surface-secondary/20 transition-colors">
+                        <td className="p-4 font-mono text-sm text-primary">{student.roll_no}</td>
+                        <td className="p-4 font-bold text-sm text-primary">{student.full_name}</td>
+                        <td className="p-4 text-sm text-secondary">{student.section_code}</td>
+                        <td className="p-4 text-sm font-medium text-right text-indigo-600 dark:text-indigo-400">
+                          {student.cgpa.toFixed(2)}
+                        </td>
+                        <td className="p-4 text-sm font-medium text-right text-emerald-600 dark:text-emerald-400">
+                          {student.attendance_pct.toFixed(1)}%
+                        </td>
+                        {canEdit && (
+                          <td className="p-4 text-right">
+                            <button
+                              onClick={() => { setEditorData(student); setIsEditorOpen(true); }}
+                              className="p-1.5 text-secondary hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
+                              title="Edit Student"
+                            >
+                              <Edit size={16} />
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       )}
 
       <StudentDrilldownModal
@@ -370,6 +510,20 @@ export default function Students() {
         onClose={() => setDrilldown({ ...drilldown, isOpen: false })}
         context={drilldown.context}
         title={drilldown.title}
+      />
+      
+      <StudentEditorModal
+        isOpen={isEditorOpen}
+        onClose={() => setIsEditorOpen(false)}
+        initialData={editorData}
+        onSave={async (data) => {
+          if (data.student_id) {
+            await Agent10API.updateStudent(data.student_id, data);
+          } else {
+            await Agent10API.createStudent(data);
+          }
+          loadDirectory();
+        }}
       />
     </div>
   );

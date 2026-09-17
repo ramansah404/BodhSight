@@ -296,6 +296,11 @@ export const Agent10API = {
     clearCache(); // Force real-time sync for next read
   },
 
+  async getAllStudents(): Promise<any[]> {
+    const res = await apiClient.get("/students/");
+    return res.data;
+  },
+
   async createStudent(data: any): Promise<any> {
     const res = await apiClient.post("/students/", data);
     clearCache();
