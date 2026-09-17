@@ -354,7 +354,6 @@ export default function Courses() {
             </div>
           </div>
         </div>
-        </div>
       )}
       <StudentDrilldownModal
         isOpen={isDrilldownOpen}

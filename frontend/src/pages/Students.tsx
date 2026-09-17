@@ -245,7 +245,7 @@ export default function Students() {
                 {backlog.total_students.toLocaleString()}
               </div>
               <div className="text-xs text-secondary font-medium mt-1">Active in institution</div>
-            </div>
+            </motion.div>
 
             <div 
               onClick={() => canDrilldown && setDrilldown({ isOpen: true, context: "at_risk", title: "Students With Backlogs" })}
@@ -423,6 +423,7 @@ export default function Students() {
             Data sourced from <code className="bg-surface-secondary px-1 py-0.5 rounded text-primary border border-border">people.v_student_profile</code> via Agent 10 analytics engine.
           </div>
         </motion.div>
+      )}
         </>
       )}
 
