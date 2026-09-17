@@ -8,6 +8,7 @@ import GlobalFilterBar from "../filters/GlobalFilterBar";
 import { FilterProvider } from "../../contexts/FilterContext";
 import { NotificationProvider } from "../../contexts/NotificationContext";
 import { useRole } from "../../contexts/RoleContext";
+import CommandPalette, { useCommandPalette } from "../ui/CommandPalette";
 
 import ChatWidget from "../ui/ChatWidget";
 
@@ -26,14 +27,13 @@ const pageTransition = {
 export default function Layout() {
   const { currentRole, isLoading } = useRole();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isOpen: isCommandPaletteOpen, setIsOpen: setIsCommandPaletteOpen } = useCommandPalette();
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
 
   if (isLoading || !currentRole) {
     return null;
   }
-
-
 
   return (
     <FilterProvider>
@@ -47,7 +47,8 @@ export default function Layout() {
         <div className="flex-1 flex flex-col h-[100dvh] overflow-hidden w-full relative">
           <Topbar 
             currentRole={currentRole} 
-            onMenuToggle={() => setIsMobileMenuOpen(true)} 
+            onMenuToggle={() => setIsMobileMenuOpen(true)}
+            onSearchClick={() => setIsCommandPaletteOpen(true)}
           />
           {currentRole !== "Admin" && <GlobalFilterBar />}
           <main ref={mainRef} className="flex-1 overflow-y-auto px-4 py-5 md:px-7 md:py-6 lg:px-10">
@@ -69,6 +70,10 @@ export default function Layout() {
           </main>
         </div>
         <ChatWidget />
+        <CommandPalette 
+          isOpen={isCommandPaletteOpen} 
+          onClose={() => setIsCommandPaletteOpen(false)} 
+        />
       </div>
       </NotificationProvider>
     </FilterProvider>

@@ -1,6 +1,6 @@
-﻿import BrandLogo from "../ui/BrandLogo";
+import BrandLogo from "../ui/BrandLogo";
 
-import { Bell, LogOut, Menu } from 'lucide-react';
+import { Search, Bell, LogOut, Menu } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -18,12 +18,10 @@ interface TopbarProps {
   currentRole: string;
 
   onMenuToggle: () => void;
-
+  onSearchClick?: () => void;
 }
 
-
-
-export default function Topbar({ currentRole, onMenuToggle }: TopbarProps) {
+export default function Topbar({ currentRole, onMenuToggle, onSearchClick }: TopbarProps) {
 
   const navigate = useNavigate();
 
@@ -98,7 +96,16 @@ export default function Topbar({ currentRole, onMenuToggle }: TopbarProps) {
       
 
       <div className="flex items-center gap-3 md:gap-5">
-
+        <button
+          onClick={onSearchClick}
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface-secondary/50 hover:bg-surface-secondary text-secondary hover:text-primary transition-colors border border-border/50 text-sm"
+        >
+          <Search size={16} />
+          <span>Search...</span>
+          <kbd className="ml-2 px-1.5 py-0.5 rounded-md bg-background border border-border text-[10px] font-bold text-secondary">
+            ⌘K
+          </kbd>
+        </button>
         <ThemeToggle />
 
         <button 
