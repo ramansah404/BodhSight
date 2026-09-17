@@ -8,7 +8,7 @@ import type { TrendsResponse } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 import StudentDrilldownModal from "../components/ui/StudentDrilldownModal";
-import StudentEditorModal, { StudentFormData } from "../components/students/StudentEditorModal";
+import StudentEditorModal, { type StudentFormData } from "../components/students/StudentEditorModal";
 import { useRole } from "../contexts/RoleContext";
 
 type LoadState = "loading" | "success" | "error" | "empty";

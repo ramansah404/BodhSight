@@ -725,3 +725,17 @@ export const MessageAPI = {
     return res.data;
   }
 };
+
+export const IngestionAPI = {
+  async uploadFile(file: File, documentType: string): Promise<any> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("document_type", documentType);
+    const res = await apiClient.post("/ingestion/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+    return res.data;
+  }
+};
