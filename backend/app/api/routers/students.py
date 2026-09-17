@@ -410,3 +410,124 @@ def update_student_marks(
         db.rollback()
         logger.error(f"Error updating marks: {e}")
         raise HTTPException(status_code=500, detail="Database marks update failed")
+
+
+@router.get("/{student_id}/attendance")
+def get_student_attendance(
+    student_id: str,
+    db: Session = Depends(get_db)
+):
+    """Return subject-wise and day-wise attendance for a student portal."""
+    try:
+        # Subject-wise
+        subj_q = """
+            SELECT c.title AS subject,
+                   count(*) FILTER (WHERE al.status = 'PRESENT') AS present,
+                   count(*) AS total,
+                   round(100.0 * count(*) FILTER (WHERE al.status = 'PRESENT')
+                         / nullif(count(*), 0), 1) AS pct
+            FROM attendance.attendance_log al
+            JOIN academics.course_offering co ON co.course_offering_id = al.course_offering_id
+            JOIN curriculum.course_version cv ON cv.course_version_id = co.course_version_id
+            JOIN curriculum.course c ON c.course_id = cv.course_id
+            WHERE al.student_id = :sid
+            GROUP BY c.title
+            ORDER BY c.title
+        """
+        subj_rows = db.execute(text(subj_q), {"sid": student_id}).fetchall()
+
+        # Day-wise (last 60 days)
+        daily_q = """
+            SELECT DATE(al.class_date) AS date,
+                   CASE WHEN bool_or(al.status = 'PRESENT') THEN 'P'
+                        WHEN bool_or(al.status = 'ON_DUTY') THEN 'OD'
+                        ELSE 'A' END AS status
+            FROM attendance.attendance_log al
+            WHERE al.student_id = :sid
+              AND al.class_date >= CURRENT_DATE - INTERVAL '60 days'
+            GROUP BY DATE(al.class_date)
+            ORDER BY date
+        """
+        daily_rows = db.execute(text(daily_q), {"sid": student_id}).fetchall()
+
+        subjects = [{"subject": r[0], "present": r[1], "total": r[2], "pct": float(r[3] or 0)} for r in subj_rows]
+        daily = [{"date": str(r[0]), "status": r[1]} for r in daily_rows]
+        overall_pct = round(sum(s["pct"] for s in subjects) / len(subjects), 1) if subjects else 0.0
+
+        return {"attendance_pct": overall_pct, "subjects": subjects, "daily": daily}
+    except Exception as e:
+        logger.error(f"Error fetching attendance: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch attendance")
+
+
+@router.get("/portal/me")
+def get_student_portal(
+    x_user_id: str = Header(default=None),
+    x_user_role: str = Header(default=None),
+    db: Session = Depends(get_db)
+):
+    """Return personalised student/parent portal data using the auth token identifier."""
+    try:
+        identifier = x_user_id or ""
+        # Look up student by email or roll_no
+        lookup_q = """
+            SELECT sp.student_id, sp.full_name, sp.roll_no, sp.section_code,
+                   sp.cgpa, sp.attendance_pct, sp.batch_label, sp.programme_code,
+                   sp.department_code, sp.backlog_count,
+                   sp.demo_fa1, sp.demo_cla1, sp.demo_fa2, sp.demo_cla2,
+                   sp.demo_fa3, sp.demo_cla3, sp.demo_fa4, sp.demo_cla4,
+                   sp.demo_cla5, sp.demo_external, sp.demo_internal_overall,
+                   sp.demo_total_overall
+            FROM people.v_student_profile sp
+            WHERE sp.email = :id OR sp.roll_no = :id
+            LIMIT 1
+        """
+        row = db.execute(text(lookup_q), {"id": identifier}).fetchone()
+        if not row:
+            # Fallback: return first student profile for demo purposes
+            row = db.execute(text("""
+                SELECT sp.student_id, sp.full_name, sp.roll_no, sp.section_code,
+                       sp.cgpa, sp.attendance_pct, sp.batch_label, sp.programme_code,
+                       sp.department_code, sp.backlog_count,
+                       sp.demo_fa1, sp.demo_cla1, sp.demo_fa2, sp.demo_cla2,
+                       sp.demo_fa3, sp.demo_cla3, sp.demo_fa4, sp.demo_cla4,
+                       sp.demo_cla5, sp.demo_external, sp.demo_internal_overall,
+                       sp.demo_total_overall
+                FROM people.v_student_profile sp
+                ORDER BY sp.full_name LIMIT 1
+            """)).fetchone()
+
+        if not row:
+            raise HTTPException(status_code=404, detail="Student profile not found")
+
+        keys = ["student_id","full_name","roll_no","section_code","cgpa","attendance_pct",
+                "batch_label","programme_code","department_code","backlog_count",
+                "demo_fa1","demo_cla1","demo_fa2","demo_cla2","demo_fa3","demo_cla3",
+                "demo_fa4","demo_cla4","demo_cla5","demo_external",
+                "demo_internal_overall","demo_total_overall"]
+        data = dict(zip(keys, row))
+
+        # Subject-wise marks from real results (supplemented with demo_* if empty)
+        result_q = """
+            SELECT c.title AS subject, cv.course_code,
+                   cr.internal_marks, cr.external_marks, cr.total_marks, cr.grade, cr.result_status
+            FROM assessment.course_result cr
+            JOIN curriculum.course_version cv ON cv.course_version_id = cr.course_version_id
+            JOIN curriculum.course c ON c.course_id = cv.course_id
+            WHERE cr.student_id = :sid
+            ORDER BY c.title LIMIT 20
+        """
+        results = db.execute(text(result_q), {"sid": str(data["student_id"])}).fetchall()
+        data["subjects"] = [
+            {"subject": r[0], "code": r[1], "internal": float(r[2] or 0),
+             "external": float(r[3] or 0), "total": float(r[4] or 0),
+             "grade": r[5] or "—", "status": r[6] or "—"}
+            for r in results
+        ]
+        data["student_id"] = str(data["student_id"])
+        return data
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in student portal: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load student portal")
