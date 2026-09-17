@@ -64,7 +64,7 @@ def health_check_v1():
     }
 
 from app.api.v1.routes import dashboard, performance, trends, anomalies, insights, alerts, recommendations
-from app.api.routers import agent10, notifications, ingestion, crud_data, auth, chat, profile, admin, students
+from app.api.routers import agent10, notifications, ingestion, crud_data, auth, chat, profile, admin, students, messages
 
 app.include_router(chat.router, prefix=f"{settings.API_V1_STR}", tags=["Agent 10 Chat"])
 app.include_router(admin.router, prefix=f"{settings.API_V1_STR}", tags=["Admin"])
@@ -73,6 +73,7 @@ app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Aut
 app.include_router(profile.router, prefix=f"{settings.API_V1_STR}", tags=["Profile"])
 app.include_router(crud_data.router, prefix=f"{settings.API_V1_STR}/crud_data", tags=["CRUD"])
 app.include_router(students.router, prefix=f"{settings.API_V1_STR}/students", tags=["Students"])
+app.include_router(messages.router, prefix=f"{settings.API_V1_STR}/messages", tags=["Messages"])
 app.include_router(notifications.router, prefix=f"{settings.API_V1_STR}/notifications", tags=["Notifications"])
 app.include_router(ingestion.router, prefix=f"{settings.API_V1_STR}/ingestion", tags=["Ingestion"])
 # Placeholders for future routers

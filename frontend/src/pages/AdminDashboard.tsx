@@ -663,10 +663,10 @@ export default function AdminDashboard() {
           </h2>
           <div className="flex items-center justify-between bg-surface-secondary/50 p-4 rounded-xl border border-border/60">
             <div>
-              <h3 className="font-bold text-primary text-sm">Allow Mock Data Fallbacks</h3>
+              <h3 className="font-bold text-primary text-sm">Operation Mode: {mockDataEnabled ? "Demo Mode" : "Real Working Mode"}</h3>
               <p className="text-secondary text-xs mt-1 max-w-md">
-                When enabled, the application will display realistic mock data if real backend analytical data is empty or unavailable. 
-                Disable this to enforce strict real-time data views only.
+                When enabled (Demo Mode), the application will display realistic mock data if real backend analytical data is empty or unavailable. 
+                Disable this to switch to Real Working Mode and enforce strict real-time data views only without deleting any underlying data.
               </p>
             </div>
             <button

@@ -40,6 +40,7 @@ import ManualEntry   from "./pages/ManualEntry";
 
 import Exceptions    from "./pages/Exceptions";
 import AdminDashboard from "./pages/AdminDashboard";
+import Messages      from "./pages/Messages";
 
 
 
@@ -78,6 +79,7 @@ export default function App() {
 
             {/* Settings ΓÇö accessible to all logged-in users */}
             <Route path="settings"        element={<Settings />} />
+            <Route path="messages"        element={<Messages />} />
 
             {/* Courses ΓÇö all roles can view */}
             <Route element={<ProtectedRoute requiredPermission="view_courses" />}>

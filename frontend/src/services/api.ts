@@ -618,3 +618,30 @@ export const AdminAPI = {
     return res.data;
   }
 };
+
+export const MessageAPI = {
+  async getAvailableUsers(): Promise<any[]> {
+    const res = await apiClient.get("/messages/users");
+    return res.data;
+  },
+
+  async getInbox(): Promise<any[]> {
+    const res = await apiClient.get("/messages/inbox");
+    return res.data;
+  },
+
+  async getSentMessages(): Promise<any[]> {
+    const res = await apiClient.get("/messages/sent");
+    return res.data;
+  },
+
+  async sendMessage(receiverId: string, content: string): Promise<any> {
+    const res = await apiClient.post("/messages/", { receiver_id: receiverId, content });
+    return res.data;
+  },
+
+  async markAsRead(messageId: string): Promise<any> {
+    const res = await apiClient.put(`/messages/${messageId}/read`);
+    return res.data;
+  }
+};

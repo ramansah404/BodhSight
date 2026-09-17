@@ -21,6 +21,8 @@ import {
 
   ShieldAlert,
 
+  MessageSquare,
+
   X,
 
   Menu,
@@ -77,12 +79,20 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     { name: "Executive Reports", path: "/reports", requiredPermission: "view_reports", icon: FileText },
 
     { name: "Data Hub", path: "/data-hub", requiredPermission: "view_data_hub", icon: Database },
+    
+    { name: "Messages", path: "/messages", icon: MessageSquare },
+
     { name: "User Management", path: "/admin/users", roles: ["Admin"], icon: ShieldAlert },
+
   ];
 
 
 
   const navItems = allNavItems.filter(item => {
+    // Hide Messages from Student and Parent roles
+    if (item.path === "/messages" && (currentRole === "Student" || currentRole === "Parent")) {
+      return false;
+    }
     // If the user is Admin, ONLY show Admin-specific routes
     if (currentRole === "Admin") {
       return item.roles && item.roles.includes("Admin");
