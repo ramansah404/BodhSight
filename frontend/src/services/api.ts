@@ -348,9 +348,19 @@ export const Agent10API = {
   },
 
   /** Execute a recommendation (updates database status) */
-  async executeRecommendation(id: string): Promise<void> {
-    await apiClient.post(`/agent10/recommendations/${id}/execute`);
-    clearCache();
+  async executeRecommendation(anomalyId: string): Promise<void> {
+    await apiClient.post(`/agent10/recommendations/${anomalyId}/execute`);
+  },
+
+  /** Send a chat message to Agent 10 */
+  async sendChatMessage(message: string, filters?: Partial<FilterState>): Promise<{ reply: string }> {
+    try {
+      const res = await apiClient.post("/agent10/chat", { message, filters });
+      return res.data;
+    } catch {
+      if (!mockDataEnabled) throw new Error("Agent 10 is currently offline.");
+      return { reply: "I am Agent 10 (Mock Mode). The backend is currently offline. How can I assist you with BodhSight today?" };
+    }
   },
 
   /** Trigger an ingestion audit */

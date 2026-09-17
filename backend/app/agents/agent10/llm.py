@@ -279,6 +279,25 @@ def generate_executive_summary(dashboard: Dict[str, Any], anomalies: List[Dict[s
     return result if result else fallback
 
 
+def chat_with_agent(message: str, context: Optional[Dict[str, Any]] = None) -> str:
+    """
+    Handle a user chat message.
+    """
+    if not _check_llm_available():
+        return "I am Agent 10, BodhSight's academic analytics assistant. Currently, my LLM capabilities are offline (no API key configured). Please refer to the dashboards for structured data insights."
+        
+    system_prompt = (
+        "You are Agent 10, an intelligent academic analytics assistant for BodhSight. "
+        "You help university administration understand student performance, anomalies, and condonation risks. "
+        "Keep your answers concise, professional, and helpful. Format with markdown where appropriate."
+    )
+    if context:
+        system_prompt += f"\n\nCurrent Dashboard Context: {json.dumps(context, default=str)}"
+        
+    result = _call_llm(system_prompt, message)
+    return result if result else "I encountered an error processing your request."
+
+
 def llm_status() -> Dict[str, Any]:
     """Return LLM availability status. Safe to expose via API."""
     available = _check_llm_available()
@@ -292,3 +311,4 @@ def llm_status() -> Dict[str, Any]:
             else "LLM API key not configured. Structured JSON responses are used instead."
         ),
     }
+

@@ -547,6 +547,34 @@ def get_executive_summary(department: str = Depends(get_rbac_department), semest
 
 
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Chat Widget Endpoint
+# ---------------------------------------------------------------------------
+from pydantic import BaseModel
+
+class ChatRequest(BaseModel):
+    message: str
+    filters: Optional[Dict[str, Any]] = None
+
+@router.post("/chat")
+def chat_with_agent10(req: ChatRequest, db: Session = Depends(get_db)):
+    """Handles chat messages from the frontend ChatWidget."""
+    from app.agents.agent10.llm import chat_with_agent
+    
+    # Optional: fetch some high level stats to provide as context if needed
+    context = {}
+    try:
+        if req.filters and req.filters.get("department"):
+            metrics = agent10.compute_dashboard_metrics(db, department=req.filters["department"])
+            context["pass_rate"] = metrics.get("pass_rate")
+            context["anomalies"] = metrics.get("active_anomalies")
+    except:
+        pass
+        
+    reply = chat_with_agent(req.message, context)
+    return {"reply": reply}
+
+# ---------------------------------------------------------------------------
 # Mutations
 # ---------------------------------------------------------------------------
 from sqlalchemy import text
