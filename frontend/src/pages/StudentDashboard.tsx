@@ -232,7 +232,7 @@ export default function StudentDashboard() {
               )}
             </div>
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-              {isParent ? `${data?.full_name}'s Academic Profile` : `Welcome, ${data?.full_name?.split(" ")[0]}`}
+              {isParent ? `${data?.full_name}'s Academic Profile` : `Welcome, ${(data?.full_name?.split(" ") || [])[0] || 'Student'}`}
             </h1>
             <p className="text-white/70 font-medium text-sm mt-2 flex items-center gap-2">
               <BookOpen size={14} />

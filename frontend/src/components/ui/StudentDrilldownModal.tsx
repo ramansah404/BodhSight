@@ -20,6 +20,7 @@ interface Props {
   context: string;
   courseCode?: string;
   title: string;
+  initialStudent?: StudentProfile;
 }
 
 type TabId = "summary" | "attendance" | "marks";
@@ -342,7 +343,7 @@ function StudentDetailPanel({ student, onClose, onRefresh, canEdit }: {
 
 // ─── Main Modal ──────────────────────────────────────────────────────────────
 
-export default function StudentDrilldownModal({ isOpen, onClose, context, courseCode, title }: Props) {
+export default function StudentDrilldownModal({ isOpen, onClose, context, courseCode, title, initialStudent }: Props) {
   const { filters } = useFilters();
   const { role } = useRole();
   const canEdit = ["Faculty", "HOD", "Admin", "Dean", "Principal", "Chairman"].includes(role ?? "");
@@ -355,6 +356,11 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
   const [editorData, setEditorData] = useState<StudentFormData | null>(null);
 
   const loadStudents = useCallback(() => {
+    if (initialStudent) {
+      setStudents([initialStudent]);
+      setSelectedStudent(initialStudent);
+      return;
+    }
     setLoading(true);
     setError("");
     Agent10API.getStudentDrilldown(context, { ...filters, course_code: courseCode })
@@ -363,10 +369,14 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
         setError(err?.response?.data?.detail || err?.message || String(err));
         setLoading(false);
       });
-  }, [context, courseCode, filters]);
+  }, [context, courseCode, filters, initialStudent]);
 
   useEffect(() => {
-    if (!isOpen) { setSelectedStudent(null); return; }
+    if (!isOpen) { 
+      setSelectedStudent(null); 
+      setStudents([]);
+      return; 
+    }
     loadStudents();
   }, [isOpen, loadStudents]);
 

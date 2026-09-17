@@ -37,7 +37,7 @@ export default function Students() {
   const canEdit = ["Admin", "Chairman", "HOD", "Dean", "Faculty"].includes(currentRole || "");
 
   // Drilldown state
-  const [drilldown, setDrilldown] = useState<{ isOpen: boolean; context: string; title: string }>({
+  const [drilldown, setDrilldown] = useState<{ isOpen: boolean; context: string; title: string; initialStudent?: StudentProfile }>({
     isOpen: false,
     context: "",
     title: "",
@@ -476,7 +476,11 @@ export default function Students() {
                       s.section_code.toLowerCase().includes(searchQuery.toLowerCase())
                     )
                     .map(student => (
-                      <tr key={student.student_id} className="border-b border-border/50 hover:bg-surface-secondary/20 transition-colors">
+                      <tr 
+                        key={student.student_id} 
+                        className="border-b border-border/50 hover:bg-surface-secondary/20 transition-colors cursor-pointer"
+                        onClick={() => setDrilldown({ isOpen: true, context: "single_view", title: "Student Profile", initialStudent: student })}
+                      >
                         <td className="p-4 font-mono text-sm text-primary">{student.roll_no}</td>
                         <td className="p-4 font-bold text-sm text-primary">{student.full_name}</td>
                         <td className="p-4 text-sm text-secondary">{student.section_code}</td>
@@ -489,7 +493,7 @@ export default function Students() {
                         {canEdit && (
                           <td className="p-4 text-right">
                             <button
-                              onClick={() => { setEditorData(student); setIsEditorOpen(true); }}
+                              onClick={(e) => { e.stopPropagation(); setEditorData(student); setIsEditorOpen(true); }}
                               className="p-1.5 text-secondary hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
                               title="Edit Student"
                             >
@@ -508,9 +512,10 @@ export default function Students() {
 
       <StudentDrilldownModal
         isOpen={drilldown.isOpen}
-        onClose={() => setDrilldown({ ...drilldown, isOpen: false })}
+        onClose={() => setDrilldown({ ...drilldown, isOpen: false, initialStudent: undefined })}
         context={drilldown.context}
         title={drilldown.title}
+        initialStudent={drilldown.initialStudent}
       />
       
       <StudentEditorModal
