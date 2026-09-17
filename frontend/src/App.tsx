@@ -42,6 +42,7 @@ import Exceptions    from "./pages/Exceptions";
 import AdminDashboard from "./pages/AdminDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import Messages      from "./pages/Messages";
+import ManageMarks   from "./pages/ManageMarks";
 
 
 
@@ -122,6 +123,11 @@ export default function App() {
             </Route>
             <Route element={<ProtectedRoute requiredPermission="view_students" />}>
               <Route path="students"      element={<Students />} />
+            </Route>
+
+            {/* Marks Management — Faculty, HOD, Admin */}
+            <Route element={<ProtectedRoute allowedRoles={["Faculty", "HOD", "Admin"]} />}>
+              <Route path="manage-marks"  element={<ManageMarks />} />
             </Route>
 
             {/* Data Hub — Requires view_data_hub */}

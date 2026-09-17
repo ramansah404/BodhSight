@@ -21,6 +21,7 @@ import { useRole } from "../contexts/RoleContext";
 
 const ROLE_OPTIONS = [
   { code: "Student",   label: "Student",              display: "Student",   desc: "Access courses & track progress", icon: User },
+  { code: "Parent",    label: "Parent",               display: "Parent",    desc: "Monitor student performance",     icon: Eye },
   { code: "Chairman",  label: "Chairman / Board",     display: "Chairman", desc: "Institutional Overview", icon: ShieldCheck },
   { code: "Principal", label: "Principal",             display: "Principal", desc: "Academic Leadership",   icon: ShieldCheck },
   { code: "Dean",      label: "Dean of Academics",    display: "Dean",      desc: "Academic Management",   icon: Lock },

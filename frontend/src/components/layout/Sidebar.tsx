@@ -28,7 +28,8 @@ import {
   Menu,
 
   Database,
-  FileWarning
+  FileWarning,
+  BookOpenCheck
 } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -81,6 +82,8 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
     
     { name: "Messages", path: "/messages", icon: MessageSquare },
 
+    { name: "Manage Marks", path: "/manage-marks", roles: ["Faculty", "HOD", "Admin"], icon: BookOpenCheck },
+
     { name: "User Management", path: "/admin/users", roles: ["Admin"], icon: ShieldAlert },
 
   ];
@@ -97,9 +100,9 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
       return item.roles && item.roles.includes("Admin");
     }
 
-    // For non-admins: explicitly hide Admin-specific routes
-    if (item.roles && item.roles.includes("Admin")) {
-      return false;
+    // Filter by allowed roles array (covers Faculty/HOD/Admin-specific routes)
+    if (item.roles) {
+      return item.roles.includes(currentRole ?? "");
     }
 
     // Otherwise, filter by their dynamic permissions

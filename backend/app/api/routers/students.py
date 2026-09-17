@@ -41,6 +41,8 @@ class StudentMarksUpdate(BaseModel):
     demo_fa4: Optional[float] = None
     demo_cla4: Optional[float] = None
     demo_cla5: Optional[float] = None
+    demo_penalty: Optional[float] = None
+    demo_marks_config: Optional[dict] = None
     demo_internal_overall: Optional[float] = None
     demo_external: Optional[float] = None
     demo_external_overall: Optional[float] = None
@@ -56,6 +58,44 @@ class StudentResponse(BaseModel):
     email: Optional[str]
     cgpa: float
     attendance_pct: float
+
+@router.get("/", response_model=List[StudentResponse])
+def list_students(
+    department: str = Depends(get_rbac_department),
+    db: Session = Depends(get_db)
+):
+    """List students, filtered by department for Faculty/HOD."""
+    try:
+        if department:
+            q = """
+                SELECT DISTINCT sp.student_id, sp.roll_no, sp.full_name, sp.section_code,
+                       NULL as email, COALESCE(sp.cgpa, 0), COALESCE(sp.attendance_pct, 0)
+                FROM people.v_student_profile sp
+                WHERE sp.section_code IN (
+                    SELECT section_code FROM academics.v_offering_roster WHERE department_code = :dept
+                )
+                ORDER BY sp.full_name LIMIT 200
+            """
+            rows = db.execute(text(q), {"dept": department}).fetchall()
+        else:
+            q = """
+                SELECT student_id, roll_no, full_name, section_code, NULL,
+                       COALESCE(cgpa, 0), COALESCE(attendance_pct, 0)
+                FROM people.v_student_profile
+                ORDER BY full_name LIMIT 200
+            """
+            rows = db.execute(text(q)).fetchall()
+
+        return [
+            StudentResponse(
+                student_id=str(r[0]), roll_no=str(r[1]), full_name=str(r[2]),
+                section_code=str(r[3]), email=r[4],
+                cgpa=float(r[5] or 0), attendance_pct=float(r[6] or 0)
+            ) for r in rows
+        ]
+    except Exception as e:
+        logger.error(f"Error listing students: {e}")
+        raise HTTPException(status_code=500, detail="Failed to list students")
 
 @router.post("/", response_model=StudentResponse)
 def create_student(
@@ -252,6 +292,40 @@ def delete_student(
         logger.error(f"Error deleting student: {e}")
         raise HTTPException(status_code=500, detail="Database delete failed")
 
+@router.get("/{student_id}/marks")
+def get_student_marks(
+    student_id: str,
+    department: str = Depends(get_rbac_department),
+    db: Session = Depends(get_db)
+):
+    """Get a student's granular marks and limits."""
+    try:
+        # Auth check
+        if department:
+            check_q = "SELECT c.department_code FROM people.v_student_profile p JOIN academics.v_offering_roster c ON c.section_code = p.section_code WHERE p.student_id = :sid"
+            res = db.execute(text(check_q), {"sid": student_id}).fetchone()
+            if not res or res[0] != department:
+                raise HTTPException(status_code=403, detail="Unauthorized")
+
+        q = "SELECT demo_fa1, demo_cla1, demo_fa2, demo_cla2, demo_fa3, demo_cla3, demo_fa4, demo_cla4, demo_cla5, demo_penalty, demo_external, demo_marks_config, demo_internal_overall, demo_external_overall, demo_total_overall, demo_attendance_override, demo_marks_override FROM people.student WHERE student_id = :sid"
+        row = db.execute(text(q), {"sid": student_id}).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Student not found")
+
+        return {
+            "demo_fa1": row[0], "demo_cla1": row[1], "demo_fa2": row[2], "demo_cla2": row[3],
+            "demo_fa3": row[4], "demo_cla3": row[5], "demo_fa4": row[6], "demo_cla4": row[7],
+            "demo_cla5": row[8], "demo_penalty": row[9], "demo_external": row[10],
+            "demo_marks_config": row[11] or {}, "demo_internal_overall": row[12],
+            "demo_external_overall": row[13], "demo_total_overall": row[14],
+            "demo_attendance_override": row[15], "demo_marks_override": row[16]
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching marks: {e}")
+        raise HTTPException(status_code=500, detail="Database fetch failed")
+
 @router.put("/{student_id}/marks")
 def update_student_marks(
     student_id: str,
@@ -272,14 +346,57 @@ def update_student_marks(
             if not res or res[0] != department:
                 raise HTTPException(status_code=403, detail="Unauthorized to modify this student's marks")
 
+        import json
+        
+        # 1. Fetch current marks and config
+        current_q = "SELECT demo_fa1, demo_cla1, demo_fa2, demo_cla2, demo_fa3, demo_cla3, demo_fa4, demo_cla4, demo_cla5, demo_penalty, demo_external, demo_marks_config FROM people.student WHERE student_id = :sid"
+        curr = db.execute(text(current_q), {"sid": student_id}).fetchone()
+        if not curr:
+            raise HTTPException(status_code=404, detail="Student not found")
+            
+        current_state = {
+            "demo_fa1": curr[0] or 0.0, "demo_cla1": curr[1] or 0.0,
+            "demo_fa2": curr[2] or 0.0, "demo_cla2": curr[3] or 0.0,
+            "demo_fa3": curr[4] or 0.0, "demo_cla3": curr[5] or 0.0,
+            "demo_fa4": curr[6] or 0.0, "demo_cla4": curr[7] or 0.0,
+            "demo_cla5": curr[8] or 0.0, "demo_penalty": curr[9] or 0.0,
+            "demo_external": curr[10] or 0.0
+        }
+        
+        updates = data.model_dump(exclude_unset=True)
+        
+        # Update current state with incoming data for calculation
+        for k in current_state.keys():
+            if k in updates and updates[k] is not None:
+                current_state[k] = updates[k]
+                
+        # Calculate Internal Overall (Sum of FAs and CLAs minus Penalty)
+        internal_sum = (
+            current_state["demo_fa1"] + current_state["demo_cla1"] +
+            current_state["demo_fa2"] + current_state["demo_cla2"] +
+            current_state["demo_fa3"] + current_state["demo_cla3"] +
+            current_state["demo_fa4"] + current_state["demo_cla4"] +
+            current_state["demo_cla5"]
+        ) - current_state["demo_penalty"]
+        
+        updates["demo_internal_overall"] = max(0.0, float(internal_sum))
+        
+        # Calculate Total Overall (Internal + External)
+        external = current_state["demo_external"]
+        updates["demo_total_overall"] = updates["demo_internal_overall"] + external
+        updates["demo_external_overall"] = external
+
         update_fields = []
         params = {"sid": student_id}
         
-        # Helper to dynamically build updates
-        for field, value in data.model_dump(exclude_unset=True).items():
+        for field, value in updates.items():
             if value is not None:
-                update_fields.append(f"{field} = :{field}")
-                params[field] = value
+                if field == "demo_marks_config":
+                    update_fields.append(f"{field} = :{field}::jsonb")
+                    params[field] = json.dumps(value)
+                else:
+                    update_fields.append(f"{field} = :{field}")
+                    params[field] = value
 
         if update_fields:
             query = f"UPDATE people.student SET {', '.join(update_fields)} WHERE student_id = :sid"
