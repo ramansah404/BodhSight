@@ -738,13 +738,29 @@ export default function Login() {
               <>
                 <div className="pt-4 border-t border-border mt-6">
                   <p className="text-center text-[10px] text-secondary uppercase tracking-widest font-semibold mb-3">Demonstration</p>
-                  <button
-                    type="button"
-                    onClick={() => { setIdentifier("admin@bodhsight.com"); setPassword("Admin123@"); setIsOtpMode(false); }}
-                    className="w-full py-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <ShieldCheck size={14} /> Auto-fill Admin Credentials
-                  </button>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setIdentifier("admin@bodhsight.com"); setPassword("Admin123@"); setIsOtpMode(false); }}
+                      className="w-full py-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <ShieldCheck size={14} /> Admin
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setIdentifier("student@bodhsight.com"); setPassword("Student123@"); setIsOtpMode(false); }}
+                      className="w-full py-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <User size={14} /> Student Portal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setIdentifier("parent@bodhsight.com"); setPassword("Parent123@"); setIsOtpMode(false); }}
+                      className="w-full py-2 bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 border border-rose-500/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer sm:col-span-2"
+                    >
+                      <Eye size={14} /> Parent Portal
+                    </button>
+                  </div>
                 </div>
                 <p className="text-center text-xs text-secondary pt-4">
                   Don't have an account?{" "}
