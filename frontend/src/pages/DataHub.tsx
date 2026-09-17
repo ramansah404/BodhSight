@@ -44,11 +44,12 @@ export default function DataHub() {
   const validateAndSetFile = (file: File) => {
     const validTypes = [
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-      "text/csv" // .csv
+      "text/csv", // .csv
+      "application/pdf" // .pdf
     ];
     
     if (!validTypes.includes(file.type) && !file.name.match(/\.(xlsx|docx|pdf|csv)$/)) {
-      setErrorMsg("Invalid file type. Please upload an Excel (.xlsx) or CSV (.csv) file.");
+      setErrorMsg("Invalid file type. Please upload an Excel (.xlsx), CSV (.csv), or PDF (.pdf) file.");
       setUploadState("error");
       return;
     }
@@ -97,7 +98,7 @@ export default function DataHub() {
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-indigo-950 dark:text-indigo-100">Document Ingestion & Uploads</h1>
           <p className="text-indigo-800/80 dark:text-indigo-200/70 text-sm mt-1">
-            Upload CSV or XLSX academic records. Agent 10 normalizes, validates, and persists accepted rows through the centralized academic data pipeline.
+            Upload CSV, XLSX, or PDF academic records. Agent 10 normalizes, validates, and persists accepted rows through the centralized academic data pipeline.
           </p>
         </div>
         <div className="flex bg-surface-hover/50 p-1 rounded-xl border border-border mt-4 md:mt-0">
