@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings as SettingsIcon, User, ShieldCheck, Server, Database, CheckCircle2, AlertCircle, Loader2, LogOut, RefreshCw, Lock, Sliders, Bell, Camera, Save } from "lucide-react";
+import { Settings as SettingsIcon, User, ShieldCheck, Server, Database, CheckCircle2, AlertCircle, AlertTriangle, Loader2, LogOut, RefreshCw, Lock, Sliders, Bell, Camera, Save } from "lucide-react";
 import { Agent10API, API_BASE_URL, ProfileAPI, AuthAPI } from "../services/api";
 import { useRole } from "../contexts/RoleContext";
 
@@ -399,6 +399,84 @@ export default function Settings() {
                   <option selected>Critical Only</option>
                 </select>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Global Operational Mode (Admin only) */}
+        {(role === "Admin" || role === "Chairman") && (
+          <div className="bg-surface rounded-3xl border border-indigo-500/30 shadow-sm p-6 space-y-4 md:col-span-2">
+            <h2 className="text-lg font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+              <Server size={20} />
+              Global Operational Mode
+            </h2>
+            <p className="text-sm text-secondary">
+              Toggle the system between Demo Mode (using fallback LLM mock data if the DB is empty) and Live Mode (strict DB queries only).
+            </p>
+            <div className="mt-4 p-4 rounded-xl border border-border bg-surface-secondary/30 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <div className="font-bold text-sm text-primary">Demo Mode Fallbacks</div>
+                <div className="text-xs text-secondary mt-1 max-w-md">
+                  When enabled, dashboard charts will populate with dynamic mock data if the database returns empty results. When disabled, the system strictly relies on actual database records.
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  try {
+                    const { AdminAPI } = await import("../services/api");
+                    const current = await AdminAPI.getSystemConfig();
+                    const next = !current.mock_data_enabled;
+                    const res = await AdminAPI.updateSystemConfig(next);
+                    alert(`Operational mode updated. Demo Mode is now ${next ? "ENABLED" : "DISABLED"}.`);
+                    window.location.reload();
+                  } catch (e: any) {
+                    alert("Failed to update operational mode.");
+                  }
+                }}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors whitespace-nowrap flex-shrink-0 flex items-center gap-2"
+              >
+                <Sliders size={14} />
+                Toggle Mode
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* System & Data Management (Admin only) */}
+        {(role === "Admin" || role === "Chairman") && (
+          <div className="bg-surface rounded-3xl border border-rose-500/30 shadow-sm p-6 space-y-4 md:col-span-2">
+            <h2 className="text-lg font-bold text-rose-600 dark:text-rose-400 flex items-center gap-2">
+              <AlertTriangle size={20} />
+              System & Data Management
+            </h2>
+            <p className="text-sm text-secondary">
+              Danger zone. These actions affect the global state of the application.
+            </p>
+            <div className="mt-4 p-4 rounded-xl border border-rose-500/20 bg-rose-50 dark:bg-rose-950/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <div className="font-bold text-sm text-rose-700 dark:text-rose-400">Factory Reset Demo Data</div>
+                <div className="text-xs text-rose-600/80 dark:text-rose-400/80 mt-1 max-w-md">
+                  This will wipe all modifications made to student marks, interventions, and profiles during demo sessions. The system will revert to its pristine baseline dataset.
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  if (window.confirm("Are you absolutely sure you want to reset all demo data? This cannot be undone.")) {
+                    try {
+                      const { AdminAPI } = await import("../services/api");
+                      const res = await AdminAPI.resetDemoData();
+                      alert(res.message);
+                      window.location.reload();
+                    } catch (e: any) {
+                      alert("Failed to reset: " + (e?.response?.data?.detail || e.message));
+                    }
+                  }
+                }}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-bold shadow-sm transition-colors whitespace-nowrap flex-shrink-0 flex items-center gap-2"
+              >
+                <RefreshCw size={14} />
+                Reset Demo Data
+              </button>
             </div>
           </div>
         )}

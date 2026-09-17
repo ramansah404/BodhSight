@@ -676,6 +676,11 @@ export const AdminAPI = {
   async factoryReset(): Promise<{ success: boolean; message: string }> {
     const res = await apiClient.delete("/admin/factory-reset");
     return res.data;
+  },
+
+  async resetDemoData(): Promise<{ success: boolean; message: string }> {
+    const res = await apiClient.post("/admin/reset-demo");
+    return res.data;
   }
 };
 

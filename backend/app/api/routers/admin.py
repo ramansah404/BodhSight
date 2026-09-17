@@ -420,3 +420,45 @@ def broadcast_notification(
     target = data.role or "All roles"
     dept_suffix = f" ({data.department})" if data.department else ""
     return {"success": True, "message": f"Notification broadcast to {target}{dept_suffix}."}
+
+@router.post("/reset-demo")
+def reset_demo_data(db: Session = Depends(get_db), _: str = Depends(verify_admin)):
+    """Reset all demo/live modifications back to pristine state."""
+    try:
+        # Reset people.student
+        db.execute(text("""
+            UPDATE people.student
+            SET demo_fa1 = NULL,
+                demo_cla1 = NULL,
+                demo_fa2 = NULL,
+                demo_cla2 = NULL,
+                demo_fa3 = NULL,
+                demo_cla3 = NULL,
+                demo_fa4 = NULL,
+                demo_cla4 = NULL,
+                demo_cla5 = NULL,
+                demo_penalty = 0.0,
+                demo_marks_config = NULL,
+                demo_internal_overall = NULL,
+                demo_external = NULL,
+                demo_external_overall = NULL,
+                demo_total_overall = NULL,
+                demo_attendance_override = NULL,
+                demo_marks_override = NULL,
+                reason = NULL
+            WHERE is_mock = TRUE OR is_mock = FALSE
+        """))
+
+        # Reset assessment.course_result detailed_marks
+        db.execute(text("""
+            UPDATE assessment.course_result
+            SET detailed_marks = NULL
+        """))
+
+        db.commit()
+        return {"success": True, "message": "Demo data and manual interventions have been reset successfully."}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error resetting demo data: {e}")
+        raise HTTPException(status_code=500, detail="Failed to reset demo data")
+
