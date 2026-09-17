@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { ShieldAlert, Users, AlertTriangle, AlertCircle, Info, BookOpen, PieChart as PieChartIcon } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Agent10API } from "../services/api";
@@ -156,9 +157,26 @@ export default function Students() {
       )}
 
       {state === "success" && backlog && (
-        <>
+        <motion.div 
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: { staggerChildren: 0.1 }
+            }
+          }}
+          className="space-y-6"
+        >
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-surface p-6 rounded-3xl border border-border shadow-sm">
+            <motion.div 
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+              }}
+              className="bg-surface p-6 rounded-3xl border border-border shadow-sm"
+            >
               <div className="flex justify-between items-start">
                 <div className="text-xs font-bold uppercase tracking-wider text-secondary">Total Students</div>
                 <Users size={16} className="text-indigo-500" />
@@ -344,7 +362,7 @@ export default function Students() {
             <BookOpen size={14} />
             Data sourced from <code className="bg-surface-secondary px-1 py-0.5 rounded text-primary border border-border">people.v_student_profile</code> via Agent 10 analytics engine.
           </div>
-        </>
+        </motion.div>
       )}
 
       <StudentDrilldownModal

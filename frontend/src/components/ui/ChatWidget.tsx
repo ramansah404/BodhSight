@@ -141,11 +141,27 @@ export default function ChatWidget() {
                   </div>
                 </div>
               )}
+              {messages.length === 1 && !loading && (
+                <div className="flex flex-wrap gap-2 mt-4 ml-10">
+                  {["Show me at-risk students", "What are the lowest pass rate courses?", "Generate a summary for this semester"].map((chip) => (
+                    <button
+                      key={chip}
+                      onClick={() => {
+                        setInput(chip);
+                        setTimeout(() => document.getElementById('chat-send-btn')?.click(), 50);
+                      }}
+                      className="text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 hover:text-indigo-600 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-full transition-colors shadow-sm"
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input area */}
-            <div className="p-3 bg-surface border-t border-border">
+            {/* Input Area */}
+            <div className="p-3 bg-white dark:bg-surface border-t border-border/80">
               <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-full border border-slate-200 dark:border-slate-700 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all">
                 <input
                   type="text"
@@ -157,6 +173,7 @@ export default function ChatWidget() {
                   disabled={loading}
                 />
                 <button
+                  id="chat-send-btn"
                   onClick={handleSend}
                   disabled={!input.trim() || loading}
                   className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 text-white p-2 rounded-full transition-colors flex items-center justify-center flex-shrink-0"

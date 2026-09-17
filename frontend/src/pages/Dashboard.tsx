@@ -203,36 +203,14 @@ export default function Dashboard() {
 
 
 
-  const handleExportPDF = () => {
-
-    const paragraphs = [
-
-      `Institutional Macro Governance Report`,
-
-      `Students Evaluated: ${metrics?.students_evaluated || 0} (out of ${metrics?.total_students || 0})`,
-
-      `Institutional Pass Rate: ${metrics?.pass_rate?.toFixed(1) || 0}%`,
-
-      `Average Marks: ${metrics?.average_marks?.toFixed(1) || 0}`,
-
-      `Active Problems Requiring Attention: ${metrics?.active_anomalies || metrics?.significant_deviations || 0}`
-
-    ];
-
-    
-
-    const tableData = [
-
-      ["Department", "Pass Rate (%)", "Status"],
-
-      ...departments.map(d => [d.department_code, String(d.pass_rate), d.status])
-
-    ];
-
-
-
-    exportToPDF(`Academic Agent Executive Overview - ${currentRole}`, paragraphs, tableData, "Institutional_Overview_Report");
-
+  const handleExportPDF = async () => {
+    try {
+      import("../utils/exportToPDF").then(({ exportElementToPDF }) => {
+        exportElementToPDF("dashboard-content", "Institutional_Overview_Report.pdf");
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
 

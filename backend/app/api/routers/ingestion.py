@@ -36,8 +36,8 @@ async def upload_document(
     """Parse, normalize, validate, and persist a CSV/XLSX Agent 10 upload."""
     filename = file.filename or "upload"
     suffix = filename.lower().rsplit(".", 1)[-1] if "." in filename else ""
-    if suffix not in {"csv", "xlsx"}:
-        raise HTTPException(status_code=415, detail="Only CSV and XLSX academic data files are supported")
+    if suffix not in {"csv", "xlsx", "pdf"}:
+        raise HTTPException(status_code=415, detail="Only CSV, XLSX, and PDF academic data files are supported")
 
     content = await file.read()
     if len(content) > 10 * 1024 * 1024:
@@ -45,7 +45,16 @@ async def upload_document(
 
     try:
         required_aliases = {"rollno", "attendance", "cgpa", "backlogs"} if document_type == "attendance" else None
-        records = parse_csv(content, required_aliases=required_aliases) if suffix == "csv" else parse_xlsx(content)
+        
+        if suffix == "csv":
+            records = parse_csv(content, required_aliases=required_aliases)
+        elif suffix == "xlsx":
+            records = parse_xlsx(content)
+        elif suffix == "pdf":
+            from app.ingestion.agent10_pipeline import parse_pdf
+            records = parse_pdf(content, required_aliases=required_aliases)
+        else:
+            records = []
         if not records:
             raise HTTPException(status_code=422, detail="The uploaded file contains no data rows")
         result = process_records(db, records, source=actor[0], source_type=document_type, file_ref=filename)

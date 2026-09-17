@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { ShieldCheck, Trash2, Edit2, Loader2, AlertTriangle, Plus, Key, Power, X, Users, Lock, Bell, Send, Database } from "lucide-react";
 import { AdminAPI, NotificationAPI } from "../services/api";
+import UploadModal from "../components/ui/UploadModal";
+import { UploadCloud } from "lucide-react";
 
 type AdminUser = {
   id: string;
@@ -40,6 +42,9 @@ export default function AdminDashboard() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRole, setEditRole] = useState("");
   const [editDept, setEditDept] = useState("");
+
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [uploadType, setUploadType] = useState<"attendance" | "course_results">("attendance");
 
   // Create User Modal State
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -719,8 +724,37 @@ export default function AdminDashboard() {
               Factory Reset
             </button>
           </div>
+          
+          <div className="flex items-center justify-between bg-surface-secondary/50 p-4 rounded-xl border border-border/60 mt-4">
+            <div>
+              <h3 className="font-bold text-primary text-sm flex items-center gap-2"><UploadCloud size={16} /> Bulk Data Ingestion</h3>
+              <p className="text-secondary text-xs mt-1 max-w-md">
+                Upload CSV, XLSX, or PDF files to batch update course results or student attendance data. Data will be processed by Agent 10.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setUploadType("course_results"); setIsUploadOpen(true); }}
+                className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition-colors"
+              >
+                Upload Marks
+              </button>
+              <button
+                onClick={() => { setUploadType("attendance"); setIsUploadOpen(true); }}
+                className="bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-teal-200 dark:hover:bg-teal-800/50 transition-colors"
+              >
+                Upload Attendance
+              </button>
+            </div>
+          </div>
         </div>
       )}
+
+      <UploadModal 
+        isOpen={isUploadOpen} 
+        onClose={() => setIsUploadOpen(false)} 
+        documentType={uploadType} 
+      />
 
       {/* Create User Modal */}
       {isCreateOpen && (

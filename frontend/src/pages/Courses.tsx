@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { BookOpen, ShieldCheck, BarChart2, AlertCircle , X, Info } from "lucide-react";
 import { Agent10API, API_BASE_URL } from "../services/api";
 import { useFilters } from "../contexts/FilterContext";
@@ -187,9 +188,27 @@ export default function Courses() {
                     <th className="py-4 px-6 font-bold text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-sm">
+                <motion.tbody 
+                  className="divide-y divide-slate-800/60 text-sm"
+                  initial="hidden"
+                  animate="show"
+                  variants={{
+                    hidden: { opacity: 0 },
+                    show: {
+                      opacity: 1,
+                      transition: { staggerChildren: 0.05 }
+                    }
+                  }}
+                >
                   {visible.map((c) => (
-                    <tr key={`${c.course_code}-${c.semester}`} className="hover:bg-surface/40/80 transition-colors">
+                    <motion.tr 
+                      key={`${c.course_code}-${c.semester}`} 
+                      className="hover:bg-surface/40/80 transition-colors"
+                      variants={{
+                        hidden: { opacity: 0, y: 10 },
+                        show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+                      }}
+                    >
                       <td className="py-4 px-6">
                         <div className="font-bold text-primary">{c.course_name || c.course_code}</div>
                         <div className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">
@@ -228,9 +247,9 @@ export default function Courses() {
                           View Context →
                         </button>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
-                </tbody>
+                </motion.tbody>
               </table>
               </div>
             )}

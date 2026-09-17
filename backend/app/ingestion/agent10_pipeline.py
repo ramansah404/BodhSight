@@ -122,6 +122,50 @@ def parse_xlsx(content: bytes, *, defaults: dict[str, Any] | None = None) -> lis
     return normalize_records(frame.where(pd.notna(frame), None).to_dict(orient="records"), defaults=defaults)
 
 
+def parse_pdf(content: bytes, *, defaults: dict[str, Any] | None = None, required_aliases: set[str] | None = None) -> list[CanonicalAcademicRecord]:
+    import PyPDF2
+    import io
+    import re
+    
+    try:
+        pdf = PyPDF2.PdfReader(io.BytesIO(content))
+        text_content = ""
+        for page in pdf.pages:
+            text_content += page.extract_text() + "\n"
+    except Exception as exc:
+        raise ValueError(f"Unable to read PDF file: {exc}") from exc
+        
+    # Naive extraction for demo purposes:
+    # Expect lines like: "2021BCS001 85 9.1 0" or CSV inside PDF
+    records = []
+    lines = text_content.split('\n')
+    header_found = False
+    headers = []
+    
+    for line in lines:
+        line = line.strip()
+        if not line: continue
+        # Try to detect CSV-like or space-separated headers
+        parts = re.split(r'[,\t ]+', line)
+        if not header_found and any(h.lower() in {"rollno", "cgpa", "attendance", "student_id"} for h in parts):
+            headers = [_key(h) for h in parts]
+            header_found = True
+            continue
+            
+        if header_found and len(parts) >= min(2, len(headers)):
+            record = {}
+            for i, val in enumerate(parts):
+                if i < len(headers):
+                    record[headers[i]] = val
+            records.append(record)
+            
+    if not records:
+        raise ValueError("Could not automatically extract structured tables from the PDF. Please ensure it contains clear rows and columns.")
+        
+    return normalize_records(records, defaults=defaults)
+
+
+
 def validate_records(records: list[CanonicalAcademicRecord], *, source_type: str) -> list[ValidationErrorItem]:
     errors: list[ValidationErrorItem] = []
     seen: set[tuple[str, str, str, str]] = set()
