@@ -1,4 +1,4 @@
-export type InstitutionalRole = "Chairman" | "Dean" | "HOD" | "Faculty" | "Admin" | "Student" | "IQAC" | "Principal" | "Management";
+export type InstitutionalRole = "Chairman" | "Dean" | "HOD" | "Faculty" | "Admin" | "Student" | "Parent" | "IQAC" | "Principal" | "Management";
 
 export interface PermissionMatrix {
   canApproveMacroInterventions: boolean;
@@ -10,6 +10,8 @@ export interface PermissionMatrix {
   canExecuteRecommendation: boolean;
   canSubmitFacultyFeedback: boolean;
   canOverrideStudentData: boolean;
+  canViewStudentDashboard: boolean;
+  canViewParentDashboard: boolean;
 }
 
 // Parses the raw string array from the DB into the PermissionMatrix booleans
@@ -25,6 +27,8 @@ export const parsePermissions = (perms: string[]): PermissionMatrix => {
     canExecuteRecommendation: has("can_execute_recommendation"),
     canSubmitFacultyFeedback: has("can_submit_feedback"),
     canOverrideStudentData: has("can_override_student_data"),
+    canViewStudentDashboard: has("view_student_dashboard"),
+    canViewParentDashboard: has("view_parent_dashboard"),
   };
 };
 
@@ -43,6 +47,8 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canExecuteRecommendation: true,
         canSubmitFacultyFeedback: true,
         canOverrideStudentData: true,
+        canViewStudentDashboard: true,
+        canViewParentDashboard: true,
       };
     case "Chairman":
     case "Principal":
@@ -57,6 +63,8 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canExecuteRecommendation: true,
         canSubmitFacultyFeedback: false,
         canOverrideStudentData: true,
+        canViewStudentDashboard: false,
+        canViewParentDashboard: false,
       };
     case "Dean":
     case "IQAC":
@@ -70,6 +78,8 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canExecuteRecommendation: true,
         canSubmitFacultyFeedback: false,
         canOverrideStudentData: true,
+        canViewStudentDashboard: false,
+        canViewParentDashboard: false,
       };
     case "HOD":
       return {
@@ -82,6 +92,8 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canExecuteRecommendation: true,
         canSubmitFacultyFeedback: true,
         canOverrideStudentData: true,
+        canViewStudentDashboard: false,
+        canViewParentDashboard: false,
       };
     case "Faculty":
       return {
@@ -94,6 +106,36 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canExecuteRecommendation: false,
         canSubmitFacultyFeedback: true,
         canOverrideStudentData: true,
+        canViewStudentDashboard: false,
+        canViewParentDashboard: false,
+      };
+    case "Student":
+      return {
+        canApproveMacroInterventions: false,
+        canViewAllDepartments: false,
+        canExportOfficialReports: false,
+        canTriggerSystemAudit: false,
+        canCalibrateCourseDifficulty: false,
+        canCalibrateDifficulty: false,
+        canExecuteRecommendation: false,
+        canSubmitFacultyFeedback: false,
+        canOverrideStudentData: false,
+        canViewStudentDashboard: true,
+        canViewParentDashboard: false,
+      };
+    case "Parent":
+      return {
+        canApproveMacroInterventions: false,
+        canViewAllDepartments: false,
+        canExportOfficialReports: false,
+        canTriggerSystemAudit: false,
+        canCalibrateCourseDifficulty: false,
+        canCalibrateDifficulty: false,
+        canExecuteRecommendation: false,
+        canSubmitFacultyFeedback: false,
+        canOverrideStudentData: false,
+        canViewStudentDashboard: false,
+        canViewParentDashboard: true,
       };
     default:
       return {
@@ -106,6 +148,23 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canExecuteRecommendation: false,
         canSubmitFacultyFeedback: false,
         canOverrideStudentData: false,
+        canViewStudentDashboard: false,
+        canViewParentDashboard: false,
       };
   }
 };
+
+export function canUser(
+  role: string | null,
+  permissions: Record<string, boolean>,
+  requiredPermission: string,
+  scope?: string
+): boolean {
+  if (!role) return false;
+  
+  if (!permissions[requiredPermission]) {
+    return false;
+  }
+  
+  return true;
+}
