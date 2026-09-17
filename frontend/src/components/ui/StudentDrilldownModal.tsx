@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { X, Loader2, Users, AlertTriangle, Edit2, Save, XCircle } from "lucide-react";
+import { X, Loader2, Users, AlertTriangle, Edit2, Save, XCircle, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Agent10API } from "../../services/api";
 import { useFilters } from "../../contexts/FilterContext";
 import type { StudentProfile } from "../../types/agent10";
+import StudentEditorModal, { StudentFormData } from "./StudentEditorModal";
 
 interface Props {
   isOpen: boolean;
@@ -20,6 +21,9 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<StudentProfile>>({});
+
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editorData, setEditorData] = useState<StudentFormData | null>(null);
 
   const loadStudents = () => {
     setLoading(true);
@@ -44,14 +48,32 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
     loadStudents();
   }, [isOpen, context, courseCode, filters]);
 
-  const handleSave = async (studentId: string) => {
+  const handleSaveInline = async (studentId: string) => {
     try {
-      await Agent10API.updateStudentProfile(studentId, editForm);
+      await Agent10API.updateStudent(studentId, editForm);
       setEditingId(null);
       loadStudents(); // Reload to see updated persistence
-    } catch (e) {
-      console.error(e);
-      alert("Failed to save updates.");
+    } catch (e: any) {
+      alert("Failed to save updates: " + (e?.response?.data?.detail || e.message));
+    }
+  };
+
+  const handleSaveModal = async (data: StudentFormData) => {
+    if (data.student_id) {
+      await Agent10API.updateStudent(data.student_id, data);
+    } else {
+      await Agent10API.createStudent(data);
+    }
+    loadStudents();
+  };
+
+  const handleDelete = async (studentId: string) => {
+    if (!window.confirm("Are you sure you want to permanently delete this student?")) return;
+    try {
+      await Agent10API.deleteStudent(studentId);
+      loadStudents();
+    } catch (e: any) {
+      alert("Failed to delete student: " + (e?.response?.data?.detail || e.message));
     }
   };
 
@@ -87,12 +109,20 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
                   Showing {students.length} record{students.length !== 1 && "s"} for current filters
                 </p>
               </div>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => { setEditorData(null); setIsEditorOpen(true); }}
+                  className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors flex items-center gap-1"
+                >
+                  <Plus size={14} /> Add Student
+                </button>
+                <button
+                  onClick={onClose}
+                  className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Content */}
@@ -175,13 +205,26 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
                           <td className="p-3 whitespace-nowrap text-right">
                              {isEditing ? (
                                <div className="flex items-center justify-end gap-2">
-                                  <button onClick={() => handleSave(s.student_id)} className="p-1.5 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 rounded-md transition-colors"><Save size={16}/></button>
-                                  <button onClick={() => setEditingId(null)} className="p-1.5 bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 rounded-md transition-colors"><XCircle size={16}/></button>
+                                  <button onClick={() => handleSaveInline(s.student_id)} className="p-1.5 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 rounded-md transition-colors" title="Save"><Save size={16}/></button>
+                                  <button onClick={() => setEditingId(null)} className="p-1.5 bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 rounded-md transition-colors" title="Cancel"><XCircle size={16}/></button>
                                </div>
                              ) : (
-                               <button onClick={() => { setEditingId(s.student_id); setEditForm(s); }} className="p-1.5 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-md transition-colors" title="Modify Details">
-                                 <Edit2 size={16}/>
-                               </button>
+                               <div className="flex items-center justify-end gap-1">
+                                 <button onClick={() => { setEditorData({
+                                   student_id: s.student_id,
+                                   full_name: s.full_name,
+                                   roll_no: s.roll_no,
+                                   section_code: s.section_code || "",
+                                   email: "",
+                                   cgpa: s.cgpa || 0,
+                                   attendance_pct: s.attendance_pct || 0
+                                 }); setIsEditorOpen(true); }} className="p-1.5 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-md transition-colors" title="Full Edit">
+                                   <Edit2 size={16}/>
+                                 </button>
+                                 <button onClick={() => handleDelete(s.student_id)} className="p-1.5 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-md transition-colors" title="Delete Student">
+                                   <Trash2 size={16}/>
+                                 </button>
+                               </div>
                              )}
                           </td>
                         </tr>
@@ -194,6 +237,13 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
             </div>
           </motion.div>
           </div>
+          
+          <StudentEditorModal 
+            isOpen={isEditorOpen} 
+            onClose={() => setIsEditorOpen(false)} 
+            onSave={handleSaveModal} 
+            initialData={editorData} 
+          />
         </>
       )}
     </AnimatePresence>

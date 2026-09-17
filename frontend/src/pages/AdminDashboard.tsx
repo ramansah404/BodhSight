@@ -691,7 +691,31 @@ export default function AdminDashboard() {
               disabled={configLoading}
               className="px-4 py-2 bg-rose-600 text-white rounded-lg text-xs font-bold hover:bg-rose-700 disabled:opacity-50"
             >
-              Purge Data
+              Purge Mock Users
+            </button>
+          </div>
+          <div className="flex items-center justify-between bg-surface-secondary/50 p-4 rounded-xl border border-rose-500/30 mt-4">
+            <div>
+              <h3 className="font-bold text-rose-600 dark:text-rose-400 text-sm">Factory Reset Database</h3>
+              <p className="text-secondary text-xs mt-1 max-w-md">
+                Wipe all operational data (students, courses, registrations) so the project can be used for real data. Leaves core config intact.
+              </p>
+            </div>
+            <button
+              onClick={async () => {
+                if (window.confirm("Are you sure you want to factory reset the database? ALL ACADEMIC DATA WILL BE WIPED!")) {
+                  try {
+                    await AdminAPI.factoryReset();
+                    alert("Factory reset complete.");
+                  } catch (e: any) {
+                    alert("Error: " + e.message);
+                  }
+                }
+              }}
+              disabled={configLoading}
+              className="px-4 py-2 bg-rose-800 text-white rounded-lg text-xs font-bold hover:bg-rose-900 disabled:opacity-50"
+            >
+              Factory Reset
             </button>
           </div>
         </div>

@@ -611,5 +611,10 @@ export const AdminAPI = {
   async purgeMockData(): Promise<{ success: boolean; message: string }> {
     const res = await apiClient.delete("/admin/mock-data");
     return res.data;
+  },
+
+  async factoryReset(): Promise<{ success: boolean; message: string }> {
+    const res = await apiClient.delete("/admin/factory-reset");
+    return res.data;
   }
 };

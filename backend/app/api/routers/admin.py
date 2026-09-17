@@ -314,6 +314,22 @@ def purge_mock_data(db: Session = Depends(get_db), _: str = Depends(verify_admin
         logger.error(f"Error purging mock data: {e}")
         raise HTTPException(status_code=500, detail="Failed to purge mock data.")
 
+@router.delete("/factory-reset")
+def factory_reset(db: Session = Depends(get_db), _: str = Depends(verify_admin)):
+    """Wipe all operational data so the project can be used for real."""
+    try:
+        # Truncate operational tables, leaving core configuration intact
+        db.execute(text("TRUNCATE TABLE people.student, academics.course_offering, academics.student_registration CASCADE"))
+        # Delete mock users
+        db.execute(text("DELETE FROM core.user_account WHERE email LIKE 'mock%' OR full_name LIKE 'Mock %'"))
+        db.commit()
+        return {"success": True, "message": "Factory reset complete. All operational data wiped."}
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error during factory reset: {e}")
+        raise HTTPException(status_code=500, detail="Failed to factory reset database.")
+
+
 class BroadcastNotificationRequest(BaseModel):
     title: str
     message: str
