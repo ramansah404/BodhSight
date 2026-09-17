@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "./Sidebar";
@@ -8,7 +8,7 @@ import GlobalFilterBar from "../filters/GlobalFilterBar";
 import { FilterProvider } from "../../contexts/FilterContext";
 import { NotificationProvider } from "../../contexts/NotificationContext";
 import { useRole } from "../../contexts/RoleContext";
-import CommandPalette, { useCommandPalette } from "../ui/CommandPalette";
+import CommandPalette from "../ui/CommandPalette";
 
 import ChatWidget from "../ui/ChatWidget";
 
@@ -27,7 +27,18 @@ const pageTransition = {
 export default function Layout() {
   const { currentRole, isLoading } = useRole();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isOpen: isCommandPaletteOpen, setIsOpen: setIsCommandPaletteOpen } = useCommandPalette();
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
 
