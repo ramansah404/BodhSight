@@ -15,7 +15,7 @@ export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { id: "1", role: "agent", text: "Hello! I am Agent 10. How can I assist you with BodhSight today?" }
+    { id: "1", role: "agent", text: "Hello! I am Agent 10. How can I assist you with Academic Agent today?" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);

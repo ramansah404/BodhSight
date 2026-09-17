@@ -231,7 +231,7 @@ export default function Dashboard() {
 
 
 
-    exportToPDF(`BodhSight Executive Overview - ${currentRole}`, paragraphs, tableData, "Institutional_Overview_Report");
+    exportToPDF(`Academic Agent Executive Overview - ${currentRole}`, paragraphs, tableData, "Institutional_Overview_Report");
 
   };
 
@@ -265,7 +265,7 @@ export default function Dashboard() {
 
 
 
-    exportToWord(`BodhSight Executive Overview - ${currentRole}`, paragraphs, tableData, "Institutional_Overview_Report");
+    exportToWord(`Academic Agent Executive Overview - ${currentRole}`, paragraphs, tableData, "Institutional_Overview_Report");
 
   };
 

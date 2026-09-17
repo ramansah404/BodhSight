@@ -8,7 +8,7 @@ import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 
 
-import Landing       from "./pages/Landing";
+
 
 import Login         from "./pages/Login";
 
@@ -55,7 +55,7 @@ export default function App() {
 
         {/* Public routes ΓÇö accessible without login */}
 
-        <Route path="/"      element={<Landing />} />
+        <Route path="/"      element={<Navigate to="/login" replace />} />
 
         <Route path="/login" element={<Login />} />
 

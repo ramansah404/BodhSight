@@ -328,7 +328,7 @@ export default function Login() {
         className="absolute top-8 left-8 flex items-center gap-2 text-sm font-medium text-secondary hover:text-primary transition-colors cursor-pointer z-20 group"
       >
         <MoveLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-        Back to BodhSight
+        Back to Academic Agent
       </button>
 
       <motion.div
@@ -346,7 +346,7 @@ export default function Login() {
               <Sparkles size={14} className="text-indigo-600 dark:text-indigo-400" /> Secure Gateway
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-primary mb-2">Welcome to<br/>BodhSight.</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-primary mb-2">Welcome to<br/>Academic Agent.</h1>
               <p className="text-secondary text-sm leading-relaxed font-medium">
                 Authenticate your institutional credentials to access secure academic telemetry and Agent 10 analytics.
               </p>

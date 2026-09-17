@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { AuthAPI } from "../services/api";
 
-export type AppRole = "Faculty" | "HOD" | "Dean" | "Principal" | "Chairman" | "IQAC" | "Admin";
+export type AppRole = "Faculty" | "HOD" | "Dean" | "Principal" | "Chairman" | "IQAC" | "Admin" | "Student" | "Parent";
 
 interface RoleContextValue {
   currentRole: AppRole | null;

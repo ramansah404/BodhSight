@@ -1,4 +1,4 @@
-﻿
+
 interface BrandLogoProps {
   isCollapsed?: boolean;
   className?: string;
@@ -18,7 +18,7 @@ export default function BrandLogo({ isCollapsed = false, className = "", onClick
       >
         <img 
           src="/tt-p.png" 
-          alt="BodhSight Logo" 
+          alt="Academic Agent Logo" 
           className={`absolute left-0 top-0 h-full w-auto max-w-none object-cover object-left drop-shadow-sm dark:drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] transition-all ${isCollapsed ? 'scale-[1.5] origin-left' : ''}`} 
         />
       </div>

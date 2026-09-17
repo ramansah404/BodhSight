@@ -209,7 +209,7 @@ export default function Settings() {
               onClick={handleSignOut}
               className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-xl text-sm font-bold transition-all cursor-pointer"
             >
-              <LogOut size={16} /> Sign Out of BodhSight
+              <LogOut size={16} /> Sign Out of Academic Agent
             </button>
           </div>
         </div>
@@ -371,7 +371,7 @@ export default function Settings() {
               Agent 10 Preferences
             </h2>
             <p className="text-sm text-secondary">
-              As a top-level administrator, you can configure the global behavior of the BodhSight AI engine.
+              As a top-level administrator, you can configure the global behavior of the Academic Agent AI engine.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
               <div className="p-4 rounded-xl border border-border bg-surface/40 flex flex-col gap-2">
