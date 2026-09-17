@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Agent10API } from "../../services/api";
 import { useFilters } from "../../contexts/FilterContext";
 import type { StudentProfile } from "../../types/agent10";
-import StudentEditorModal, { StudentFormData } from "./StudentEditorModal";
+import StudentEditorModal, { StudentFormData } from "../students/StudentEditorModal";
 
 interface Props {
   isOpen: boolean;

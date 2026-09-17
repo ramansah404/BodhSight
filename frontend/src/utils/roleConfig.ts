@@ -76,6 +76,14 @@ export const ROLE_CONFIG: Record<RuntimeRole, RoleConfig> = {
     primaryQuestion: "How am I progressing academically, and what needs attention?",
     composition: "faculty",
   },
+  Parent: {
+    role: "Parent",
+    title: "Parent Academic Overview",
+    purpose: "Child academic monitoring",
+    scopeLabel: "My child's academic scope",
+    primaryQuestion: "How is my child progressing academically, and what needs attention?",
+    composition: "faculty",
+  },
   Management: {
     role: "Management",
     title: "Institutional Management Overview",

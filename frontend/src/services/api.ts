@@ -294,6 +294,24 @@ export const Agent10API = {
     clearCache(); // Force real-time sync for next read
   },
 
+  async createStudent(data: any): Promise<any> {
+    const res = await apiClient.post("/students/", data);
+    clearCache();
+    return res.data;
+  },
+
+  async updateStudent(studentId: string, data: any): Promise<any> {
+    const res = await apiClient.put(`/students/${studentId}`, data);
+    clearCache();
+    return res.data;
+  },
+
+  async deleteStudent(studentId: string): Promise<any> {
+    const res = await apiClient.delete(`/students/${studentId}`);
+    clearCache();
+    return res.data;
+  },
+
   /** Full evidence chain for one course */
   async getEvidence(courseCode: string): Promise<Record<string, unknown>> {
     try {

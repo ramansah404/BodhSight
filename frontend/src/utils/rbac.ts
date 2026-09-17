@@ -157,8 +157,7 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
 export function canUser(
   role: string | null,
   permissions: Record<string, boolean>,
-  requiredPermission: string,
-  scope?: string
+  requiredPermission: string
 ): boolean {
   if (!role) return false;
   

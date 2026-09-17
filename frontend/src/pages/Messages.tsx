@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { MessageAPI } from "../services/api";
-import { useAuth } from "../contexts/AuthContext";
+import { useRole } from "../contexts/RoleContext";
 import { Send, Inbox, MessageSquare, Clock, User, AlertCircle, Loader2 } from "lucide-react";
 
 type Message = {
@@ -23,7 +23,7 @@ type UserProfile = {
 };
 
 export default function Messages() {
-  const { user } = useAuth();
+  const { currentRole } = useRole();
   const [activeTab, setActiveTab] = useState<"inbox" | "sent">("inbox");
   const [messages, setMessages] = useState<Message[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -35,7 +35,7 @@ export default function Messages() {
   const [sending, setSending] = useState(false);
 
   // If user is Student or Parent, block access
-  const isRestricted = user?.role === "Student" || user?.role === "Parent";
+  const isRestricted = currentRole === "Student" || currentRole === "Parent";
 
   const fetchMessages = async () => {
     try {
