@@ -5,6 +5,7 @@ import { useFilters } from "../contexts/FilterContext";
 import type { SectionComparison } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
+import StudentDrilldownModal from "../components/ui/StudentDrilldownModal";
 
 type LoadState = "loading" | "success" | "error" | "empty";
 
@@ -12,6 +13,8 @@ export default function Sections() {
   const { filters } = useFilters();
   const [sections, setSections] = useState<SectionComparison[]>([]);
   const [state, setState] = useState<LoadState>("loading");
+  const [isDrilldownOpen, setIsDrilldownOpen] = useState(false);
+  const [selectedSectionCode, setSelectedSectionCode] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
@@ -198,6 +201,7 @@ export default function Sections() {
                       <th className="py-4 px-6 font-bold">Pass Rate</th>
                       <th className="py-4 px-6 font-bold">Avg Marks</th>
                       <th className="py-4 px-6 font-bold">Disparity</th>
+                      <th className="py-4 px-6 font-bold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-sm">
@@ -236,6 +240,17 @@ export default function Sections() {
                             </span>
                           )}
                         </td>
+                        <td className="py-4 px-6 text-right">
+                          <button
+                            onClick={() => {
+                                setSelectedSectionCode(s.section);
+                                setIsDrilldownOpen(true);
+                            }}
+                            className="px-4 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-lg font-bold text-xs transition-colors border border-indigo-200"
+                          >
+                            View Students
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -254,6 +269,12 @@ export default function Sections() {
           )}
         </>
       )}
+      <StudentDrilldownModal
+        isOpen={isDrilldownOpen}
+        onClose={() => setIsDrilldownOpen(false)}
+        context={selectedSectionCode}
+        title={`Students in Section ${selectedSectionCode}`}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { Agent10API } from "../../services/api";
 import { useFilters } from "../../contexts/FilterContext";
 import type { StudentProfile } from "../../types/agent10";
 import StudentEditorModal, { type StudentFormData } from "../students/StudentEditorModal";
+import MarksEntryModal from "./MarksEntryModal";
 
 interface Props {
   isOpen: boolean;
@@ -24,6 +25,8 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
 
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editorData, setEditorData] = useState<StudentFormData | null>(null);
+  
+  const [marksModalStudent, setMarksModalStudent] = useState<StudentProfile | null>(null);
 
   const loadStudents = () => {
     setLoading(true);
@@ -144,7 +147,7 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
                 </div>
               ) : (
                 <div className="max-w-full overflow-x-auto border border-border rounded-xl">
-                  <table className="w-full text-left border-collapse text-sm">
+                  <table className="w-full min-w-[800px] text-left border-collapse text-sm">
                     <thead>
                       <tr className="bg-surface-secondary/50 border-b border-border text-muted-foreground">
                         <th className="p-3 font-semibold text-xs uppercase tracking-wider">Roll No</th>
@@ -205,26 +208,45 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
                           <td className="p-3 whitespace-nowrap text-right">
                              {isEditing ? (
                                <div className="flex items-center justify-end gap-2">
-                                  <button onClick={() => handleSaveInline(s.student_id)} className="p-1.5 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 rounded-md transition-colors" title="Save"><Save size={16}/></button>
-                                  <button onClick={() => setEditingId(null)} className="p-1.5 bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 rounded-md transition-colors" title="Cancel"><XCircle size={16}/></button>
+                                  <button
+                                    onClick={() => handleSaveInline(s.student_id)}
+                                    className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                    title="Save basic profile"
+                                  >
+                                    <Save size={16} />
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingId(null)}
+                                    className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                    title="Cancel"
+                                  >
+                                    <XCircle size={16} />
+                                  </button>
                                </div>
-                             ) : (
-                               <div className="flex items-center justify-end gap-1">
-                                 <button onClick={() => { setEditorData({
-                                   student_id: s.student_id,
-                                   full_name: s.full_name,
-                                   roll_no: s.roll_no,
-                                   section_code: s.section_code || "",
-                                   email: "",
-                                   cgpa: s.cgpa || 0,
-                                   attendance_pct: s.attendance_pct || 0
-                                 }); setIsEditorOpen(true); }} className="p-1.5 text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 rounded-md transition-colors" title="Full Edit">
-                                   <Edit2 size={16}/>
-                                 </button>
-                                 <button onClick={() => handleDelete(s.student_id)} className="p-1.5 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-md transition-colors" title="Delete Student">
-                                   <Trash2 size={16}/>
-                                 </button>
-                               </div>
+                              ) : (
+                                <div className="flex items-center justify-end gap-1">
+                                  <button
+                                    onClick={() => handleEditClick(s)}
+                                    className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                    title="Quick edit profile"
+                                  >
+                                    <Edit2 size={16} />
+                                  </button>
+                                  <button
+                                    onClick={() => setMarksModalStudent(s)}
+                                    className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors font-bold text-xs flex items-center"
+                                    title="Update Marks"
+                                  >
+                                    Marks
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(s.student_id)}
+                                    className="p-1.5 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-md transition-colors"
+                                    title="Delete Student"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
                              )}
                           </td>
                         </tr>
@@ -243,6 +265,12 @@ export default function StudentDrilldownModal({ isOpen, onClose, context, course
             onClose={() => setIsEditorOpen(false)} 
             onSave={handleSaveModal} 
             initialData={editorData} 
+          />
+          <MarksEntryModal
+            isOpen={!!marksModalStudent}
+            onClose={() => setMarksModalStudent(null)}
+            student={marksModalStudent}
+            onSaved={loadStudents}
           />
         </>
       )}

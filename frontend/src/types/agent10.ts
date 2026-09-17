@@ -352,4 +352,17 @@ export interface StudentProfile {
   attendance_pct: number | null;
   fee_outstanding: number | null;
   reason?: string;
+  demo_fa1?: number | null;
+  demo_cla1?: number | null;
+  demo_fa2?: number | null;
+  demo_cla2?: number | null;
+  demo_fa3?: number | null;
+  demo_cla3?: number | null;
+  demo_fa4?: number | null;
+  demo_cla4?: number | null;
+  demo_cla5?: number | null;
+  demo_internal_overall?: number | null;
+  demo_external?: number | null;
+  demo_external_overall?: number | null;
+  demo_total_overall?: number | null;
 }

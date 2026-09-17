@@ -127,6 +127,8 @@ export default function Login() {
     
     if (code === "Admin") {
       navigate("/admin/users");
+    } else if (code === "Student" || code === "Parent") {
+      navigate("/student-dashboard");
     } else {
       navigate("/dashboard");
     }
@@ -363,6 +365,8 @@ export default function Login() {
                 { code: "HOD",      label: "Head of Department",name: "Prof. Sharma (CSE)",        desc: "Login as HOD" },
                 { code: "Faculty",  label: "Course Instructor", name: "Dr. Rao",                   desc: "Login as Faculty" },
                 { code: "IQAC",     label: "Quality Assurance", name: "Dr. Meena (IQAC)",          desc: "Login as IQAC" },
+                { code: "Student",  label: "Student",           name: "Anil Kumar (Student)",      desc: "Login as Student" },
+                { code: "Parent",   label: "Parent",            name: "Anil's Parent",             desc: "Login as Parent" },
               ].map((demo) => (
                 <motion.button
                   whileHover={{ scale: 1.02 }}

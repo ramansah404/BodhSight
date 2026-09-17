@@ -5,6 +5,7 @@ import { useFilters } from "../contexts/FilterContext";
 import type { CoursePerformance } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
+import StudentDrilldownModal from "../components/ui/StudentDrilldownModal";
 
 type LoadState = "loading" | "success" | "error" | "empty";
 
@@ -14,6 +15,7 @@ export default function Courses() {
   const [state, setState] = useState<LoadState>("loading");
   const [errorMsg, setErrorMsg] = useState("");
   const [selectedCourse, setSelectedCourse] = useState<CoursePerformance | null>(null);
+  const [isDrilldownOpen, setIsDrilldownOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -316,10 +318,16 @@ export default function Courses() {
                 )}
               </div>
 
-              <div className="pt-4 border-t border-border/60 flex justify-end">
+              <div className="pt-4 border-t border-border/60 flex justify-between">
+                <button
+                  onClick={() => setIsDrilldownOpen(true)}
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold transition-colors"
+                >
+                  View Enrolled Students
+                </button>
                 <button
                   onClick={() => setSelectedCourse(null)}
-                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-primary rounded-xl text-sm font-bold transition-colors"
+                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold transition-colors"
                 >
                   Close Detail
                 </button>
@@ -327,7 +335,15 @@ export default function Courses() {
             </div>
           </div>
         </div>
+        </div>
       )}
+      <StudentDrilldownModal
+        isOpen={isDrilldownOpen}
+        onClose={() => setIsDrilldownOpen(false)}
+        context="course"
+        courseCode={selectedCourse?.course_code}
+        title={`Students Enrolled in ${selectedCourse?.course_name || selectedCourse?.course_code}`}
+      />
     </div>
   );
 }

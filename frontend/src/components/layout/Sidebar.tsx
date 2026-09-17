@@ -57,9 +57,8 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   
 
   const allNavItems = [
-
+    { name: "My Portal", path: "/student-dashboard", requiredPermission: "canViewStudentDashboard", icon: LayoutDashboard },
     { name: "Overview", path: "/dashboard", requiredPermission: "view_overview", icon: LayoutDashboard },
-
     { name: "Trends", path: "/trends", requiredPermission: "view_trends", icon: TrendingUp },
 
     { name: "Courses", path: "/courses", requiredPermission: "view_courses", icon: BookOpen },

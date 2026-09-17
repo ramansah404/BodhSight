@@ -134,7 +134,7 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canExecuteRecommendation: false,
         canSubmitFacultyFeedback: false,
         canOverrideStudentData: false,
-        canViewStudentDashboard: false,
+        canViewStudentDashboard: true,
         canViewParentDashboard: true,
       };
     default:

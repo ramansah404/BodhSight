@@ -28,6 +28,25 @@ class StudentUpdate(BaseModel):
     email: Optional[str] = None
     cgpa: Optional[float] = None
     attendance_pct: Optional[float] = None
+    backlog_count: Optional[int] = None
+    reason: Optional[str] = None
+
+class StudentMarksUpdate(BaseModel):
+    demo_fa1: Optional[float] = None
+    demo_cla1: Optional[float] = None
+    demo_fa2: Optional[float] = None
+    demo_cla2: Optional[float] = None
+    demo_fa3: Optional[float] = None
+    demo_cla3: Optional[float] = None
+    demo_fa4: Optional[float] = None
+    demo_cla4: Optional[float] = None
+    demo_cla5: Optional[float] = None
+    demo_internal_overall: Optional[float] = None
+    demo_external: Optional[float] = None
+    demo_external_overall: Optional[float] = None
+    demo_total_overall: Optional[float] = None
+    demo_attendance_override: Optional[float] = None
+    demo_marks_override: Optional[float] = None
 
 class StudentResponse(BaseModel):
     student_id: str
@@ -128,21 +147,32 @@ def update_student(
             if not res or res[0] != department:
                 raise HTTPException(status_code=403, detail="Unauthorized to modify this student")
 
-        updates = []
+        update_fields = []
         params = {"sid": student_id}
-        
+        if data.full_name is not None:
+            update_fields.append("full_name = :fn")
+            params["fn"] = data.full_name
         if data.roll_no is not None:
-            updates.append("roll_no = :roll")
+            update_fields.append("roll_no = :roll")
             params["roll"] = data.roll_no
-        if data.cgpa is not None:
-            updates.append("demo_marks_override = :cgpa")
-            params["cgpa"] = data.cgpa
+        if data.section_code is not None:
+            update_fields.append("section_code = :sc")
+            params["sc"] = data.section_code
         if data.attendance_pct is not None:
-            updates.append("demo_attendance_override = :att")
-            params["att"] = data.attendance_pct
+            update_fields.append("attendance_pct = :ap")
+            params["ap"] = data.attendance_pct
+        if data.cgpa is not None:
+            update_fields.append("cgpa = :cg")
+            params["cg"] = data.cgpa
+        if data.backlog_count is not None:
+            update_fields.append("backlog_count = :bc")
+            params["bc"] = data.backlog_count
+        if data.reason is not None:
+            update_fields.append("reason = :r")
+            params["r"] = data.reason
             
-        if updates:
-            query = f"UPDATE people.student SET {', '.join(updates)} WHERE student_id = :sid"
+        if update_fields:
+            query = f"UPDATE people.student SET {', '.join(update_fields)} WHERE student_id = :sid"
             db.execute(text(query), params)
             
         # Update name if provided
@@ -203,9 +233,14 @@ def delete_student(
         # Get person_id to delete from person table
         p_res = db.execute(text("SELECT person_id FROM people.student WHERE student_id = :sid"), {"sid": student_id}).fetchone()
         
+        # Cascade delete academic records referencing student_id
+        db.execute(text("DELETE FROM academics.student_course_enrollment WHERE student_id = :sid"), {"sid": student_id})
+        db.execute(text("DELETE FROM core.student_learning_evidence WHERE student_id = :sid"), {"sid": student_id})
+        
         db.execute(text("DELETE FROM people.student WHERE student_id = :sid"), {"sid": student_id})
         
         if p_res:
+            db.execute(text("DELETE FROM core.user_account WHERE person_id = :pid"), {"pid": p_res[0]})
             db.execute(text("DELETE FROM people.person WHERE person_id = :pid"), {"pid": p_res[0]})
 
         db.commit()
@@ -216,3 +251,45 @@ def delete_student(
         db.rollback()
         logger.error(f"Error deleting student: {e}")
         raise HTTPException(status_code=500, detail="Database delete failed")
+
+@router.put("/{student_id}/marks")
+def update_student_marks(
+    student_id: str,
+    data: StudentMarksUpdate,
+    department: str = Depends(get_rbac_department),
+    db: Session = Depends(get_db)
+):
+    """Update a student's granular marks (FA-1, CLA-1, etc.)."""
+    try:
+        if department:
+            check_q = """
+                SELECT c.department_code 
+                FROM people.v_student_profile p
+                JOIN academics.v_offering_roster c ON c.section_code = p.section_code
+                WHERE p.student_id = :sid
+            """
+            res = db.execute(text(check_q), {"sid": student_id}).fetchone()
+            if not res or res[0] != department:
+                raise HTTPException(status_code=403, detail="Unauthorized to modify this student's marks")
+
+        update_fields = []
+        params = {"sid": student_id}
+        
+        # Helper to dynamically build updates
+        for field, value in data.model_dump(exclude_unset=True).items():
+            if value is not None:
+                update_fields.append(f"{field} = :{field}")
+                params[field] = value
+
+        if update_fields:
+            query = f"UPDATE people.student SET {', '.join(update_fields)} WHERE student_id = :sid"
+            db.execute(text(query), params)
+            db.commit()
+
+        return {"success": True, "message": "Marks updated successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating marks: {e}")
+        raise HTTPException(status_code=500, detail="Database marks update failed")

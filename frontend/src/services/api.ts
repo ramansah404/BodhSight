@@ -306,6 +306,12 @@ export const Agent10API = {
     return res.data;
   },
 
+  async updateStudentMarks(studentId: string, data: any): Promise<any> {
+    const res = await apiClient.put(`/students/${studentId}/marks`, data);
+    clearCache();
+    return res.data;
+  },
+
   async deleteStudent(studentId: string): Promise<any> {
     const res = await apiClient.delete(`/students/${studentId}`);
     clearCache();

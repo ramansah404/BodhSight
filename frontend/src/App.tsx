@@ -40,6 +40,7 @@ import ManualEntry   from "./pages/ManualEntry";
 
 import Exceptions    from "./pages/Exceptions";
 import AdminDashboard from "./pages/AdminDashboard";
+import StudentDashboard from "./pages/StudentDashboard";
 import Messages      from "./pages/Messages";
 
 
@@ -77,9 +78,16 @@ export default function App() {
               <Route path="dashboard"       element={<Dashboard />} />
             </Route>
 
-            {/* Settings ΓÇö accessible to all logged-in users */}
-            <Route path="settings"        element={<Settings />} />
-            <Route path="messages"        element={<Messages />} />
+            {/* Student & Parent specific portal */}
+            <Route element={<ProtectedRoute requiredPermission="canViewStudentDashboard" />}>
+              <Route path="student-dashboard" element={<StudentDashboard />} />
+            </Route>
+
+            {/* Settings & Messages */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="settings"        element={<Settings />} />
+              <Route path="messages"        element={<Messages />} />
+            </Route>
 
             {/* Courses ΓÇö all roles can view */}
             <Route element={<ProtectedRoute requiredPermission="view_courses" />}>
@@ -103,8 +111,10 @@ export default function App() {
               <Route path="departments"   element={<Departments />} />
             </Route>
 
-            {/* Batches ΓÇö general access */}
-            <Route path="batches"       element={<Batches />} />
+            {/* Batches ΓÇö general access but still wrapped for authenticated sessions */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="batches"       element={<Batches />} />
+            </Route>
 
             {/* Sections & Students ΓÇö general access */}
             <Route element={<ProtectedRoute requiredPermission="view_sections" />}>
