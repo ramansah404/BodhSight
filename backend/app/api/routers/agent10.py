@@ -551,6 +551,7 @@ def get_executive_summary(department: str = Depends(get_rbac_department), semest
 # Chat Widget Endpoint
 # ---------------------------------------------------------------------------
 from pydantic import BaseModel
+from typing import Optional, Dict, Any
 
 class ChatRequest(BaseModel):
     message: str

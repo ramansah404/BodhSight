@@ -426,7 +426,7 @@ export default function Settings() {
                     const { AdminAPI } = await import("../services/api");
                     const current = await AdminAPI.getSystemConfig();
                     const next = !current.mock_data_enabled;
-                    const res = await AdminAPI.updateSystemConfig(next);
+                    await AdminAPI.updateSystemConfig(next);
                     alert(`Operational mode updated. Demo Mode is now ${next ? "ENABLED" : "DISABLED"}.`);
                     window.location.reload();
                   } catch (e: any) {

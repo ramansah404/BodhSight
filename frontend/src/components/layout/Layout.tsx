@@ -42,7 +42,18 @@ export default function Layout() {
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
 
-  if (isLoading || !currentRole) {
+  if (isLoading) {
+    return (
+      <div className="flex h-[100dvh] bg-background items-center justify-center font-sans">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-secondary font-medium">Authenticating...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentRole) {
     return null;
   }
 

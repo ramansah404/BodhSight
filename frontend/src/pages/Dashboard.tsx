@@ -18,7 +18,7 @@ import type { AcademicDashboardMetrics, DepartmentPerformance, CoursePerformance
 
 import ExportMenu from "../components/ui/ExportMenu";
 
-import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
+import { exportToExcel, exportToWord } from "../utils/exportUtils";
 
 import CondonationWidget from "../components/dashboard/CondonationWidget";
 
@@ -486,12 +486,10 @@ export default function Dashboard() {
 
               </div>
 
-              <div className="text-3xl font-bold text-primary mt-3">{metrics.pass_rate.toFixed(1)}%</div>
+              <div className="text-3xl font-bold text-primary mt-3">{(metrics.pass_rate || 0).toFixed(1)}%</div>
 
               <div className="text-xs text-secondary font-medium mt-1">
-
-                Failure rate: {metrics.failure_rate.toFixed(1)}%
-
+                Failure rate: {(metrics.failure_rate || 0).toFixed(1)}%
               </div>
 
             </motion.div>
@@ -518,7 +516,7 @@ export default function Dashboard() {
 
               <div className="text-3xl font-bold text-primary mt-3">
 
-                {metrics.average_marks.toFixed(1)}
+                {(metrics.average_marks || 0).toFixed(1)}
 
               </div>
 
@@ -526,7 +524,7 @@ export default function Dashboard() {
 
                 {metrics.average_gpa != null
 
-                  ? `CGPA: ${metrics.average_gpa.toFixed(2)}`
+                  ? `CGPA: ${(metrics.average_gpa || 0).toFixed(2)}`
 
                   : "CGPA: not available in views"}
 

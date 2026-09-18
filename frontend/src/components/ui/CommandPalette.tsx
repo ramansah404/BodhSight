@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Monitor, Settings, Users, AlertTriangle, MessageSquare, BookOpen, User, Hash } from "lucide-react";
+import { Search, Monitor, Settings, Users, AlertTriangle, MessageSquare, BookOpen, User } from "lucide-react";
 import { Agent10API } from "../../services/api";
 import { motion, AnimatePresence } from "framer-motion";
 

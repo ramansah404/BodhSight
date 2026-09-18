@@ -8,7 +8,8 @@ import type { TrendsResponse } from "../types/agent10";
 import ExportMenu from "../components/ui/ExportMenu";
 import { exportToExcel, exportToPDF, exportToWord } from "../utils/exportUtils";
 import StudentDrilldownModal from "../components/ui/StudentDrilldownModal";
-import StudentEditorModal, { type StudentFormData } from "../components/students/StudentEditorModal";
+import StudentEditorModal from "../components/students/StudentEditorModal";
+import type { StudentFormData } from "../components/students/StudentEditorModal";
 import { useRole } from "../contexts/RoleContext";
 
 type LoadState = "loading" | "success" | "error" | "empty";
@@ -37,7 +38,7 @@ export default function Students() {
   const canEdit = ["Admin", "Chairman", "HOD", "Dean", "Faculty"].includes(currentRole || "");
 
   // Drilldown state
-  const [drilldown, setDrilldown] = useState<{ isOpen: boolean; context: string; title: string; initialStudent?: StudentProfile }>({
+  const [drilldown, setDrilldown] = useState<{ isOpen: boolean; context: string; title: string; initialStudent?: any }>({
     isOpen: false,
     context: "",
     title: "",

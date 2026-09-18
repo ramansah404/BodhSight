@@ -47,8 +47,8 @@ const COMPONENTS = [
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function ManageMarks() {
-  const { role } = useRole();
-  const canEdit = ["Faculty", "HOD", "Admin"].includes(role ?? "");
+  const { currentRole } = useRole();
+  const canEdit = ["Faculty", "HOD", "Admin"].includes(currentRole ?? "");
 
   const [students, setStudents] = useState<StudentMarksRow[]>([]);
   const [loading, setLoading] = useState(true);

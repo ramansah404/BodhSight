@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { X, Save, AlertCircle, RefreshCw } from "lucide-react";
 import { Agent10API } from "../../services/api";
-import type { StudentProfile } from "../../types/agent10";
 
 interface MarksEntryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  student: StudentProfile | null;
+  student: any | null;
   onSaved: () => void;
 }
 

@@ -8,8 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Agent10API } from "../../services/api";
 import { useFilters } from "../../contexts/FilterContext";
 import { useRole } from "../../contexts/RoleContext";
-import type { StudentProfile } from "../../types/agent10";
-import StudentEditorModal, { type StudentFormData } from "../students/StudentEditorModal";
+import StudentEditorModal from "../students/StudentEditorModal";
+import type { StudentFormData } from "../students/StudentEditorModal";
 import MarksEntryModal from "./MarksEntryModal";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -20,7 +20,7 @@ interface Props {
   context: string;
   courseCode?: string;
   title: string;
-  initialStudent?: StudentProfile;
+  initialStudent?: any;
 }
 
 type TabId = "summary" | "attendance" | "marks";
@@ -36,7 +36,7 @@ const INTERVENTION_STATUSES = [
 // ─── Student Row Detail Panel ─────────────────────────────────────────────────
 
 function StudentDetailPanel({ student, onClose, onRefresh, canEdit }: {
-  student: StudentProfile;
+  student: any;
   onClose: () => void;
   onRefresh: () => void;
   canEdit: boolean;
@@ -345,13 +345,13 @@ function StudentDetailPanel({ student, onClose, onRefresh, canEdit }: {
 
 export default function StudentDrilldownModal({ isOpen, onClose, context, courseCode, title, initialStudent }: Props) {
   const { filters } = useFilters();
-  const { role } = useRole();
-  const canEdit = ["Faculty", "HOD", "Admin", "Dean", "Principal", "Chairman"].includes(role ?? "");
+  const { currentRole } = useRole();
+  const canEdit = ["Faculty", "HOD", "Admin", "Dean", "Principal", "Chairman"].includes(currentRole ?? "");
 
-  const [students, setStudents] = useState<StudentProfile[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [selectedStudent, setSelectedStudent] = useState<StudentProfile | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editorData, setEditorData] = useState<StudentFormData | null>(null);
 
