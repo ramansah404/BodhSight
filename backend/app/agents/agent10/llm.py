@@ -12,10 +12,8 @@ Rules:
 - Never expose API keys to frontend.
 
 Environment variables:
-  LLM_API_KEY     — OpenAI API key (preferred)
-  OPENAI_API_KEY  — alternative OpenAI key name
-  GEMINI_API_KEY  — Google Gemini API key (fallback provider)
-  LLM_MODEL       — model name override (default: gpt-4o-mini / gemini-1.5-flash)
+  GEMINI_API_KEY  — Google Gemini API key
+  LLM_MODEL       — model name override (default: gemini-3.6-flash)
 """
 from __future__ import annotations
 
@@ -26,77 +24,27 @@ from typing import Any, Dict, List, Optional
 logger = logging.getLogger(__name__)
 
 _LLM_AVAILABLE: Optional[bool] = None
-_LLM_PROVIDER: Optional[str] = None   # "openai" | "gemini" | None
-
-
-def _detect_provider() -> Optional[str]:
-    """Detect which LLM provider to use based on available env vars/packages."""
-    global _LLM_PROVIDER
-    if _LLM_PROVIDER is not None:
-        return _LLM_PROVIDER
-
-    from app.core.config import settings
-
-    # Try OpenAI
-    openai_key = (
-        getattr(settings, "LLM_API_KEY", None)
-        or getattr(settings, "OPENAI_API_KEY", None)
-    )
-    if openai_key and openai_key not in ("your_api_key_here", ""):
-        try:
-            import openai  # noqa
-            _LLM_PROVIDER = "openai"
-            return _LLM_PROVIDER
-        except ImportError:
-            pass
-
-    # Try Gemini
-    gemini_key = getattr(settings, "GEMINI_API_KEY", None)
-    if gemini_key and gemini_key not in ("your_api_key_here", ""):
-        try:
-            from openai import OpenAI  # noqa
-            _LLM_PROVIDER = "gemini"
-            return _LLM_PROVIDER
-        except ImportError:
-            pass
-
-    _LLM_PROVIDER = None
-    return None
-
 
 def _check_llm_available() -> bool:
     global _LLM_AVAILABLE
     if _LLM_AVAILABLE is not None:
         return _LLM_AVAILABLE
-    _LLM_AVAILABLE = _detect_provider() is not None
+
+    from app.core.config import settings
+    gemini_key = getattr(settings, "GEMINI_API_KEY", None)
+    if gemini_key and gemini_key not in ("your_api_key_here", ""):
+        try:
+            from openai import OpenAI  # noqa
+            _LLM_AVAILABLE = True
+        except ImportError:
+            _LLM_AVAILABLE = False
+    else:
+        _LLM_AVAILABLE = False
+
     return _LLM_AVAILABLE
 
-
-def _call_openai(system_prompt: str, user_content: str) -> Optional[str]:
-    """Call OpenAI and return text response, or None on error."""
-    try:
-        from app.core.config import settings
-        import openai
-        key = getattr(settings, "LLM_API_KEY", None) or getattr(settings, "OPENAI_API_KEY", None)
-        client = openai.OpenAI(api_key=key)
-        model = getattr(settings, "LLM_MODEL", None) or "gpt-4o-mini"
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content},
-            ],
-            max_tokens=512,
-            temperature=0.3,
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        logger.warning("OpenAI call failed: %s", e)
-        return None
-
-
-def _call_gemini(system_prompt: str, user_content: str) -> Optional[str]:
-    """Call Google Gemini and return text response, or None on error."""
+def _call_llm(system_prompt: str, user_content: str) -> Optional[str]:
+    """Call Google Gemini via OpenAI-compatible endpoint and return text response, or None on error."""
     try:
         from app.core.config import settings
         from openai import OpenAI
@@ -108,29 +56,34 @@ def _call_gemini(system_prompt: str, user_content: str) -> Optional[str]:
             max_retries=0,
         )
         model_name = getattr(settings, "LLM_MODEL", None) or "gemini-3.6-flash"
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content},
-            ],
-            max_tokens=512,
-            temperature=0.3,
-        )
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_content},
+                ],
+                max_tokens=512,
+                temperature=0.3,
+            )
+        except Exception as api_err:
+            if "503" in str(api_err) or "429" in str(api_err) or "high demand" in str(api_err).lower():
+                logger.warning("Primary model failed (busy/503), falling back to gemini-1.5-flash. Error: %s", api_err)
+                response = client.chat.completions.create(
+                    model="gemini-1.5-flash",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_content},
+                    ],
+                    max_tokens=512,
+                    temperature=0.3,
+                )
+            else:
+                raise api_err
         return response.choices[0].message.content
     except Exception as e:
-        logger.warning("Gemini call failed: %s", e)
+        logger.warning("LLM call failed: %s", e)
         return None
-
-
-def _call_llm(system_prompt: str, user_content: str) -> Optional[str]:
-    """Dispatch to the appropriate LLM provider."""
-    provider = _detect_provider()
-    if provider == "openai":
-        return _call_openai(system_prompt, user_content)
-    elif provider == "gemini":
-        return _call_gemini(system_prompt, user_content)
-    return None
 
 
 # ---------------------------------------------------------------------------
@@ -304,13 +257,12 @@ def chat_with_agent(message: str, context: Optional[Dict[str, Any]] = None) -> s
 def llm_status() -> Dict[str, Any]:
     """Return LLM availability status. Safe to expose via API."""
     available = _check_llm_available()
-    provider = _detect_provider() if available else None
     return {
         "llm_available": available,
         "fallback_mode": not available,
-        "provider": provider,
+        "provider": "gemini" if available else None,
         "note": (
-            f"LLM explanation layer active via {provider}." if available
+            f"LLM explanation layer active via Gemini." if available
             else "LLM API key not configured. Structured JSON responses are used instead."
         ),
     }

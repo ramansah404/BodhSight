@@ -90,15 +90,30 @@ async def chat_with_agent10(
             logging.error(f"Failed to fetch DB context for Chat: {db_err}")
             rbac_context += "\\n\\n(Note: Live database context is temporarily unavailable. Do not provide academic statistics; explain that the data is unavailable.)"
         
-        completion = client.chat.completions.create(
-            model="gemini-3.6-flash",
-            messages=[
-                {"role": "system", "content": rbac_context},
-                {"role": "user", "content": req.message}
-            ],
-            temperature=0.7,
-            max_tokens=1024,
-        )
+        try:
+            completion = client.chat.completions.create(
+                model="gemini-3.6-flash",
+                messages=[
+                    {"role": "system", "content": rbac_context},
+                    {"role": "user", "content": req.message}
+                ],
+                temperature=0.7,
+                max_tokens=1024,
+            )
+        except Exception as api_err:
+            if "503" in str(api_err) or "429" in str(api_err) or "high demand" in str(api_err).lower():
+                logging.warning(f"Primary model failed (busy/503), falling back to gemini-1.5-flash. Error: {api_err}")
+                completion = client.chat.completions.create(
+                    model="gemini-1.5-flash",
+                    messages=[
+                        {"role": "system", "content": rbac_context},
+                        {"role": "user", "content": req.message}
+                    ],
+                    temperature=0.7,
+                    max_tokens=1024,
+                )
+            else:
+                raise api_err
         
         reply = completion.choices[0].message.content
         return ChatResponse(reply=reply)

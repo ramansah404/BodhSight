@@ -16,10 +16,7 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_ROLE_KEY: str | None = None
     
     # AI/LLM Configuration
-    LLM_PROVIDER: str = "openai"   # "openai" | "gemini"
-    LLM_MODEL: str = "gpt-4o-mini"
-    LLM_API_KEY: str | None = None        # Alias for OPENAI key
-    OPENAI_API_KEY: str | None = None     # Standard OpenAI env var name
+    LLM_MODEL: str = "gemini-3.6-flash"
     GEMINI_API_KEY: str | None = None     # Google Gemini
     LLM_MAX_TOKENS: int = 512
 
