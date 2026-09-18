@@ -97,26 +97,29 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   ];
 
   const navItems = isStudentOrParent ? studentParentItems : allNavItems.filter(item => {
-    // Hide Messages from Student and Parent roles
-    if (item.path === "/messages" && (currentRole === "Student" || currentRole === "Parent")) {
+    // Non-students/parents shouldn't see "My Portal"
+    if (item.path === "/student-dashboard") {
       return false;
     }
-    // If the user is Admin, ONLY show Admin-specific routes
-    if (currentRole === "Admin") {
-      return item.roles && item.roles.includes("Admin");
-    }
-
-    // Filter by allowed roles array (covers Faculty/HOD/Admin-specific routes)
+    
+    // If the item explicitly restricts by role, check it
     if (item.roles) {
-      return item.roles.includes(currentRole ?? "");
+      if (!item.roles.includes(currentRole ?? "")) return false;
+      // If it passes role check and has no other permissions required, allow
+      if (!item.requiredPermission) return true;
     }
 
-    // Otherwise, filter by their dynamic permissions
+    // Admins bypass standard permission checks for non-role-restricted items
+    if (currentRole === "Admin" && !item.roles) {
+      return true;
+    }
+
+    // Filter by dynamic RBAC permissions
     if (item.requiredPermission) {
       return permissions[item.requiredPermission] === true;
     }
     
-    return true; // General route
+    return true; // General routes like /messages
   });
 
 

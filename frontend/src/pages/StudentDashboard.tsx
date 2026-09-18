@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+ï»¿import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, BookOpen, Clock, CalendarDays,
@@ -165,9 +165,9 @@ export default function StudentDashboard() {
             </h1>
             <p className="text-white/70 font-medium text-sm mt-2 flex items-center gap-2 flex-wrap">
               <BookOpen size={14} />
-              <span>{data?.programme_code}</span><span>·</span><span>{data?.department_code}</span>
-              {data?.batch_label && <><span>·</span><span>{data.batch_label}</span></>}
-              {data?.section_code && <><span>·</span><span>Section {data.section_code}</span></>}
+              <span>{data?.programme_code}</span><span>Â·</span><span>{data?.department_code}</span>
+              {data?.batch_label && <><span>Â·</span><span>{data.batch_label}</span></>}
+              {data?.section_code && <><span>Â·</span><span>Section {data.section_code}</span></>}
             </p>
             <p className="text-white/60 text-xs mt-1">Roll No: <span className="font-bold text-white/90">{data?.roll_no}</span></p>
           </div>
@@ -187,9 +187,9 @@ export default function StudentDashboard() {
               <div>
                 <p className="font-bold text-rose-700 dark:text-rose-400 text-sm">Action Required</p>
                 <ul className="mt-1 space-y-1 text-xs text-rose-600/80 dark:text-rose-400/80">
-                  {attRisk && <li>• Attendance is <strong>{overallAtt.toFixed(1)}%</strong> — below the 75% minimum needed to sit for exams.</li>}
-                  {cgpaRisk && <li>• CGPA is <strong>{data?.cgpa?.toFixed(2)}</strong> — below the 6.0 minimum threshold.</li>}
-                  {(data?.backlog_count ?? 0) > 0 && <li>• You have <strong>{data?.backlog_count} active backlog(s)</strong> — please clear them before next semester.</li>}
+                  {attRisk && <li>â€¢ Attendance is <strong>{overallAtt.toFixed(1)}%</strong> â€” below the 75% minimum needed to sit for exams.</li>}
+                  {cgpaRisk && <li>â€¢ CGPA is <strong>{data?.cgpa?.toFixed(2)}</strong> â€” below the 6.0 minimum threshold.</li>}
+                  {(data?.backlog_count ?? 0) > 0 && <li>â€¢ You have <strong>{data?.backlog_count} active backlog(s)</strong> â€” please clear them before next semester.</li>}
                 </ul>
               </div>
             </div>
@@ -263,7 +263,7 @@ export default function StudentDashboard() {
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {attendance.daily.map((d, i) => (
-                    <div key={i} title={`${d.date} — ${d.status === "P" ? "Present" : d.status === "OD" ? "On Duty" : "Absent"}`}
+                    <div key={i} title={`${d.date} â€” ${d.status === "P" ? "Present" : d.status === "OD" ? "On Duty" : "Absent"}`}
                       className={`w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold cursor-default transition-transform hover:scale-125 ${
                         d.status === "P" ? "bg-emerald-500 text-white" : d.status === "OD" ? "bg-indigo-500 text-white" : "bg-rose-500 text-white"
                       }`}>{d.status}</div>
@@ -297,8 +297,8 @@ export default function StudentDashboard() {
           <div className="flex items-center gap-3">
             <span className="text-xs text-secondary font-medium hidden sm:block">
               Internal: <span className="font-black text-primary">{data?.demo_internal_overall ?? "empty"}</span>
-              {" · "}External: <span className="font-black text-primary">{data?.demo_external ?? "empty"}</span>
-              {" · "}Total: <span className="font-black text-indigo-600 dark:text-indigo-400">{data?.demo_total_overall ?? "empty"}</span>
+              {" Â· "}External: <span className="font-black text-primary">{data?.demo_external ?? "empty"}</span>
+              {" Â· "}Total: <span className="font-black text-indigo-600 dark:text-indigo-400">{data?.demo_total_overall ?? "empty"}</span>
             </span>
             {showMarksDetail ? <ChevronUp size={16} className="text-secondary" /> : <ChevronDown size={16} className="text-secondary" />}
           </div>
