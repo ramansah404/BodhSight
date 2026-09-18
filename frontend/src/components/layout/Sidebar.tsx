@@ -97,10 +97,6 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
   ];
 
   const navItems = isStudentOrParent ? studentParentItems : allNavItems.filter(item => {
-    // Hide Messages from Student and Parent roles
-    if (item.path === "/messages" && (currentRole === "Student" || currentRole === "Parent")) {
-      return false;
-    }
     // If the user is Admin, ONLY show Admin-specific routes
     if (currentRole === "Admin") {
       return item.roles && item.roles.includes("Admin");
