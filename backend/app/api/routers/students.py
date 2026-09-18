@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List, Optional
@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 import logging
 import uuid
 from datetime import datetime
+import csv
+import codecs
 
 from app.db.session import get_db
 from app.api.routers.crud_data import get_rbac_department
@@ -59,6 +61,28 @@ class StudentResponse(BaseModel):
     cgpa: float
     attendance_pct: float
 
+class StudentWithMarksResponse(BaseModel):
+    student_id: str
+    full_name: str
+    roll_no: str
+    section_code: str
+    demo_fa1: float
+    demo_cla1: float
+    demo_fa2: float
+    demo_cla2: float
+    demo_fa3: float
+    demo_cla3: float
+    demo_fa4: float
+    demo_cla4: float
+    demo_cla5: float
+    demo_penalty: float
+    demo_external: float
+    demo_internal_overall: float
+    demo_external_overall: float
+    demo_total_overall: float
+    demo_marks_config: dict
+
+
 @router.get("/", response_model=List[StudentResponse])
 def list_students(
     department: str = Depends(get_rbac_department),
@@ -96,6 +120,73 @@ def list_students(
     except Exception as e:
         logger.error(f"Error listing students: {e}")
         raise HTTPException(status_code=500, detail="Failed to list students")
+
+@router.get("/with-marks", response_model=List[StudentWithMarksResponse])
+def list_students_with_marks(
+    department: str = Depends(get_rbac_department),
+    db: Session = Depends(get_db)
+):
+    """List all students for the department, including their detailed marks, to prevent N+1 frontend queries."""
+    try:
+        # Base query joining student profile with the actual student table for marks
+        select_clause = """
+            SELECT sp.student_id, sp.full_name, sp.roll_no, sp.section_code,
+                   COALESCE(s.demo_fa1, 0) as demo_fa1, COALESCE(s.demo_cla1, 0) as demo_cla1,
+                   COALESCE(s.demo_fa2, 0) as demo_fa2, COALESCE(s.demo_cla2, 0) as demo_cla2,
+                   COALESCE(s.demo_fa3, 0) as demo_fa3, COALESCE(s.demo_cla3, 0) as demo_cla3,
+                   COALESCE(s.demo_fa4, 0) as demo_fa4, COALESCE(s.demo_cla4, 0) as demo_cla4,
+                   COALESCE(s.demo_cla5, 0) as demo_cla5, COALESCE(s.demo_penalty, 0) as demo_penalty,
+                   COALESCE(s.demo_external, 0) as demo_external, 
+                   COALESCE(s.demo_internal_overall, 0) as demo_internal_overall,
+                   COALESCE(s.demo_external_overall, 0) as demo_external_overall,
+                   COALESCE(s.demo_total_overall, 0) as demo_total_overall,
+                   s.demo_marks_config
+            FROM people.v_student_profile sp
+            JOIN people.student s ON sp.student_id = s.student_id
+        """
+
+        if department:
+            q = f"""
+                {select_clause}
+                WHERE sp.section_code IN (
+                    SELECT section_code FROM academics.v_offering_roster WHERE department_code = :dept
+                )
+                ORDER BY sp.full_name LIMIT 300
+            """
+            rows = db.execute(text(q), {"dept": department}).fetchall()
+        else:
+            q = f"""
+                {select_clause}
+                ORDER BY sp.full_name LIMIT 300
+            """
+            rows = db.execute(text(q)).fetchall()
+
+        return [
+            StudentWithMarksResponse(
+                student_id=str(r.student_id),
+                full_name=str(r.full_name),
+                roll_no=str(r.roll_no),
+                section_code=str(r.section_code),
+                demo_fa1=float(r.demo_fa1),
+                demo_cla1=float(r.demo_cla1),
+                demo_fa2=float(r.demo_fa2),
+                demo_cla2=float(r.demo_cla2),
+                demo_fa3=float(r.demo_fa3),
+                demo_cla3=float(r.demo_cla3),
+                demo_fa4=float(r.demo_fa4),
+                demo_cla4=float(r.demo_cla4),
+                demo_cla5=float(r.demo_cla5),
+                demo_penalty=float(r.demo_penalty),
+                demo_external=float(r.demo_external),
+                demo_internal_overall=float(r.demo_internal_overall),
+                demo_external_overall=float(r.demo_external_overall),
+                demo_total_overall=float(r.demo_total_overall),
+                demo_marks_config=r.demo_marks_config or {}
+            ) for r in rows
+        ]
+    except Exception as e:
+        logger.error(f"Error fetching students with marks: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch students with marks")
 
 @router.post("/", response_model=StudentResponse)
 def create_student(
@@ -411,6 +502,133 @@ def update_student_marks(
         logger.error(f"Error updating marks: {e}")
         raise HTTPException(status_code=500, detail="Database marks update failed")
 
+@router.post("/bulk-upload-marks")
+def bulk_upload_marks(
+    file: UploadFile = File(...),
+    department: str = Depends(get_rbac_department),
+    db: Session = Depends(get_db)
+):
+    """Parse CSV and bulk update student marks based on roll_no."""
+    try:
+        content = file.file.read()
+        text_content = content.decode("utf-8-sig")  # sig to handle BOM from Excel
+        reader = csv.DictReader(text_content.splitlines())
+        
+        # Mapping from CSV columns to DB columns
+        col_mapping = {
+            "roll_no": "roll_no",
+            "fa1": "demo_fa1",
+            "cla1": "demo_cla1",
+            "fa2": "demo_fa2",
+            "cla2": "demo_cla2",
+            "fa3": "demo_fa3",
+            "cla3": "demo_cla3",
+            "fa4": "demo_fa4",
+            "cla4": "demo_cla4",
+            "cla5": "demo_cla5",
+            "external": "demo_external",
+            "penalty": "demo_penalty"
+        }
+        
+        updated_count = 0
+        not_found_count = 0
+        unauthorized_count = 0
+
+        # Pre-fetch all students in this department's sections
+        valid_students_q = """
+            SELECT sp.roll_no, sp.student_id 
+            FROM people.v_student_profile sp
+            JOIN academics.v_offering_roster c ON c.section_code = sp.section_code
+        """
+        valid_params = {}
+        if department:
+            valid_students_q += " WHERE c.department_code = :dept"
+            valid_params["dept"] = department
+            
+        valid_students_rows = db.execute(text(valid_students_q), valid_params).fetchall()
+        valid_roll_nos = {str(row[0]).strip().lower(): str(row[1]) for row in valid_students_rows if row[0]}
+        
+        for row in reader:
+            # Look for roll_no key (case insensitive keys)
+            row_keys_lower = {str(k).strip().lower(): v for k, v in row.items() if k}
+            
+            roll_no_val = str(row_keys_lower.get("roll_no", "")).strip().lower()
+            if not roll_no_val:
+                continue
+                
+            if roll_no_val not in valid_roll_nos:
+                unauthorized_count += 1
+                continue
+                
+            student_id = valid_roll_nos[roll_no_val]
+            
+            # Fetch current state to correctly calculate overall
+            current_q = "SELECT demo_fa1, demo_cla1, demo_fa2, demo_cla2, demo_fa3, demo_cla3, demo_fa4, demo_cla4, demo_cla5, demo_penalty, demo_external FROM people.student WHERE student_id = :sid"
+            curr = db.execute(text(current_q), {"sid": student_id}).fetchone()
+            if not curr:
+                not_found_count += 1
+                continue
+                
+            current_state = {
+                "demo_fa1": curr[0] or 0.0, "demo_cla1": curr[1] or 0.0,
+                "demo_fa2": curr[2] or 0.0, "demo_cla2": curr[3] or 0.0,
+                "demo_fa3": curr[4] or 0.0, "demo_cla3": curr[5] or 0.0,
+                "demo_fa4": curr[6] or 0.0, "demo_cla4": curr[7] or 0.0,
+                "demo_cla5": curr[8] or 0.0, "demo_penalty": curr[9] or 0.0,
+                "demo_external": curr[10] or 0.0
+            }
+            
+            updates = {}
+            for csv_col, db_col in col_mapping.items():
+                if csv_col == "roll_no":
+                    continue
+                val_str = row_keys_lower.get(csv_col)
+                if val_str is not None and str(val_str).strip() != "":
+                    try:
+                        val_float = float(str(val_str).strip())
+                        updates[db_col] = val_float
+                        current_state[db_col] = val_float
+                    except ValueError:
+                        pass # Ignore non-numeric values
+                        
+            if not updates:
+                continue
+                
+            # Calculate overalls
+            internal_sum = (
+                current_state["demo_fa1"] + current_state["demo_cla1"] +
+                current_state["demo_fa2"] + current_state["demo_cla2"] +
+                current_state["demo_fa3"] + current_state["demo_cla3"] +
+                current_state["demo_fa4"] + current_state["demo_cla4"] +
+                current_state["demo_cla5"]
+            ) - current_state["demo_penalty"]
+            
+            updates["demo_internal_overall"] = max(0.0, float(internal_sum))
+            
+            external = current_state["demo_external"]
+            updates["demo_total_overall"] = updates["demo_internal_overall"] + external
+            updates["demo_external_overall"] = external
+            
+            update_fields = []
+            params = {"sid": student_id}
+            
+            for field, value in updates.items():
+                update_fields.append(f"{field} = :{field}")
+                params[field] = value
+                
+            query = f"UPDATE people.student SET {', '.join(update_fields)} WHERE student_id = :sid"
+            db.execute(text(query), params)
+            updated_count += 1
+            
+        db.commit()
+        return {
+            "success": True, 
+            "message": f"Successfully updated {updated_count} students. (Skipped/Unauthorized: {unauthorized_count}, Not Found: {not_found_count})"
+        }
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error in bulk upload: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{student_id}/attendance")
 def get_student_attendance(

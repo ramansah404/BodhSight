@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpenCheck, Save, AlertCircle, ChevronDown, ChevronUp,
-  Loader2, RefreshCw, MinusCircle, Settings2, CheckCircle2, X
+  Loader2, RefreshCw, MinusCircle, Settings2, CheckCircle2, X, Upload
 } from "lucide-react";
 import { apiClient } from "../services/api";
 import { useRole } from "../contexts/RoleContext";
@@ -58,6 +58,8 @@ export default function ManageMarks() {
   );
   const [showLimitsEditor, setShowLimitsEditor] = useState(false);
   const [globalSaving, setGlobalSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
   const showToast = (msg: string, type: "success" | "error") => {
@@ -71,32 +73,36 @@ export default function ManageMarks() {
     setLoading(true);
     setError("");
     try {
-      const res = await apiClient.get("/students/");
-      const rows: StudentMarksRow[] = await Promise.all(
-        (res.data as any[]).map(async (s: any) => {
-          let marks = {
-            demo_fa1: 0, demo_cla1: 0, demo_fa2: 0, demo_cla2: 0,
-            demo_fa3: 0, demo_cla3: 0, demo_fa4: 0, demo_cla4: 0,
-            demo_cla5: 0, demo_penalty: 0, demo_external: 0,
-            demo_internal_overall: 0, demo_external_overall: 0, demo_total_overall: 0,
-            demo_marks_config: {}
-          };
-          try {
-            const m = await apiClient.get(`/students/${s.student_id}/marks`);
-            marks = { ...marks, ...m.data };
-          } catch {}
-          return {
-            student_id: s.student_id,
-            full_name: s.full_name,
-            roll_no: s.roll_no,
-            section_code: s.section_code,
-            marks,
-            dirty: false,
-            saving: false,
-            error: ""
-          };
-        })
-      );
+      const res = await apiClient.get("/students/with-marks");
+      const rows: StudentMarksRow[] = (res.data as any[]).map((s: any) => {
+        const marks = {
+          demo_fa1: s.demo_fa1 || 0,
+          demo_cla1: s.demo_cla1 || 0,
+          demo_fa2: s.demo_fa2 || 0,
+          demo_cla2: s.demo_cla2 || 0,
+          demo_fa3: s.demo_fa3 || 0,
+          demo_cla3: s.demo_cla3 || 0,
+          demo_fa4: s.demo_fa4 || 0,
+          demo_cla4: s.demo_cla4 || 0,
+          demo_cla5: s.demo_cla5 || 0,
+          demo_penalty: s.demo_penalty || 0,
+          demo_external: s.demo_external || 0,
+          demo_internal_overall: s.demo_internal_overall || 0,
+          demo_external_overall: s.demo_external_overall || 0,
+          demo_total_overall: s.demo_total_overall || 0,
+          demo_marks_config: s.demo_marks_config || {}
+        };
+        return {
+          student_id: s.student_id,
+          full_name: s.full_name,
+          roll_no: s.roll_no,
+          section_code: s.section_code,
+          marks,
+          dirty: false,
+          saving: false,
+          error: ""
+        };
+      });
       setStudents(rows);
     } catch (e: any) {
       setError(e?.response?.data?.detail || e.message || "Failed to load students");
@@ -177,6 +183,32 @@ export default function ManageMarks() {
     showToast("All changes saved!", "success");
   };
 
+  // ─── Bulk Upload CSV ────────────────────────────────────────────────────
+
+  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await apiClient.post("/students/bulk-upload-marks", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      showToast(res.data.message || "Bulk upload successful", "success");
+      loadStudents();
+    } catch (err: any) {
+      showToast(err?.response?.data?.detail || "Bulk upload failed", "error");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
   // ─── Calculate totals locally for instant preview ──────────────────────
 
   const calcPreview = (marks: StudentMarksRow["marks"]) => {
@@ -228,6 +260,21 @@ export default function ManageMarks() {
           >
             <RefreshCw size={15} />
             Refresh
+          </button>
+          <input
+            type="file"
+            accept=".csv"
+            className="hidden"
+            ref={fileInputRef}
+            onChange={handleBulkUpload}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 rounded-xl text-sm font-semibold transition-all"
+          >
+            {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
+            Bulk Upload CSV
           </button>
           <button
             onClick={saveAll}
