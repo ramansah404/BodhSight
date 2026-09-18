@@ -10,7 +10,7 @@ export default function ManualEntry() {
   const [error, setError] = useState("");
   
   // Track edited values for each student ID
-  const [editedData, setEditedData] = useState<Record<string, { attendance_pct: string; cgpa: string; backlog_count: string }>>({});
+  const [editedData, setEditedData] = useState<Record<string, { full_name: string; roll_no: string; attendance_pct: string; cgpa: string; backlog_count: string }>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
 
@@ -40,15 +40,17 @@ export default function ManualEntry() {
       });
   }, [selectedSection]);
 
-  const handleInputChange = (studentId: string, field: 'attendance_pct' | 'cgpa' | 'backlog_count', value: string) => {
+  const handleInputChange = (studentId: string, field: 'full_name' | 'roll_no' | 'attendance_pct' | 'cgpa' | 'backlog_count', value: string) => {
     setEditedData(prev => {
       const student = students.find(s => s.student_id === studentId);
       if (!student) return prev;
       
       const currentEdits = prev[studentId] || { 
+        full_name: student.full_name,
+        roll_no: student.roll_no,
         attendance_pct: student.attendance_pct.toString(), 
         cgpa: student.cgpa.toString(),
-        backlog_count: "0"
+        backlog_count: (student.backlog_count || 0).toString()
       };
       
       return {
@@ -79,10 +81,13 @@ export default function ManualEntry() {
 
     try {
       for (const id of idsToUpdate) {
-        const payload: Record<string, number> = {};
-        const att = parseFloat(editedData[id].attendance_pct);
-        const cgpa = parseFloat(editedData[id].cgpa);
-        const bl = parseInt(editedData[id].backlog_count ?? "0");
+        const payload: Record<string, string | number> = {};
+        const edits = editedData[id];
+        if (edits.full_name !== undefined) payload.full_name = edits.full_name;
+        if (edits.roll_no !== undefined) payload.roll_no = edits.roll_no;
+        const att = parseFloat(edits.attendance_pct);
+        const cgpa = parseFloat(edits.cgpa);
+        const bl = parseInt(edits.backlog_count ?? "0");
         if (!isNaN(att)) payload.attendance_pct = Math.min(100, Math.max(0, att));
         if (!isNaN(cgpa)) payload.cgpa = Math.min(10, Math.max(0, cgpa));
         if (!isNaN(bl)) payload.backlog_count = Math.max(0, bl);
@@ -114,7 +119,7 @@ export default function ManualEntry() {
           </h2>
           <p className="text-sm text-secondary mt-0.5">Edit student attendance, CGPA, and backlog counts. All changes save directly to the live database.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <select 
             className="bg-surface border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-primary focus:outline-none focus:border-indigo-500 transition-colors"
             value={selectedSection}
@@ -123,6 +128,29 @@ export default function ManualEntry() {
             <option value="" disabled>Select Section...</option>
             {sections.map(s => <option key={s} value={s}>Section {s}</option>)}
           </select>
+          <button
+            onClick={() => {
+              const newSection = prompt("Enter new section name (e.g. 9 or 10):");
+              if (newSection && newSection.trim()) {
+                const code = newSection.trim();
+                CrudDataAPI.addSection(code).then(res => {
+                  setSections(prev => {
+                    const next = [...prev, res].sort();
+                    return Array.from(new Set(next));
+                  });
+                  setSelectedSection(res);
+                  setSuccessMsg(`Section ${res} created successfully!`);
+                  setTimeout(() => setSuccessMsg(""), 3500);
+                }).catch(err => {
+                  setError(err?.response?.data?.detail || err.message || "Failed to create section");
+                  setTimeout(() => setError(""), 3500);
+                });
+              }
+            }}
+            className="inline-flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 bg-indigo-600/10 hover:bg-indigo-600/20 px-3 py-2.5 rounded-xl border border-indigo-500/30 text-sm font-semibold transition-all"
+          >
+            + Add Section
+          </button>
           {editCount > 0 && (
             <button
               onClick={() => setEditedData({})}
@@ -231,14 +259,30 @@ export default function ManualEntry() {
               ) : (
                 students.map((s) => {
                   const isEdited = !!editedData[s.student_id];
+                  const currentName = editedData[s.student_id]?.full_name ?? s.full_name;
+                  const currentRoll = editedData[s.student_id]?.roll_no ?? s.roll_no;
                   const currentAtt = editedData[s.student_id]?.attendance_pct ?? s.attendance_pct.toString();
                   const currentCgpa = editedData[s.student_id]?.cgpa ?? s.cgpa.toString();
-                  const currentBl = editedData[s.student_id]?.backlog_count ?? "0";
+                  const currentBl = editedData[s.student_id]?.backlog_count ?? (s.backlog_count || 0).toString();
                   
                   return (
                     <tr key={s.student_id} className={`hover:bg-surface-hover/40 transition-colors ${isEdited ? 'bg-indigo-500/5 border-l-2 border-l-indigo-500' : ''}`}>
-                      <td className="py-3.5 px-5 font-bold text-primary text-sm">{s.roll_no}</td>
-                      <td className="py-3.5 px-5 text-sm text-secondary font-medium">{s.full_name}</td>
+                      <td className="py-3.5 px-5">
+                        <input 
+                          type="text"
+                          className={`w-full bg-background border ${isEdited ? 'border-indigo-500 ring-1 ring-indigo-500/30' : 'border-border'} rounded-lg px-3 py-1.5 text-sm font-bold text-primary focus:outline-none focus:border-indigo-500 transition-colors`}
+                          value={currentRoll}
+                          onChange={e => handleInputChange(s.student_id, 'roll_no', e.target.value)}
+                        />
+                      </td>
+                      <td className="py-3.5 px-5">
+                        <input 
+                          type="text"
+                          className={`w-full bg-background border ${isEdited ? 'border-indigo-500 ring-1 ring-indigo-500/30' : 'border-border'} rounded-lg px-3 py-1.5 text-sm font-medium text-secondary focus:outline-none focus:border-indigo-500 transition-colors`}
+                          value={currentName}
+                          onChange={e => handleInputChange(s.student_id, 'full_name', e.target.value)}
+                        />
+                      </td>
                       <td className="py-3.5 px-5">
                         <input 
                           type="number" min="0" max="100" step="1"

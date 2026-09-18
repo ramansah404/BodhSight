@@ -123,6 +123,7 @@ def list_students(
 
 @router.get("/with-marks", response_model=List[StudentWithMarksResponse])
 def list_students_with_marks(
+    section: Optional[str] = None,
     department: str = Depends(get_rbac_department),
     db: Session = Depends(get_db)
 ):
@@ -145,21 +146,25 @@ def list_students_with_marks(
             JOIN people.student s ON sp.student_id = s.student_id
         """
 
+        params = {}
+        where_clauses = []
+        
         if department:
-            q = f"""
-                {select_clause}
-                WHERE sp.section_code IN (
-                    SELECT section_code FROM academics.v_offering_roster WHERE department_code = :dept
-                )
-                ORDER BY sp.full_name LIMIT 300
-            """
-            rows = db.execute(text(q), {"dept": department}).fetchall()
-        else:
-            q = f"""
-                {select_clause}
-                ORDER BY sp.full_name LIMIT 300
-            """
-            rows = db.execute(text(q)).fetchall()
+            where_clauses.append("sp.section_code IN (SELECT section_code FROM academics.v_offering_roster WHERE department_code = :dept)")
+            params["dept"] = department
+            
+        if section:
+            where_clauses.append("sp.section_code = :section")
+            params["section"] = section
+            
+        where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+        
+        q = f"""
+            {select_clause}
+            {where_sql}
+            ORDER BY sp.full_name LIMIT 300
+        """
+        rows = db.execute(text(q), params).fetchall()
 
         return [
             StudentWithMarksResponse(

@@ -58,9 +58,13 @@ apiClient.interceptors.request.use((config) => {
   const name = localStorage.getItem("bodhsight_name") || "User";
   const dept = localStorage.getItem("bodhsight_department");
   const token = localStorage.getItem("bodhsight_token");
+  const email = localStorage.getItem("bodhsight_email");
   
   config.headers["X-User-Role"] = role;
   config.headers["X-User-Name"] = name;
+  if (email) {
+    config.headers["X-User-Id"] = email;
+  }
   if (dept) {
     config.headers["X-User-Department"] = dept;
   }
@@ -491,6 +495,12 @@ export interface StudentDataResponse {
 export const CrudDataAPI = {
   getSections(): Promise<string[]> {
     return get<string[]>("/crud_data/sections", true);
+  },
+  addSection(sectionCode: string): Promise<string> {
+    return apiClient.post("/crud_data/sections", { section_code: sectionCode }).then(r => {
+      clearCache();
+      return r.data;
+    });
   },
   getStudentsBySection(sectionCode: string): Promise<StudentDataResponse[]> {
     return get<StudentDataResponse[]>(`/crud_data/students/${sectionCode}`, true);

@@ -4,7 +4,7 @@ import {
   BookOpenCheck, Save, AlertCircle, ChevronDown, ChevronUp,
   Loader2, RefreshCw, MinusCircle, Settings2, CheckCircle2, X, Upload
 } from "lucide-react";
-import { apiClient } from "../services/api";
+import { apiClient, CrudDataAPI } from "../services/api";
 import { useRole } from "../contexts/RoleContext";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -62,6 +62,9 @@ export default function ManageMarks() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
+  const [sections, setSections] = useState<string[]>([]);
+  const [selectedSection, setSelectedSection] = useState<string>("");
+
   const showToast = (msg: string, type: "success" | "error") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3500);
@@ -69,11 +72,16 @@ export default function ManageMarks() {
 
   // ─── Load students list ─────────────────────────────────────────────────
 
-  const loadStudents = useCallback(async () => {
+  const loadStudents = useCallback(async (sectionCode: string) => {
+    if (!sectionCode) {
+      setStudents([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      const res = await apiClient.get("/students/with-marks");
+      const res = await apiClient.get("/students/with-marks", { params: { section: sectionCode } });
       const rows: StudentMarksRow[] = (res.data as any[]).map((s: any) => {
         const marks = {
           demo_fa1: s.demo_fa1 || 0,
@@ -111,7 +119,28 @@ export default function ManageMarks() {
     }
   }, []);
 
-  useEffect(() => { loadStudents(); }, [loadStudents]);
+  useEffect(() => {
+    CrudDataAPI.getSections()
+      .then(data => {
+        setSections(data);
+        if (data.length > 0) {
+          setSelectedSection(data[0]);
+          loadStudents(data[0]);
+        } else {
+          setLoading(false);
+        }
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [loadStudents]);
+
+  const handleSectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setSelectedSection(val);
+    loadStudents(val);
+  };
 
   // ─── Per-cell change handler ────────────────────────────────────────────
 
@@ -198,7 +227,7 @@ export default function ManageMarks() {
         headers: { "Content-Type": "multipart/form-data" }
       });
       showToast(res.data.message || "Bulk upload successful", "success");
-      loadStudents();
+      if (selectedSection) loadStudents(selectedSection);
     } catch (err: any) {
       showToast(err?.response?.data?.detail || "Bulk upload failed", "error");
     } finally {
@@ -254,8 +283,42 @@ export default function ManageMarks() {
             Set Max Limits
             {showLimitsEditor ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
+          
+          <select 
+            value={selectedSection}
+            onChange={handleSectionChange}
+            className="px-4 py-2 bg-background border border-border rounded-xl text-sm font-semibold text-primary focus:outline-none focus:border-indigo-500"
+          >
+            {sections.length === 0 && <option value="">No sections found</option>}
+            {sections.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
           <button
-            onClick={loadStudents}
+            onClick={() => {
+              const newSection = prompt("Enter new section name (e.g. 9 or 10):");
+              if (newSection && newSection.trim()) {
+                const code = newSection.trim();
+                CrudDataAPI.addSection(code).then(res => {
+                  setSections(prev => {
+                    const next = [...prev, res].sort();
+                    return Array.from(new Set(next));
+                  });
+                  setSelectedSection(res);
+                  loadStudents(res);
+                  showToast(`Section ${res} created successfully!`, "success");
+                }).catch(err => {
+                  showToast(err?.response?.data?.detail || err.message || "Failed to create section", "error");
+                });
+              }
+            }}
+            className="flex items-center gap-1 px-4 py-2 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 rounded-xl text-sm font-semibold transition-all"
+          >
+            + Add Section
+          </button>
+
+          <button
+            onClick={() => loadStudents(selectedSection)}
             className="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-xl text-sm font-semibold text-secondary hover:text-primary transition-all"
           >
             <RefreshCw size={15} />

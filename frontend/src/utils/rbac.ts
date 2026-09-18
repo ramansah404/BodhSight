@@ -12,6 +12,16 @@ export interface PermissionMatrix {
   canOverrideStudentData: boolean;
   canViewStudentDashboard: boolean;
   canViewParentDashboard: boolean;
+  // UI Route Permissions
+  view_overview?: boolean;
+  view_trends?: boolean;
+  view_courses?: boolean;
+  view_departments?: boolean;
+  view_sections?: boolean;
+  view_students?: boolean;
+  view_reports?: boolean;
+  view_data_hub?: boolean;
+  manage_exceptions?: boolean;
 }
 
 // Parses the raw string array from the DB into the PermissionMatrix booleans
@@ -34,6 +44,19 @@ export const parsePermissions = (perms: string[]): PermissionMatrix => {
 
 export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
   const role = roleString ? roleString.trim() : "Chairman";
+  const isInstitutional = role !== "Student" && role !== "Parent" && role !== "Admin";
+  
+  const uiPermissions = {
+    view_overview: isInstitutional,
+    view_trends: isInstitutional,
+    view_courses: isInstitutional,
+    view_departments: isInstitutional,
+    view_sections: isInstitutional,
+    view_students: isInstitutional,
+    view_reports: isInstitutional,
+    view_data_hub: isInstitutional,
+    manage_exceptions: isInstitutional || role === "Admin",
+  };
 
   switch (role) {
     case "Admin":
@@ -49,6 +72,7 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canOverrideStudentData: true,
         canViewStudentDashboard: true,
         canViewParentDashboard: true,
+        ...uiPermissions,
       };
     case "Chairman":
     case "Principal":
@@ -65,6 +89,7 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canOverrideStudentData: true,
         canViewStudentDashboard: false,
         canViewParentDashboard: false,
+        ...uiPermissions,
       };
     case "Dean":
     case "IQAC":
@@ -80,6 +105,7 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canOverrideStudentData: true,
         canViewStudentDashboard: false,
         canViewParentDashboard: false,
+        ...uiPermissions,
       };
     case "HOD":
       return {
@@ -94,6 +120,7 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canOverrideStudentData: true,
         canViewStudentDashboard: false,
         canViewParentDashboard: false,
+        ...uiPermissions,
       };
     case "Faculty":
       return {
@@ -108,6 +135,7 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canOverrideStudentData: true,
         canViewStudentDashboard: false,
         canViewParentDashboard: false,
+        ...uiPermissions,
       };
     case "Student":
       return {
@@ -122,6 +150,7 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canOverrideStudentData: false,
         canViewStudentDashboard: true,
         canViewParentDashboard: false,
+        ...uiPermissions,
       };
     case "Parent":
       return {
@@ -136,6 +165,7 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canOverrideStudentData: false,
         canViewStudentDashboard: true,
         canViewParentDashboard: true,
+        ...uiPermissions,
       };
     default:
       return {
@@ -150,6 +180,7 @@ export const getDefaultPermissions = (roleString: string): PermissionMatrix => {
         canOverrideStudentData: false,
         canViewStudentDashboard: false,
         canViewParentDashboard: false,
+        ...uiPermissions,
       };
   }
 };

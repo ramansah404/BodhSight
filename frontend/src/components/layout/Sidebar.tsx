@@ -57,6 +57,9 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
   
 
+  // Student/Parent portal-only nav items
+  const isStudentOrParent = currentRole === "Student" || currentRole === "Parent";
+
   const allNavItems = [
     { name: "My Portal", path: "/student-dashboard", requiredPermission: "canViewStudentDashboard", icon: LayoutDashboard },
     { name: "Overview", path: "/dashboard", requiredPermission: "view_overview", icon: LayoutDashboard },
@@ -88,9 +91,12 @@ export default function Sidebar({ isOpen, setIsOpen }: SidebarProps) {
 
   ];
 
+  // Student & Parent only see their own portal — nothing else
+  const studentParentItems = [
+    { name: currentRole === "Parent" ? "Child's Portal" : "My Portal", path: "/student-dashboard", icon: LayoutDashboard },
+  ];
 
-
-  const navItems = allNavItems.filter(item => {
+  const navItems = isStudentOrParent ? studentParentItems : allNavItems.filter(item => {
     // Hide Messages from Student and Parent roles
     if (item.path === "/messages" && (currentRole === "Student" || currentRole === "Parent")) {
       return false;
