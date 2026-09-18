@@ -488,7 +488,7 @@ def update_student_marks(
         for field, value in updates.items():
             if value is not None:
                 if field == "demo_marks_config":
-                    update_fields.append(f"{field} = :{field}::jsonb")
+                    update_fields.append(f"{field} = CAST(:{field} AS jsonb)")
                     params[field] = json.dumps(value)
                 else:
                     update_fields.append(f"{field} = :{field}")
