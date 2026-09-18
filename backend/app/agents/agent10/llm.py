@@ -54,7 +54,7 @@ def _detect_provider() -> Optional[str]:
     gemini_key = getattr(settings, "GEMINI_API_KEY", None)
     if gemini_key and gemini_key not in ("your_api_key_here", ""):
         try:
-            import google.generativeai  # noqa
+            from openai import OpenAI  # noqa
             _LLM_PROVIDER = "gemini"
             return _LLM_PROVIDER
         except ImportError:
@@ -99,22 +99,25 @@ def _call_gemini(system_prompt: str, user_content: str) -> Optional[str]:
     """Call Google Gemini and return text response, or None on error."""
     try:
         from app.core.config import settings
-        import google.generativeai as genai
+        from openai import OpenAI
         key = getattr(settings, "GEMINI_API_KEY", None)
-        genai.configure(api_key=key)
-        model_name = getattr(settings, "LLM_MODEL", None) or "gemini-1.5-flash"
-        model = genai.GenerativeModel(
-            model_name=model_name,
-            system_instruction=system_prompt,
+        client = OpenAI(
+            api_key=key,
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+            timeout=30.0,
+            max_retries=0,
         )
-        response = model.generate_content(
-            user_content,
-            generation_config=genai.types.GenerationConfig(
-                max_output_tokens=512,
-                temperature=0.3,
-            )
+        model_name = getattr(settings, "LLM_MODEL", None) or "gemini-3.6-flash"
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content},
+            ],
+            max_tokens=512,
+            temperature=0.3,
         )
-        return response.text
+        return response.choices[0].message.content
     except Exception as e:
         logger.warning("Gemini call failed: %s", e)
         return None
