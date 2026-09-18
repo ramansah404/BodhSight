@@ -295,13 +295,13 @@ def update_student(
             update_fields.append("section_code = :sc")
             params["sc"] = data.section_code
         if data.attendance_pct is not None:
-            update_fields.append("attendance_pct = :ap")
+            update_fields.append("demo_attendance_override = :ap")
             params["ap"] = data.attendance_pct
         if data.cgpa is not None:
-            update_fields.append("cgpa = :cg")
+            update_fields.append("demo_marks_override = :cg")
             params["cg"] = data.cgpa
         if data.backlog_count is not None:
-            update_fields.append("backlog_count = :bc")
+            update_fields.append("demo_backlog_override = :bc")
             params["bc"] = data.backlog_count
         if data.reason is not None:
             update_fields.append("reason = :r")
