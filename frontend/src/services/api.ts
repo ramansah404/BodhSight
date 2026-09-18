@@ -490,6 +490,7 @@ export interface StudentDataResponse {
   section_code: string;
   attendance_pct: number;
   cgpa: number;
+  backlog_count?: number;
 }
 
 export const CrudDataAPI = {
