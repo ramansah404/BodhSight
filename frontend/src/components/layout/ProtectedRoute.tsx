@@ -17,27 +17,28 @@ export default function ProtectedRoute({ allowedRoles, requiredPermission }: Pro
   const navigate = useNavigate();
   const { currentRole, permissions, isLoading } = useRole();
   const displayRole = localStorage.getItem("bodhsight_display_role") || currentRole;
+  const directAccess = import.meta.env.DEV;
 
   // If no session at all, redirect to login
   useEffect(() => {
-    if (!isLoading && !currentRole) {
+    if (!directAccess && !isLoading && !currentRole) {
       navigate("/login", { replace: true });
     }
-  }, [currentRole, isLoading, navigate]);
+  }, [currentRole, directAccess, isLoading, navigate]);
 
-  if (isLoading || !currentRole) {
+  if (!directAccess && (isLoading || !currentRole)) {
     return null;
   }
 
   let isAuthorized = true;
 
   // If specific roles required (used primarily for Admin)
-  if (allowedRoles && allowedRoles.length > 0) {
-    isAuthorized = allowedRoles.includes(currentRole) || allowedRoles.includes(displayRole ?? "");
+  if (!directAccess && allowedRoles && allowedRoles.length > 0) {
+    isAuthorized = allowedRoles.includes(currentRole ?? "") || allowedRoles.includes(displayRole ?? "");
   }
 
   // If dynamic permission required
-  if (requiredPermission) {
+  if (!directAccess && requiredPermission) {
     isAuthorized = isAuthorized && permissions[requiredPermission] === true;
   }
 

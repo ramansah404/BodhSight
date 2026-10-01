@@ -1,5 +1,8 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
+import os
+
+PROJECT_ENV_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.env"))
 
 class Settings(BaseSettings):
     APP_NAME: str = "BodhSight - Agent 10"
@@ -38,6 +41,6 @@ class Settings(BaseSettings):
         "https://bodhsight-acmqdmpjr-ramansah404-5576s-projects.vercel.app",
     ]
 
-    model_config = SettingsConfigDict(env_file=[".env", "../.env"], env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(env_file=[PROJECT_ENV_FILE, ".env", "../.env"], env_file_encoding="utf-8", extra="ignore")
 
 settings = Settings()

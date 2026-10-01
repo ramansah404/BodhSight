@@ -14,7 +14,12 @@ interface RoleContextValue {
 const RoleContext = createContext<RoleContextValue | undefined>(undefined);
 
 function readStoredRole(): AppRole | null {
-  const role = localStorage.getItem("bodhsight_role");
+  const role = localStorage.getItem("bodhsight_role") || (import.meta.env.DEV ? "Chairman" : null);
+  if (role && import.meta.env.DEV && !localStorage.getItem("bodhsight_role")) {
+    localStorage.setItem("bodhsight_role", role);
+    localStorage.setItem("bodhsight_display_role", "Chairman / Board");
+    localStorage.setItem("bodhsight_name", "Demo User");
+  }
   return role as AppRole | null;
 }
 
