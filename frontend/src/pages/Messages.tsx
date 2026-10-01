@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { MessageAPI } from "../services/api";
-import { useRole } from "../contexts/RoleContext";
 import { Send, Inbox, MessageSquare, Clock, User, AlertCircle, Loader2 } from "lucide-react";
 
 type Message = {
@@ -23,7 +22,6 @@ type UserProfile = {
 };
 
 export default function Messages() {
-  const { currentRole } = useRole();
   const [activeTab, setActiveTab] = useState<"inbox" | "sent">("inbox");
   const [messages, setMessages] = useState<Message[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -33,9 +31,7 @@ export default function Messages() {
 
   const [newMessage, setNewMessage] = useState({ receiver_id: "", content: "" });
   const [sending, setSending] = useState(false);
-
-  // If user is Student or Parent, block access
-  const isRestricted = currentRole === "Student" || currentRole === "Parent";
+  const isRestricted = false;
 
   const fetchMessages = async () => {
     try {
@@ -86,18 +82,6 @@ export default function Messages() {
       console.error(e);
     }
   };
-
-  if (isRestricted) {
-    return (
-      <div className="max-w-7xl mx-auto flex items-center justify-center py-20">
-        <div className="bg-surface p-8 rounded-3xl shadow-sm text-center border border-border">
-          <AlertCircle size={48} className="text-rose-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-primary">Access Restricted</h2>
-          <p className="text-secondary mt-2">Students and Parents do not have access to the internal messaging system.</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">

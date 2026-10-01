@@ -5,7 +5,6 @@ import {
   Loader2, RefreshCw, MinusCircle, Settings2, CheckCircle2, X, Upload
 } from "lucide-react";
 import { apiClient, CrudDataAPI } from "../services/api";
-import { useRole } from "../contexts/RoleContext";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -47,9 +46,7 @@ const COMPONENTS = [
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function ManageMarks() {
-  const { currentRole } = useRole();
-  const canEdit = ["Faculty", "HOD", "Admin"].includes(currentRole ?? "");
-
+  const canEdit = true;
   const [students, setStudents] = useState<StudentMarksRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -250,16 +247,6 @@ export default function ManageMarks() {
   };
 
   // ─── Render ─────────────────────────────────────────────────────────────
-
-  if (!canEdit) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-        <AlertCircle size={40} className="text-amber-500" />
-        <h2 className="text-xl font-bold text-primary">Access Restricted</h2>
-        <p className="text-secondary text-sm">Only Faculty, HOD, and Admin can manage marks.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
