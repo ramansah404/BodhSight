@@ -1,6 +1,6 @@
 // Isolated Demo Data for Hackathon Fallback
 export const mockDashboard = {
-  as_of_date: "2026-09-11", students_evaluated: 2450, pass_rate: 82.4, average_marks: 68.2, average_gpa: 7.8, failure_rate: 17.6, significant_deviations: 3, data_trust_score: 94,
+  as_of_date: "2026-09-11", students_evaluated: 2450, total_students: 2450, courses_analyzed: 42, active_anomalies: 3, pass_rate: 82.4, average_marks: 68.2, average_gpa: 7.8, failure_rate: 17.6, significant_deviations: 3, data_trust_score: 94, data_source: "demo",
   ingestion_status: { total_records_ingested: 2450, flagged_anomalies: 2, missing_students_detected: 0, impossible_marks_flagged: 2 }
 };
 export const mockCourses = [
@@ -45,7 +45,7 @@ export const mockExceptions = [
   { id: "exc-01", severity: "CRITICAL" as const, title: "Significant pass rate drop in CS301", course_code: "CS301", department: "CSE", current_value: 61.2, baseline_value: 82.0, deviation: -20.8, affected_students: 84, explanation: "Pass rate decreased from 82% to 61.2% uniformly.", evidence: ["Ingestion check verified", "Attribution: University paper difficulty"], recommended_action: "Review grading calibration.", detected_date: "2026-09-11", attribution_root: "Systemic" }
 ];
 export const mockRecommendations = [
-  { anomaly_id: "rec-01", anomaly_type: "Pass Rate Drop", severity: "CRITICAL", priority_score: 0.95, course_code: "CS301", department: "CSE", affected_students: 84, recommended_action: "Organize mandatory remedial labs.", evidence_sources: ["Uniform drop"], generated_at: "2026-09-12T10:00:00Z" }
+  { id: "rec-01", problem: "Pass rate dropped in CS301", evidence: ["Uniform drop across sections"], recommendation: "Organize mandatory remedial labs.", priority: "CRITICAL" as const, expected_impact: "Recover 15-20 percentage points", affected_population: 84, status: "PENDING" as const, course_code: "CS301", department: "CSE" }
 ];
 export const mockSections = [
   { course_code: "CS301", course_name: "Data Structures & Algorithms", section: "A", faculty_name: "Dr. Smith", pass_rate: 65.0, avg_marks: 56.0, gpa: 6.5, disparity_flag: false, contextual_factors: {} },
@@ -55,8 +55,10 @@ export const mockPriorities = [
   { rank: 1, type: "COURSE", id: "CS301", description: "Critical failure rate in CS301", score: 95, recommendations: ["remedial"], status: "PENDING" as const }
 ];
 export const mockCondonationForecast = {
-  at_risk_students_count: 185, 
-  estimated_condonation_revenue: 925000, 
+  at_risk_students: 2450,
+  requiring_condonation: 185,
+  expected_revenue: 925000,
+  academic_impact: 82.4,
   breakdown_by_department: [
     { department: "CSE", count: 50, amount: 250000 },
     { department: "MECH", count: 85, amount: 425000 },

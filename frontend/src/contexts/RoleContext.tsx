@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { AuthAPI } from "../services/api";
+import { getDefaultPermissions } from "../utils/rbac";
 
 export type AppRole = "Faculty" | "HOD" | "Dean" | "Principal" | "Chairman" | "IQAC" | "Admin" | "Student" | "Parent";
 
@@ -55,12 +56,15 @@ export function RoleProvider({ children }: { children: ReactNode }) {
           if (Array.isArray(permsArray)) {
             permsArray.forEach((p: string) => { permMap[p] = true; });
           }
-          setPermissions(permMap);
+          setPermissions(Object.keys(permMap).length > 0 ? permMap : { ...getDefaultPermissions(currentRole) });
           setIsLoading(false);
         }
       } catch (err) {
         console.error("Failed to sync permissions", err);
-        if (mounted) setIsLoading(false);
+        if (mounted) {
+          setPermissions({ ...getDefaultPermissions(currentRole) });
+          setIsLoading(false);
+        }
       }
     };
 

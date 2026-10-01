@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from pydantic import BaseModel, Field
 import bcrypt
 from typing import Optional
@@ -43,7 +44,16 @@ def get_my_permissions(
     if not actual_role:
         return []
     import json
-    row = db.execute(text("SELECT permissions FROM core.role_permissions WHERE role_name = :role"), {"role": actual_role}).fetchone()
+    try:
+        row = db.execute(text("SELECT permissions FROM core.role_permissions WHERE role_name = :role"), {"role": actual_role}).fetchone()
+    except SQLAlchemyError:
+        if actual_role in {"Student", "Parent"}:
+            return ["view_student_dashboard"]
+        return [
+            "view_overview", "view_trends", "view_courses", "view_departments",
+            "view_sections", "view_students", "view_reports", "view_data_hub",
+            "manage_exceptions", "can_send_notifications",
+        ]
     if row and row[0]:
         try:
             return json.loads(row[0]) if isinstance(row[0], str) else row[0]

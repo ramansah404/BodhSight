@@ -26,6 +26,35 @@ interface PortalData {
   demo_total_overall: number; subjects: SubjectResult[];
 }
 
+const DEMO_PORTAL: PortalData = {
+  student_id: "demo-student-001",
+  full_name: "Demo Student",
+  roll_no: "24CSE001",
+  section_code: "A",
+  cgpa: 7.8,
+  attendance_pct: 82,
+  batch_label: "2024-2028",
+  programme_code: "B.Tech",
+  department_code: "CSE",
+  backlog_count: 1,
+  demo_fa1: 17,
+  demo_cla1: 16,
+  demo_fa2: 18,
+  demo_cla2: 15,
+  demo_fa3: 16,
+  demo_cla3: 17,
+  demo_fa4: 18,
+  demo_cla4: 16,
+  demo_cla5: 17,
+  demo_external: 78,
+  demo_internal_overall: 82,
+  demo_total_overall: 80,
+  subjects: [
+    { subject: "Data Structures", code: "CS301", internal: 82, external: 78, total: 80, grade: "A", status: "PASS" },
+    { subject: "Digital Electronics", code: "EC202", internal: 74, external: 68, total: 71, grade: "B+", status: "PASS" },
+  ],
+};
+
 const GRADE_COLORS: Record<string, string> = {
   "O":  "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400",
   "A+": "bg-teal-100 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400",
@@ -74,8 +103,11 @@ export default function StudentDashboard() {
 
   const loadPortal = useCallback(async () => {
     setLoading(true); setError("");
-    try { const res = await apiClient.get("/students/portal/me"); setData(res.data); }
-    catch (e: any) { setError(e?.response?.data?.detail || e.message || "Failed to load portal data"); }
+    try { const res = await apiClient.get("/students/portal/me", { timeout: 4000 }); setData(res.data); }
+    catch (e: any) {
+      setData(DEMO_PORTAL);
+      setError(e?.response?.data?.detail || e.message || "Showing demo portal data");
+    }
     finally { setLoading(false); }
   }, []);
 

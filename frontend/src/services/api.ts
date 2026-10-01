@@ -27,14 +27,15 @@ import {
 } from "../types/agent10";
 import * as Mocks from "./mockData";
 
+const localApiHost = typeof window !== "undefined" ? window.location.hostname : "127.0.0.1";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
-  ?? (import.meta.env.DEV ? "http://localhost:8000/api/v1" : "https://bodhsight.onrender.com/api/v1");
+  ?? (import.meta.env.DEV ? `http://${localApiHost}:8000/api/v1` : "https://bodhsight.onrender.com/api/v1");
 
 export const API_BASE_URL = BASE_URL;
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
-  timeout: 60000,
+  timeout: 10000,
   headers: { "Content-Type": "application/json" },
 });
 
